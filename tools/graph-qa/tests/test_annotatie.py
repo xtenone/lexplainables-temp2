@@ -40,7 +40,7 @@ def test_parse_alternatieven_niet_als_element():
 
 # --- grounding: id's toekennen en verworpen fragmenten teruggeven -------------------------------
 
-from agent.annotatie import _verwerk, _verwerk_critic  # noqa: E402
+from agent.annotatie import _verwerk_critic  # noqa: E402
 
 CORPUS = "De ontvanger kan uitstel van betaling verlenen indien de belastingschuldige in gebreke is."
 

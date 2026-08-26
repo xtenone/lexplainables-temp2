@@ -30,7 +30,11 @@ eis van de opdrachtgever — raak die map niet aan tijdens deze refactor.
   **Twee bekende, niet-architecturale blokkades:** GraphDB heeft hier geen licentie (read/write
   geeft `500 No license was set`; de pipeline is live geverifieerd tot aan die grens) en
   `graph-qa` heeft geen echte LLM-key (boot en degradeert netjes zonder).
-- **Nog open:** CI (`check-migraties`, `check-python-style`, …) bestaat nog niet.
+- **CI** (GitHub Actions, `.github/workflows/`) draait per service: test + stijl-check voor elke
+  dienst, plus `check-migraties` (Alembic upgrade+downgrade) en `check-generated-types`
+  (contract-drift tussen `api/generated` en `frontend/generated`) voor `api/`+`frontend/`.
+- **Nog open:** GraphDB-licentie, LLM-key, en het aansluiten van `frontend/generated/types.ts` op de
+  werkelijke frontend-code (blijft bewust ongebruikt tot de frontend zelf expliciet aan de beurt is).
 
 ## Lokaal draaien
 

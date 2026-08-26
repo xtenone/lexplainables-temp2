@@ -53,3 +53,19 @@ python_files = ["test_*.py"]
 
 [tool.uv]
 package = false
+
+[tool.ruff]
+# Langere regellimiet dan gebruikelijk: de Dutch-taal-uitlegcommentaren in deze codebase (zie
+# werkwijze-CLAUDE.md §Verificatie-principe voor waarom er zoveel staat) lopen vaak over de
+# gangbare 100 heen. `bwb-import` heeft zijn eigen, striktere config (100) — dit is niet
+# hetzelfde project qua schrijfstijl, dus geen gedeelde instelling.
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+# Bewust alleen pyflakes + syntaxfouten (geen I/UP/B/SIM): deze code is nooit tegen ruff
+# geschreven (ook niet in wetsanalyse-ai zelf — er stond hier vóór deze CI-stap geen config).
+# Een breder select zou honderden bestaande regels raken zonder gedragswijziging, puur
+# stijlchurn. Dit select vangt wél echte bugs (ongebruikte imports, dubbele dict-keys,
+# ongedefinieerde namen) — precies wat er bij het opzetten van deze CI ook echt gevonden werd.
+select = ["F", "E9"]

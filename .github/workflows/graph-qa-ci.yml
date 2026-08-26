@@ -1,0 +1,40 @@
+name: graph-qa-ci
+
+# Eén workflow per service (werkwijze-ADR-0016). graph-qa is 1:1 overgenomen uit wetsanalyse-ai
+# (zie docs/project/architectuur/adr/0002-topologie.md) — geen feature-map, wel dezelfde
+# CI-eisen (test + stijl) als de andere services.
+on:
+  pull_request:
+    paths:
+      - "tools/graph-qa/**"
+      - ".github/workflows/graph-qa-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "tools/graph-qa/**"
+      - ".github/workflows/graph-qa-ci.yml"
+
+jobs:
+  test-graph-qa:
+    # -m "not integration": tests die een echte GraphDB/LLM nodig hebben slaan we in CI over
+    # (geen GraphDB-licentie/LLM-key beschikbaar — zie stack-profiel.md §Nog open).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: Tests
+        working-directory: tools/graph-qa
+        run: |
+          uv sync --extra dev
+          uv run pytest -q -m "not integration"
+
+  check-python-style:
+    # Zie tools/graph-qa/pyproject.toml: bewust lenient select (pyflakes + syntax) — deze
+    # ~6200-regelige, 1:1-overgenomen agent is nooit tegen ruff geschreven.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: ruff
+        working-directory: tools/graph-qa
+        run: uv run --no-project --with ruff ruff check .

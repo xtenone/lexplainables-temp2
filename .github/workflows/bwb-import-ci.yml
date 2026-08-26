@@ -1,0 +1,45 @@
+name: bwb-import-ci
+
+# Eén workflow per service (werkwijze-ADR-0016). bwb-import heeft geen [project.dependencies]
+# (alleen requirements.txt), dus `uv sync` werkt hier niet — installeren via `uv pip install`
+# in een expliciet venv.
+on:
+  pull_request:
+    paths:
+      - "tools/bwb-import/**"
+      - ".github/workflows/bwb-import-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "tools/bwb-import/**"
+      - ".github/workflows/bwb-import-ci.yml"
+
+jobs:
+  test-bwb-import:
+    # -m "not integration": tests die een echte GraphDB-instance nodig hebben slaan we in CI over
+    # (geen GraphDB-licentie beschikbaar — zie stack-profiel.md §Nog open).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: Tests
+        working-directory: tools/bwb-import
+        run: |
+          uv venv
+          uv pip install -r requirements.txt
+          .venv/bin/python -m pytest -q -m "not integration"
+
+  check-python-style:
+    # bwb-import heeft zijn eigen, striktere ruff-config (E/F/I/UP/B/SIM @ 100) — pre-existing,
+    # niet iets wat deze CI oplegt.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: ruff
+        working-directory: tools/bwb-import
+        run: |
+          uv venv
+          uv pip install -r requirements.txt
+          .venv/bin/ruff format --check .
+          .venv/bin/ruff check .

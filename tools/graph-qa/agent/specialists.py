@@ -11,8 +11,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .annotatie_prompt import annotatie_systeemprompt
-
 
 @dataclass(frozen=True)
 class Specialist:

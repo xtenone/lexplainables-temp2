@@ -46,6 +46,16 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["agent", "api"]
 
+[tool.ruff]
+# Zelfde afweging als api/pyproject.toml: deze code is nooit tegen ruff geschreven (ook niet in
+# wetsanalyse-ai zelf), dus bewust alleen pyflakes + syntaxfouten — geen bredere stijlchurn over
+# een ~6200-regelige, 1:1-overgenomen agent.
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["F", "E9"]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]

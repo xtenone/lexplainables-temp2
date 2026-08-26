@@ -9,7 +9,6 @@ from httpx import ASGITransport, AsyncClient
 @pytest.fixture
 async def db():
     from app.shared import db as _db
-    from app.features.berichten.models import bericht_leesbewijzen
 
     _db.init_engine("sqlite+aiosqlite://")
     await _db.create_all()

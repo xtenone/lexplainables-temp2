@@ -1,0 +1,99 @@
+name: frontend-ci
+
+# Eén workflow per service (werkwijze-ADR-0016). Ook api/ in de paths: de
+# check-generated-types-job heeft een geïnstalleerde api/ nodig om het OpenAPI-schema te
+# genereren (geen draaiende server — zie api/scripts/genereer-types.sh).
+#
+# frontend/ zelf blijft in deze refactor bewust byte-voor-byte gelijk aan wetsanalyse-ai (zie de
+# projectroot-CLAUDE.md) — deze workflow verandert daar niets aan, hij controleert alleen dat de
+# ongewijzigde checks (lint/typecheck/test/build) blijven slagen.
+on:
+  pull_request:
+    paths:
+      - "frontend/**"
+      - "api/**"
+      - ".github/workflows/frontend-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - "api/**"
+      - ".github/workflows/frontend-ci.yml"
+
+jobs:
+  check-ts-style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - name: npm ci
+        working-directory: frontend
+        run: npm ci
+      - name: eslint + tsc
+        working-directory: frontend
+        run: |
+          npm run lint
+          npm run typecheck
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - name: npm ci
+        working-directory: frontend
+        run: npm ci
+      - name: vitest
+        working-directory: frontend
+        run: npm test
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - name: npm ci
+        working-directory: frontend
+        run: npm ci
+      - name: build
+        working-directory: frontend
+        run: npm run build
+
+  check-generated-types:
+    # Zie werkwijze-ADR-0011/0017: de gegenereerde types moeten overeenkomen met api's
+    # OpenAPI-schema. Draait beide generatiescripts opnieuw en faalt op een diff. Niets in de
+    # frontend gebruikt frontend/generated/types.ts nog (zie CLAUDE.md) — deze check bewaakt
+    # alleen dat het gegenereerde bestand niet stilzwijgend verouderd raakt.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - name: api genereer-types.sh
+        working-directory: api
+        run: |
+          uv sync --extra dev
+          bash scripts/genereer-types.sh
+      - name: frontend genereer-types.sh
+        working-directory: frontend
+        run: |
+          npm ci
+          bash scripts/genereer-types.sh
+      - name: Geen diff toegestaan op gegenereerde bestanden
+        run: git diff --exit-code -- api/generated frontend/generated

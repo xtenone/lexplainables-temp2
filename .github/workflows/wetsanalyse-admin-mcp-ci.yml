@@ -1,0 +1,31 @@
+name: wetsanalyse-admin-mcp-ci
+
+# Eén workflow per service (werkwijze-ADR-0016). Geen testsuite in deze dienst (pre-existing) —
+# de build (tsc) is de enige zinvolle CI-check.
+on:
+  pull_request:
+    paths:
+      - "tools/wetsanalyse-admin-mcp/**"
+      - ".github/workflows/wetsanalyse-admin-mcp-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "tools/wetsanalyse-admin-mcp/**"
+      - ".github/workflows/wetsanalyse-admin-mcp-ci.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: tools/wetsanalyse-admin-mcp/package-lock.json
+      - name: npm ci
+        working-directory: tools/wetsanalyse-admin-mcp
+        run: npm ci
+      - name: build
+        working-directory: tools/wetsanalyse-admin-mcp
+        run: npm run build

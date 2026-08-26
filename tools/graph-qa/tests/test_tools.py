@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from agent import tools
-from agent.graph import schema
 from fakes import FakeGraph, make_settings
 
 EXPECTED = {

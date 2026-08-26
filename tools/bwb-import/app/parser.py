@@ -438,8 +438,7 @@ class ToestandParser:
         uit; geneste subdivisies staan buiten ``./tekst`` en tellen dus niet mee.
         """
         xpath = (
-            "./tekst//al[not(ancestor::li) and not(ancestor::meta-data)"
-            " and not(ancestor::table)]"
+            "./tekst//al[not(ancestor::li) and not(ancestor::meta-data) and not(ancestor::table)]"
         )
         delen = [_tekst_zonder_noot(node) for node in element.xpath(xpath)]
         return re.sub(r"\s+", " ", " ".join(delen)).strip()

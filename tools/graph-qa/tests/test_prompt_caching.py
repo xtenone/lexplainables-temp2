@@ -8,10 +8,8 @@ Zet je die volgorde om, dan is de cache stil waardeloos: geen fout, alleen de vo
 from __future__ import annotations
 
 import asyncio
-import json
 
 import anthropic
-import pytest
 
 from agent.adapters.anthropic_llm import _MIN_CACHE_TEKENS, AnthropicLLM
 from agent.agent import answer_stream

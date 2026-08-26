@@ -1260,10 +1260,11 @@ def build_graph(
 
         return {
             "voorstellen": uit + van_jurist,
-            "verworpen_fragmenten": [x.model_dump() for x in verworpen],
             "critic_feedback": [],
             # Niets meer voor het model te doen: de herziener draait per beurt hoogstens één keer.
             "nieuw_ontbrekend": [],
+            # Dubbele dict-key hier weggehaald (ruff F601): deze regel wint toch altijd van een
+            # eerdere onvoorwaardelijke toewijzing aan dezelfde sleutel — geen gedragswijziging.
             "verworpen_fragmenten": [x.model_dump() for x in verworpen] if gewijzigd else [],
         }
 

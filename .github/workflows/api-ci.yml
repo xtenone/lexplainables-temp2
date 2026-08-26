@@ -1,0 +1,82 @@
+name: api-ci
+
+# Eén workflow per service (werkwijze-ADR-0016) — triggert alleen op wijzigingen binnen api/.
+on:
+  pull_request:
+    paths:
+      - "api/**"
+      - ".github/workflows/api-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - ".github/workflows/api-ci.yml"
+
+jobs:
+  test-api:
+    # Draait de testsuite tegen Postgres (project-ADR-0001: Postgres-only, geen SQLite meer).
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: wetsanalyse
+          POSTGRES_PASSWORD: wetsanalyse
+          POSTGRES_DB: wetsanalyse
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U wetsanalyse -d wetsanalyse"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: Tests
+        working-directory: api
+        run: |
+          uv sync --extra dev
+          uv run pytest -q
+
+  check-python-style:
+    # Zie werkwijze-ADR-0003 + docs/project/architectuur/stack-profiel.md §Codestandaard: bewust
+    # een lenient select (pyflakes + syntax) — deze code is nooit tegen ruff geschreven.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: ruff
+        working-directory: api
+        run: uv run --no-project --with ruff ruff check .
+
+  check-migraties:
+    # Alembic is verplicht zodra een service een productiedatabase heeft (werkwijze-ADR-0005).
+    # Draait upgrade+downgrade tegen Postgres. Elke migratie moet cleanroom toepasbaar zijn.
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: wetsanalyse
+          POSTGRES_PASSWORD: wetsanalyse
+          POSTGRES_DB: wetsanalyse
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U wetsanalyse -d wetsanalyse"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: alembic upgrade + downgrade
+        working-directory: api
+        env:
+          # alembic/env.py leest DATABASE_URL_SYNC (sync-driver, psycopg2).
+          DATABASE_URL_SYNC: "postgresql://wetsanalyse:wetsanalyse@localhost:5432/wetsanalyse"
+        run: |
+          uv sync --extra dev
+          uv run alembic upgrade head
+          uv run alembic downgrade base

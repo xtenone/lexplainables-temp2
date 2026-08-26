@@ -217,7 +217,7 @@ _DATA_PROPS: dict[str, tuple[str, str, tuple[URIRef, ...], URIRef | None]] = {
     "inwerking": ("inwerking", "Datum inwerkingtreding van dit tekstdeel.", (), XSD.date),
     "terugwerkendTot": (
         "terugwerkend tot",
-        "Retroactieve ingangsdatum van de wijziging die dit tekstdeel zijn " "huidige inhoud gaf.",
+        "Retroactieve ingangsdatum van de wijziging die dit tekstdeel zijn huidige inhoud gaf.",
         (),
         XSD.date,
     ),

@@ -82,7 +82,6 @@ def test_agentfout_lekt_geen_interne_details():
     Die horen in het server-log, niet in de browser — de api saniteert de modelprovider-test om
     dezelfde reden.
     """
-    import asyncio
 
     from agent.agent import answer_stream
     from fakes import FakeGraph, make_settings
