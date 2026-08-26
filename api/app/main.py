@@ -12,9 +12,16 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import __version__, db, observability
-from .config import get_settings
-from .routers import admin, annotatie, auth, berichten, catalog, feedback, gesprekken
+from . import __version__
+from .shared import db, observability
+from .shared.config import get_settings
+from .features.annotatie import router as annotatie
+from .features.api_tokens import router as api_tokens
+from .features.berichten import router as berichten
+from .features.feedback import router as feedback
+from .features.gesprekken import router as gesprekken
+from .features.identiteit_toegang import router as identiteit_toegang
+from .features.llm_profielen import router as llm_profielen
 
 # Configureer logging + OpenTelemetry vóór iets anders logt (idempotent; OTel is no-op zonder endpoint).
 observability.setup(get_settings())
@@ -56,16 +63,18 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     # Globale LLM-concurrency-rem instellen (kostenbeheersing tegen zelf-veroorzaakte rate-limits;
     # de admin-verbindingstest is nu de enige LLM-call, maar de rem blijft goedkoop en veilig).
-    from .llm import throttle
+    from .features.llm_profielen.llm import throttle
     throttle.configure(settings.llm_max_concurrency)
     # Async SQLAlchemy-engine + tabellen. In productie zou een migratietool (Alembic) het schema
     # beheren; voor de beproevingsfase volstaat create_all (idempotent: alleen ontbrekende tabellen).
+    # `metadata` kent alle Tables op dit punt omdat elke feature-router hierboven al geïmporteerd is
+    # (elk router.py importeert zijn eigen models.py, dat zijn Table op de gedeelde metadata zet).
     db.init_engine(settings.database_url)
     # create_all (idempotent) met bounded retry — vangt een nog-niet-klare DB bij cold start op
     # (postgres is een aparte stack zonder cross-stack depends_on).
     await _init_db_met_retry()
     try:
-        from . import profiles
+        from .features.llm_profielen import store as profiles
 
         await profiles.ensure_seeded(settings)
     except Exception:  # noqa: BLE001 — seeding mag de start nooit blokkeren
@@ -95,13 +104,18 @@ app.add_middleware(
 observability.instrument_fastapi(app)
 
 # De analyse-pijplijn (/v1/projects) is verwijderd; de API bedient nu het annotatie-domein van de
-# werkplek, het LLM-/gebruikersbeheer en de wet-/profiel-keuzelijsten.
-app.include_router(catalog.router, prefix="/v1")
-app.include_router(admin.router, prefix="/v1")
-app.include_router(auth.router, prefix="/v1")
+# werkplek, het LLM-/gebruikersbeheer en de wet-/profiel-keuzelijsten. Elke feature levert zijn eigen
+# publieke router en, waar van toepassing, een aparte `admin_router` (achter require_admin).
+app.include_router(llm_profielen.router, prefix="/v1")
+app.include_router(llm_profielen.admin_router, prefix="/v1")
+app.include_router(identiteit_toegang.router, prefix="/v1")
+app.include_router(identiteit_toegang.admin_router, prefix="/v1")
+app.include_router(api_tokens.router, prefix="/v1")
 app.include_router(annotatie.router, prefix="/v1")
 app.include_router(berichten.router, prefix="/v1")
+app.include_router(berichten.admin_router, prefix="/v1")
 app.include_router(feedback.router, prefix="/v1")
+app.include_router(feedback.admin_router, prefix="/v1")
 app.include_router(gesprekken.router, prefix="/v1")
 
 
