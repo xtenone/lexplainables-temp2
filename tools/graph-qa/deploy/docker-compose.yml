@@ -1,0 +1,108 @@
+# Portainer-stack voor de graph-qa-agent (de kennisgraaf-QA-agent), intern.
+#
+# De werkplek (frontend /workbench) belt de agent op http://graph-qa:8080/v1/chat (SSE)
+# (server→server over het gedeelde netwerk `wetsanalyse_internal`). GÉÉN host-poort en GÉÉN publieke
+# NPM-host: de agent is bewust alleen intern bereikbaar. De image komt van GHCR
+# (.github/workflows/graph-qa-docker-publish.yml).
+#
+# Stack-omgeving (Portainer, of via CI-stack-update):
+#   GRAPH_QA_IMAGE   — image op digest (CI); handmatig valt 'ie terug op :latest.
+#   WA_NETWORK       — gedeeld netwerk met de API/frontend (default wetsanalyse_internal;
+#                      aangemaakt door deploy/postgres/).
+#   GRAAF_NETWORK    — netwerk van de graphdb-stack (default graphdb_default), voor de MCP.
+#   OBS_NETWORK      — netwerk van de observability-stack (default observability_default).
+#   SECRETS_DIR      — host-pad naar de secrets-map (default /opt/secrets/graph-qa).
+#   AZURE_FOUNDRY_BASE_URL / LLM_MODEL / GRAPHDB_MCP_URL — niet-geheime config.
+#
+# Secrets leven als bestanden op de host in SECRETS_DIR en gaan via *_FILE-variabelen (nooit als
+# plain env in de container/Portainer-UI). Twee bestanden nodig (intern-only → géén chat-secret):
+#   SECRETS_DIR=/opt/secrets/graph-qa; sudo mkdir -p "$SECRETS_DIR"
+#   echo -n "<graphdb-token>"  | sudo tee "$SECRETS_DIR/graphdb_token" >/dev/null
+#   echo -n "<azure-key>"      | sudo tee "$SECRETS_DIR/azure_foundry_api_key" >/dev/null
+#   echo -n "<qa-token>"       | sudo tee "$SECRETS_DIR/qa_api_token" >/dev/null
+#   echo -n "<api-token>"      | sudo tee "$SECRETS_DIR/wetsanalyse_api_token" >/dev/null
+# Die laatste is het token waarmee graph-qa naar de wetsanalyse-api schrijft; hij hoort als eigen
+# client-id in WETSANALYSE_API_TOKENS van de api-stack te staan (`graph-qa:<token>`).
+#   sudo chmod 755 "$SECRETS_DIR"; sudo chmod 644 "$SECRETS_DIR"/*
+# (non-root uid 10001 leest via de "other"-bit → chmod 644.)
+
+services:
+  graph-qa:
+    image: ${GRAPH_QA_IMAGE:-ghcr.io/palmw01/graph-qa:latest}
+    container_name: graph-qa
+    restart: unless-stopped
+    expose:
+      - "8080"
+    environment:
+      # --- config (niet geheim) ---
+      # Intern via de auth-proxy van de graphdb-stack; geen omweg via NPM, geen TLS nodig.
+      GRAPHDB_MCP_URL: ${GRAPHDB_MCP_URL:-http://mcp-auth-proxy:8004/mcp}
+      AZURE_FOUNDRY_BASE_URL: ${AZURE_FOUNDRY_BASE_URL:?zet AZURE_FOUNDRY_BASE_URL in de stack-omgeving}
+      LLM_MODEL: ${LLM_MODEL:-claude-sonnet-4-6}
+      SIMILARITY_INDEX: ${SIMILARITY_INDEX:-bwb_similarity}
+      # Multi-hop decompositie aan (default 1). Simpele vraag → 1 deelvraag, streamt direct zonder
+      # synthese-tax; samengestelde vraag → decompose → per-deelvraag retrieval → synthese.
+      ENABLE_DECOMPOSITION: ${ENABLE_DECOMPOSITION:-1}
+      # Geheugen-checkpointer. Voorrang: een gedeelde Postgres (horizontaal veilig — nodig zodra je
+      # >1 replica draait) zodra het host-bestand checkpoint_db_url bestaat met een
+      # `postgresql://user:pass@postgres:5432/graphqa`-URL; ontbreekt dat bestand, dan valt 'ie terug op
+      # het per-instance SQLite-volume hieronder (single-instance-geheugen — pin dan tot 1 replica).
+      CHECKPOINT_DB_URL_FILE: /run/secrets/checkpoint_db_url
+      CHECKPOINT_DB_PATH: /data/conversations_checkpoints.db
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      # --- secrets via host-bestanden (*_FILE) ---
+      GRAPHDB_TOKEN_FILE: /run/secrets/graphdb_token
+      AZURE_FOUNDRY_API_KEY_FILE: /run/secrets/azure_foundry_api_key
+      # QA_API_TOKEN beschermt de eigen endpoints (/v1/chat, /v1/artikel) — nodig zodra graph-qa
+      # Het host-bestand qa_api_token MOÉT bestaan en niet-leeg zijn (anders valt _read_secret stil
+      # terug op "geen slot" → endpoints open), én de waarde MOET gelijk zijn aan de GRAPH_QA_TOKEN
+      # van de frontend-stack, anders krijgt de werkplek 401. (/health blijft open.)
+      QA_API_TOKEN_FILE: /run/secrets/qa_api_token
+      # Hier legt graph-qa de uitkomst van een beurt vast (chatbericht + annotatiedocument), zodat een
+      # antwoord niet meer afhangt van een browser die blijft kijken. Ontbreekt het host-bestand
+      # wetsanalyse_api_token, dan blijft de werkplek wegschrijven — en dan kost een gesloten tabblad
+      # nog steeds het werk. Let op: mét dit token WEIGERT graph-qa te starten als qa_api_token leeg
+      # is (require_api), want dan zou een open endpoint namens elke gebruiker kunnen schrijven.
+      WETSANALYSE_API_URL: ${WETSANALYSE_API_URL:-http://api:3000}
+      WETSANALYSE_API_TOKEN_FILE: /run/secrets/wetsanalyse_api_token
+      # --- observability (leeg = alleen JSON-logs) ---
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-graph-qa}
+    volumes:
+      - ${SECRETS_DIR:-/opt/secrets/graph-qa}:/run/secrets:ro
+      - graph_qa_data:/data
+    networks:
+      - wetsanalyse
+      - graaf
+      - observability
+    mem_limit: 1g
+    pids_limit: 256
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/health').status==200 else 1)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+networks:
+  # Aangemaakt door de postgres-stack (deploy/postgres/) — die moet dus eerst draaien.
+  wetsanalyse:
+    external: true
+    name: ${WA_NETWORK:-wetsanalyse_internal}
+  # Netwerk van de graphdb-stack, voor de ingebouwde MCP achter de auth-proxy.
+  graaf:
+    external: true
+    name: ${GRAAF_NETWORK:-graphdb_default}
+  # Netwerk van de observability-stack, voor OTLP naar de collector.
+  observability:
+    external: true
+    name: ${OBS_NETWORK:-observability_default}
+
+volumes:
+  graph_qa_data:

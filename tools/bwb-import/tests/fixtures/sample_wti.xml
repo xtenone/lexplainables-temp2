@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wetstechnische-informatie>
+  <meta>
+    <owms:kern xmlns:owms="http://standaarden.overheid.nl/bwb/owms/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:overheid="http://standaarden.overheid.nl/owms/terms/">
+      <dcterms:identifier>BWBR0004770</dcterms:identifier>
+      <dcterms:title xml:lang="nl">Invorderingswet 1990</dcterms:title>
+      <dcterms:type>wet</dcterms:type>
+      <overheid:authority>Financiën</overheid:authority>
+    </owms:kern>
+  </meta>
+  <algemene-informatie gegenereerd="2026-01-01T00:00:00">
+    <eerstverantwoordelijke>Financiën</eerstverantwoordelijke>
+    <afkortingen>
+      <afkorting>IW</afkorting>
+      <afkorting>IW 1990</afkorting>
+    </afkortingen>
+    <niet-officiele-titels>
+      <niet-officiele-titel>Invorderingswet</niet-officiele-titel>
+    </niet-officiele-titels>
+    <citeertitel status="officieel">Invorderingswet 1990</citeertitel>
+    <soort-regeling>wet</soort-regeling>
+    <identificatienummer>BWBR0004770</identificatienummer>
+    <rechtsgebieden>
+      <rechtsgebied>
+        <hoofdgebied>Belastingrecht</hoofdgebied>
+        <specifiekgebied>Invordering</specifiekgebied>
+      </rechtsgebied>
+      <rechtsgebied>
+        <hoofdgebied>Bestuursrecht</hoofdgebied>
+      </rechtsgebied>
+    </rechtsgebieden>
+    <overheidsdomeinen>
+      <overheidsdomein>Belastingen</overheidsdomein>
+    </overheidsdomeinen>
+  </algemene-informatie>
+  <gerelateerde-regelgeving gegenereerd="2026-01-01T00:00:00">
+    <regeling>
+      <grondslagen>
+        <grondslag bwb-id="BWBR0002320" geldig-van="1990-06-01" geldig-tot="" zichtbaar-van="1990-06-01" zichtbaar-tot="">
+          <extref doc="1.0:c:BWBR0002320" bwb-id="BWBR0002320">Algemene wet inzake rijksbelastingen</extref>
+        </grondslag>
+      </grondslagen>
+      <wetsfamilie>
+        <gerelateerde-regeling bwb-id="BWBR0005537" geldig-van="1994-01-01" geldig-tot="" zichtbaar-van="1994-01-01" zichtbaar-tot="">
+          <extref doc="1.0:c:BWBR0005537" bwb-id="BWBR0005537">Algemene wet bestuursrecht</extref>
+        </gerelateerde-regeling>
+      </wetsfamilie>
+    </regeling>
+    <regelingelementen>
+      <regelingelement label-id="2910574" groep="artikel" label="Artikel 2">
+        <grondslag-voor>
+          <gerelateerde-regeling bwb-id="BWBR0047713" geldig-van="2023-01-01" geldig-tot="9999-12-31">
+            <extref doc="jci1.3:c:BWBR0047713" bwb-id="BWBR0047713">Eindejaarsregeling 2022</extref>
+          </gerelateerde-regeling>
+        </grondslag-voor>
+        <verwijzing-door>
+          <gerelateerd-regelingelement bwb-id="BWBR0002126" label-id="2596554" geldig-van="2002-01-01" geldig-tot="9999-12-31">
+            <extref doc="jci1.3:c:BWBR0002126&amp;artikel=15" bwb-id="BWBR0002126" label-id="2596554">15</extref>
+          </gerelateerd-regelingelement>
+        </verwijzing-door>
+      </regelingelement>
+    </regelingelementen>
+  </gerelateerde-regelgeving>
+</wetstechnische-informatie>

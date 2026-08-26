@@ -1,0 +1,17 @@
+# Secrets & lokale test
+.env
+_test_agent.py
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Runtime-artefacten
+conversations.db
+*.db
+*.db-wal
+*.db-shm

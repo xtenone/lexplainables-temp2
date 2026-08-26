@@ -1,0 +1,20 @@
+{"question": "Wat zijn de invorderingstermijnen bij belastingen?", "expected_sources": ["BWBR0004770"], "expected_contains": ["artikel 9"], "should_refuse": false}
+{"question": "Welke regelingen zitten er in de kennisgraaf?", "expected_contains": ["Invorderingswet 1990", "Algemene wet bestuursrecht"], "should_refuse": false}
+{"question": "Binnen welke termijn is een naheffingsaanslag invorderbaar?", "expected_sources": ["BWBR0004770"], "expected_contains": ["14 dagen"], "should_refuse": false}
+{"question": "Welke soort regeling is de Leidraad Invordering 2008?", "expected_sources": ["BWBR0024096"], "expected_contains": ["beleidsregel"], "should_refuse": false}
+{"question": "Wie heeft de Invorderingswet 1990 ondertekend?", "expected_sources": ["BWBR0004770"], "should_refuse": false}
+{"question": "Wat is het weer vandaag?", "should_refuse": true}
+{"question": "Wat geldt er als iemand zijn belasting niet op tijd betaalt?", "expected_sources": ["BWBR0004770"], "should_refuse": false, "requires": "semantic"}
+{"question": "Kan de ontvanger een betalingsregeling weigeren?", "expected_sources": ["BWBR0024096"], "should_refuse": false, "requires": "semantic"}
+{"question": "Wat is een belastingschuldige en binnen welke termijn is een naheffingsaanslag invorderbaar?", "expected_sources": ["BWBR0004770"], "expected_contains": ["belastingschuldige", "14 dagen"], "should_refuse": false, "requires": "multihop"}
+{"question": "Welke soort regeling is de Leidraad Invordering 2008, en welke wet regelt de invordering van rijksbelastingen?", "expected_sources": ["BWBR0024096", "BWBR0004770"], "expected_contains": ["beleidsregel", "Invorderingswet 1990"], "should_refuse": false, "requires": "multihop"}
+# Brede onderwerp-vraag. Op dev bleek de antwoordroute hier een lijstje "voorgestelde JAS-klassen"
+# onder te zetten met zelfbedachte labels (art36-IW, betalingsonmacht-melding). Die klassen bestaan
+# niet: de dertien staan vast, en de klassecontrole zit alleen in de annotatieroute. `verboden` vangt
+# dat af — in een ANTWOORD hoort geen JAS-klasse voor te komen, ook niet als suggestie.
+{"question": "alles over aansprakelijkheid van de bestuurder", "expected_sources": ["BWBR0004770"], "expected_contains": ["artikel 36"], "verboden": ["JAS-klasse"], "should_refuse": false}
+# Een wet die NIET in de graaf zit, maar wel wetgeving is. Dit hoort geen afwijzing te worden: de
+# supervisor heeft geen tools en kan dus niet weten wat er in de graaf staat. Art. 36 IW 1990 noemt
+# de Wet belastingen op milieugrondslag, dus er is zelfs iets aangrenzends te vinden. `should_refuse`
+# staat daarom op false: er horen bronnen te komen, ook als het antwoord "dat staat er niet in" is.
+{"question": "wat is bekend over het milieu in de milieuwet?", "should_refuse": false}

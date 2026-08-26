@@ -18,21 +18,25 @@ eis van de opdrachtgever — raak die map niet aan tijdens deze refactor.
 - **`api/`** is herstructureerd naar `app/shared/` + `app/features/<domein>/
   {models.py,store.py,router.py,tests/}` voor identiteit_toegang, api_tokens, llm_profielen,
   annotatie, gesprekken, berichten, feedback. Gedrag ongewijzigd t.o.v. `wetsanalyse-ai` — dit
-  was een verplaatsing, geen herimplementatie. Alle tests slagen; end-to-end geverifieerd tegen
-  een lokale Postgres via de echte frontend.
-- **Alembic-migraties** en **contractgeneratie** (`scripts/genereer-types.sh` → OpenAPI →
-  `frontend/generated/types.ts`) zijn ingericht — zie stack-profiel.md §Migraties/
-  §Contractgeneratie. De frontend gebruikt de gegenereerde types nog niet (zie de harde eis
-  hierboven); dat volgt pas als de frontend zelf aan de beurt is.
-- **`frontend/`** is 1:1 overgenomen van `wetsanalyse-ai` en blijft dat.
-- **Nog niet in deze repo:** `graph-qa` (de "Lex"-agent), GraphDB, `tools/bwb-import`,
-  `tools/wetsanalyse-admin-mcp`. Zonder deze werkt login/beheer/instellingen volledig, maar de
-  werkplek-chat zelf niet — zie `docs/project/architectuur/adr/0002-topologie.md`.
+  was een verplaatsing, geen herimplementatie. Alembic-migraties + contractgeneratie
+  (`scripts/genereer-types.sh` → OpenAPI → `frontend/generated/types.ts`) zijn ingericht. Alle
+  tests slagen; end-to-end geverifieerd tegen een lokale Postgres via de echte frontend.
+- **`frontend/`** is 1:1 overgenomen van `wetsanalyse-ai` en blijft dat. Gebruikt de gegenereerde
+  types nog niet — dat volgt pas als de frontend zelf expliciet aan de beurt is.
+- **`tools/graph-qa/`** (de "Lex"-agent), **`tools/bwb-import/`** (ETL naar de kennisgraaf),
+  **`deploy/graphdb/`** en **`tools/wetsanalyse-admin-mcp/`** zijn overgenomen — `graph-qa` en
+  `wetsanalyse-admin-mcp` 1:1, `bwb-import` grotendeels ongewijzigd (een lineaire ETL-pipeline
+  heeft geen feature-map nodig). Zie `docs/project/architectuur/adr/0002-topologie.md`.
+  **Twee bekende, niet-architecturale blokkades:** GraphDB heeft hier geen licentie (read/write
+  geeft `500 No license was set`; de pipeline is live geverifieerd tot aan die grens) en
+  `graph-qa` heeft geen echte LLM-key (boot en degradeert netjes zonder).
 - **Nog open:** CI (`check-migraties`, `check-python-style`, …) bestaat nog niet.
 
 ## Lokaal draaien
 
-Zie `api/README.md`/`api/CLAUDE.md` en `frontend/README.md` voor de operationele details per
-service. Kort: PostgreSQL lokaal via podman (geen Docker beschikbaar in de dev-sandbox waar dit
-project tot nu toe in ontwikkeld is), `cd api && uv run alembic upgrade head` vóór de eerste
-start, dan `uv run uvicorn app.main:app --port 3000` en `cd frontend && npm run dev`.
+Zie `api/README.md`/`api/CLAUDE.md`, `frontend/README.md`, `tools/graph-qa/README.md`,
+`tools/bwb-import/README.md` voor de operationele details per service. Kort: Postgres + GraphDB
+lokaal via podman (geen Docker beschikbaar in de dev-sandbox waar dit project tot nu toe in
+ontwikkeld is; `docker.io/library/postgres:16` resp. `docker.io/ontotext/graphdb:11.4.0`),
+`cd api && uv run alembic upgrade head` vóór de eerste start van de API, dan per service zijn
+eigen dev-server (`uvicorn`/`npm run dev`/`uv run uvicorn api.main:app`).

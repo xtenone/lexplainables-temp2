@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<toestand bwb-id="BWBR0098888" inwerkingtreding="2026-01-01">
+  <wetgeving soort="ministeriele-regeling">
+    <intitule>Regeling van 30 mei 1990, ter uitvoering van de Testwet</intitule>
+    <citeertitel>Testuitvoeringsregeling 1990</citeertitel>
+    <meta-data>
+      <brondata>
+        <oorspronkelijk>
+          <publicatie soort="Stcrt">
+            <publicatiejaar>1990</publicatiejaar>
+            <publicatienr>103</publicatienr>
+          </publicatie>
+        </oorspronkelijk>
+      </brondata>
+    </meta-data>
+    <regeling>
+      <aanhef>
+        <wie>De Staatssecretaris van Financiën, </wie>
+        <considerans>
+          <considerans.al>Gelet op
+            <extref bwb-id="BWBR0004770" doc="jci1.3:c:BWBR0004770&amp;artikel=31">artikel 31 van de
+            Invorderingswet 1990</extref>; </considerans.al>
+        </considerans>
+        <afkondiging>
+          <al>Besluit: </al>
+        </afkondiging>
+      </aanhef>
+      <regeling-tekst>
+        <hoofdstuk bwb-ng-variabel-deel="/HoofdstukI" label="Hoofdstuk I"
+            inwerking="1990-06-01" bron="Stcrt.1990-103" effect="nieuwe-regeling" status="goed">
+          <kop><label>Hoofdstuk</label><nr>I</nr><titel>Algemene bepalingen</titel></kop>
+          <artikel bwb-ng-variabel-deel="/HoofdstukI/Artikel1" label="Artikel 1"
+              inwerking="1990-06-01" bron="Stcrt.1990-103" effect="nieuwe-regeling" status="goed">
+            <kop><label>Artikel</label><nr>1</nr></kop>
+            <lid bwb-ng-variabel-deel="/HoofdstukI/Artikel1/Lid1">
+              <lidnr>1</lidnr>
+              <al>Deze regeling geeft uitvoering aan
+                <extref bwb-id="BWBR0004770" doc="jci1.3:c:BWBR0004770&amp;artikel=31">artikel 31
+                van de Invorderingswet 1990</extref>.</al>
+              <meta-data><jcis><jci versie="1.3"
+                verwijzing="jci1.3:c:BWBR0098888&amp;hoofdstuk=I&amp;artikel=1&amp;lid=1&amp;z=2026-01-01&amp;g=2026-01-01"
+                onderdeel="lid=1"/></jcis></meta-data>
+            </lid>
+            <meta-data><jcis><jci versie="1.3"
+              verwijzing="jci1.3:c:BWBR0098888&amp;hoofdstuk=I&amp;artikel=1&amp;z=2026-01-01&amp;g=2026-01-01"
+              onderdeel="artikel=1"
+              korte-verwijzing="jci1.3:c:BWBR0098888&amp;artikel=1"/></jcis></meta-data>
+          </artikel>
+        </hoofdstuk>
+      </regeling-tekst>
+      <regeling-sluiting/>
+    </regeling>
+  </wetgeving>
+</toestand>

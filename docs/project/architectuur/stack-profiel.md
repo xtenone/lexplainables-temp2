@@ -12,17 +12,26 @@ niet iets wat deze werkwijze oplegt. Alleen de backend (`api/`) volgt vanaf nu d
 
 ## Topologie
 
-Op dit moment twee services in deze repo:
+Zes services, vastgelegd in [ADR-0002](adr/0002-topologie.md):
 
 | Service | Map | Verantwoordelijk voor | Praat met |
 |---|---|---|---|
 | `api` | `api/` | Login/gebruikersbeheer, LLM-modelprofielen, genereerbare API-tokens, het JAS-annotatiedomein van de werkplek, chatgeschiedenis (gesprekken), berichten (release notes), gebruikersfeedback | eigen database (PostgreSQL) |
-| `frontend` | `frontend/` | Hoofdwebapp (BFF) — **ongewijzigd overgenomen van `wetsanalyse-ai`, blijft dat** | `api`, en rechtstreeks `graph-qa` (SSE, buiten `api` om — zie hieronder) |
+| `frontend` | `frontend/` | Hoofdwebapp (BFF) — **ongewijzigd overgenomen van `wetsanalyse-ai`, blijft dat** | `api`, en rechtstreeks `graph-qa` (SSE, buiten `api` om) |
+| `graph-qa` | `tools/graph-qa/` | QA-/annotatie-agent ("Lex") — **1:1 overgenomen, niet intern herstructureerd** (expliciete keuze, geen scope-beperking zoals bij `frontend`: dit is gewoon geen prioriteit geweest) | GraphDB (direct, MCP), optioneel `api` (persisteert een "beurt") |
+| `tools/bwb-import` | `tools/bwb-import/` | ETL: BWB-wetteksten → GraphDB-kennisgraaf. Geen LLM-dependency. **Grotendeels ongewijzigd overgenomen** — een lineaire ETL-pipeline heeft geen meerdere domeinen om vertical te slicen, dus de feature-map-vorm is hier niet zinvol toegepast | overheid.nl (SRU + repository), GraphDB |
+| `deploy/graphdb` | `deploy/graphdb/` | GraphDB-deployconfig (geen eigen applicatiecode — third-party image `ontotext/graphdb:11.4.0`) | — |
+| `tools/wetsanalyse-admin-mcp` | `tools/wetsanalyse-admin-mcp/` | stdio-MCP die `api`'s `/v1/admin/*` ontsluit voor gebruik vanuit Claude Code. **1:1 overgenomen** | `api` |
 
-**Nog niet in deze repo** (bestaan wel in `wetsanalyse-ai` zelf, en zijn nodig voor de
-chat/annotatie-functie om echt iets te doen — dit is openstaand werk, geen architectuurkeuze):
-`graph-qa` (de "Lex"-QA-/annotatie-agent), de GraphDB-kennisgraaf, `tools/bwb-import` (ETL naar
-die graaf) en `tools/wetsanalyse-admin-mcp`. Zolang die ontbreken werkt login/beheer/instellingen
+Communicatie: synchroon HTTP/SPARQL/MCP. Geen events.
+
+**Bekende, niet-architecturale blokkade:** GraphDB heeft hier geen licentie (Ontotext-licentie
+niet bij de hand op het moment van opzetten) — de repository-aanmaak werkt, maar élke read/write
+op data geeft `500 No license was set`. `bwb-import`'s volledige pipeline (SRU-discovery →
+download → XSD-validatie → parsen) is live geverifieerd tot aan die laatste schrijfstap; met een
+geldige licentie is het een kwestie van `python main.py <bwb-id>` opnieuw draaien. `graph-qa` boot
+en degradeert netjes (`"Ik kon de modelprovider niet bereiken"`) zonder LLM-key — dat is een
+aparte, eveneens niet-architecturale blokkade.
 volledig, maar levert de werkplek-chat zelf niets op.
 
 Communicatie: synchroon HTTP. Geen events.
@@ -105,7 +114,8 @@ bestaande, rijkere wetsanalyse-ai-gedrag behouden, niet vervangen.
 `api/app/features/llm_profielen/llm/`: `LLMClient`-protocol + LiteLLM-implementatie + een
 proces-globale concurrency-throttle. Ongewijzigd overgenomen gedrag — de enige LLM-call in `api`
 is de admin-verbindingstest; de daadwerkelijke chat/annotatie-LLM-aanroepen horen bij `graph-qa`
-(nog niet in deze repo, zie §Topologie).
+(`tools/graph-qa/agent/adapters/anthropic_llm.py`, 1:1 overgenomen, eigen Anthropic/Azure AI
+Foundry-adapter, los van `api`'s LiteLLM-laag).
 
 ## Observability
 
@@ -124,14 +134,19 @@ BFF-routes (`app/api/**`) en met `graph-qa` rechtstreeks voor de live chat-SSE.
 
 ## Codestandaard
 
-`ruff` voor `api` (nog niet in CI gewired — open punt). `frontend` behoudt zijn eigen, ongewijzigde
-`eslint`/`prettier`-config van `wetsanalyse-ai`.
+`ruff` voor `api`, `graph-qa` en `bwb-import` (nog niet in CI gewired — open punt, eigen
+`ruff`-config per service, ongewijzigd overgenomen). `frontend` en `wetsanalyse-admin-mcp`
+behouden hun eigen, ongewijzigde `eslint`/`tsc`-config van `wetsanalyse-ai`.
 
 ## Nog open (bewust niet in deze stap)
 
 - CI (`check-migraties`, `check-generated-types`, `check-python-style`, …) — nog geen workflows.
-- `graph-qa` + GraphDB + `tools/bwb-import` — de daadwerkelijke chat/annotatie-functionaliteit.
+- Een GraphDB-licentie toepassen (zie §Topologie) — zonder die staat de graaf read-only en levert
+  `bwb-import`/`graph-qa` geen echte data.
+- Een echte LLM-key voor `graph-qa` (Azure AI Foundry) — zonder die boot de dienst wel, maar elke
+  chat/annotatie-aanroep faalt netjes.
 - Frontend aanpassen om `frontend/generated/types.ts` daadwerkelijk te gebruiken.
 - Deploy-configuratie (Dockerfile/compose) aanpassen aan de nieuwe structuur — het huidige
   `api/Dockerfile` is bijgewerkt om `alembic upgrade head` vóór het opstarten te draaien, maar
-  deploy-targets/secrets-provisioning zijn verder ongewijzigd overgenomen.
+  deploy-targets/secrets-provisioning zijn verder ongewijzigd overgenomen. `graph-qa`/
+  `bwb-import`/`deploy/graphdb` zijn lokaal draaiend geverifieerd, niet als productie-stack.

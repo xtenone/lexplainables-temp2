@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<toestand bwb-id="BWBR0000002" inwerkingtreding="2026-01-01">
+  <wetgeving soort="wet">
+    <intitule>Wet met een tarieventabel en een voetnoot (testfixture)</intitule>
+    <citeertitel>Tabelwet</citeertitel>
+    <wet-besluit>
+      <wettekst>
+        <hoofdstuk bwb-ng-variabel-deel="/HoofdstukI">
+          <kop><label>Hoofdstuk</label><nr>I</nr><titel>Tarieven</titel></kop>
+          <artikel bwb-ng-variabel-deel="/HoofdstukI/Artikel1">
+            <kop><label>Artikel</label><nr>1</nr></kop>
+            <al>De tarieven staan in de volgende tabel<noot type="voet"><noot.nr>1</noot.nr><noot.al>Deze voetnoot hoort niet in de lopende tekst.</noot.al></noot>:</al>
+            <table>
+              <title>Tarieventabel</title>
+              <tgroup cols="2">
+                <colspec colname="c1"/>
+                <colspec colname="c2"/>
+                <thead>
+                  <row><entry>Categorie</entry><entry>Tarief</entry></row>
+                </thead>
+                <tbody>
+                  <row><entry>A</entry><entry><al>10%</al></entry></row>
+                  <row><entry>B</entry><entry>20%</entry></row>
+                </tbody>
+              </tgroup>
+            </table>
+          </artikel>
+        </hoofdstuk>
+      </wettekst>
+    </wet-besluit>
+  </wetgeving>
+</toestand>

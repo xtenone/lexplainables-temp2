@@ -1,0 +1,22 @@
+[project]
+name = "bwb-import"
+version = "0.1.0"
+description = "ETL voor het Basiswettenbestand (BWB) naar GraphDB (RDF/SPARQL)"
+requires-python = ">=3.13"
+
+[tool.black]
+line-length = 100
+target-version = ["py313"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: tests die een echte GraphDB-instance vereisen (standaard geskipt)",
+]

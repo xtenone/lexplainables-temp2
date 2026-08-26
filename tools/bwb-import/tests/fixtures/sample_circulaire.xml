@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<toestand bwb-id="BWBR0099999" inwerkingtreding="2020-01-01">
+  <wetgeving soort="circulaire">
+    <intitule>Test-circulaire</intitule>
+    <citeertitel>Testleidraad 2020</citeertitel>
+    <meta-data>
+      <brondata>
+        <oorspronkelijk>
+          <publicatie soort="Stcrt">
+            <publicatiejaar>2020</publicatiejaar>
+            <publicatienr>1</publicatienr>
+          </publicatie>
+        </oorspronkelijk>
+      </brondata>
+    </meta-data>
+    <circulaire>
+      <circulaire-tekst>
+        <circulaire.divisie bwb-ng-variabel-deel="/Circulaire.divisie1" label="Artikel 1"
+            inwerking="2020-01-01" bron="Stcrt.2020-1" effect="nieuwe-regeling" status="goed">
+          <kop><label>Artikel</label><nr>1</nr><titel>Inleiding</titel></kop>
+          <tekst>
+            <al>Deze leidraad ziet op
+              <extref bwb-id="BWBR0004770" doc="jci1.3:c:BWBR0004770&amp;artikel=4">artikel 4
+              Invorderingswet</extref>.</al>
+            <lijst>
+              <li>
+                <li.nr>a.</li.nr>
+                <al>een onderdeel met
+                  <extref bwb-id="BWBR0002320" doc="jci1.3:c:BWBR0002320&amp;artikel=1">artikel 1
+                  Awr</extref></al>
+              </li>
+            </lijst>
+          </tekst>
+          <circulaire.divisie bwb-ng-variabel-deel="/Circulaire.divisie1/Circulaire.divisie1.1"
+              label="Artikel 1.1">
+            <kop><label>Paragraaf</label><nr>1.1</nr><titel>Nadere uitwerking</titel></kop>
+            <tekst>
+              <al>De subtekst verwijst naar
+                <extref bwb-id="BWBR0004770" doc="jci1.3:c:BWBR0004770&amp;artikel=19">artikel 19</extref>.</al>
+            </tekst>
+            <meta-data>
+              <jcis><jci verwijzing="jci1.3:c:BWBR0099999&amp;artikel=1.1"/></jcis>
+            </meta-data>
+          </circulaire.divisie>
+          <meta-data>
+            <jcis><jci verwijzing="jci1.3:c:BWBR0099999&amp;artikel=1"/></jcis>
+          </meta-data>
+        </circulaire.divisie>
+      </circulaire-tekst>
+    </circulaire>
+  </wetgeving>
+</toestand>

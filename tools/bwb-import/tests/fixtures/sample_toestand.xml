@@ -1,0 +1,240 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<toestand xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bwb-ng-vast-deel="http://wetten.overheid.nl/id/BWBR0004770/2026-01-01/0" xsi:noNamespaceSchemaLocation="https://repository.officiele-overheidspublicaties.nl/Schema/BWB-toestand/2016-1/xsd/toestand_2016-1.xsd" bwb-id="BWBR0004770" inwerkingtreding="2026-01-01"><bwb-inputbestand/><bwb-wijzigingen/><redactionele-correcties/><wetgeving dtdversie="2.0" soort="wet" xml:lang="nl" stam-id="2961563" versie-id="24936392" id="C35664511" label-id="2911504" inwerkingtredingsdatum="2018-02-21">
+  <intitule bwb-ng-variabel-deel="/Intitule" stam-id="2961593" versie-id="4575372" id="C4575371" label-id="2910534" inwerking="1990-06-01" bron="Stb.1990-221" effect="nieuwe-regeling" ondertekening_bron="1990-05-30" publicatie_iwt="1990-05-31" status="goed">Wet van 30 mei 1990, inzake invordering van rijksbelastingen, andere dan invoerrechten en accijnzen <meta-data><brondata><oorspronkelijk><publicatie effect="nieuwe-regeling" soort="Stb" urlidentifier=""><publicatiejaar>1990</publicatiejaar><publicatienr>221</publicatienr><ondertekeningsdatum isodatum="1990-05-30">30-05-1990</ondertekeningsdatum><dossierref dossier="20588">20588</dossierref></publicatie></oorspronkelijk><inwerkingtreding><publicatie effect="nieuwe-regeling" soort="Stb" urlidentifier=""><publicatiejaar>1990</publicatiejaar><publicatienr>222</publicatienr><uitgiftedatum isodatum="1990-05-31">31-05-1990</uitgiftedatum><ondertekeningsdatum isodatum="1990-05-30">30-05-1990</ondertekeningsdatum><dossierref dossier="21135">21135</dossierref></publicatie><inwerkingtreding.datum isodatum="1990-06-01">01-06-1990</inwerkingtreding.datum></inwerkingtreding></brondata></meta-data></intitule>
+  <citeertitel bwb-ng-variabel-deel="/Citeertitel" status="officieel" stam-id="2961603" versie-id="4575382" id="C4575381" label-id="2910544" inwerking="1990-06-01" bron="Stb.1990-221" effect="nieuwe-regeling" ondertekening_bron="1990-05-30" publicatie_iwt="1990-05-31">Invorderingswet 1990<meta-data><brondata><oorspronkelijk><publicatie effect="nieuwe-regeling" soort="Stb" urlidentifier=""><publicatiejaar>1990</publicatiejaar><publicatienr>221</publicatienr><ondertekeningsdatum isodatum="1990-05-30">30-05-1990</ondertekeningsdatum><dossierref dossier="20588">20588</dossierref></publicatie></oorspronkelijk><inwerkingtreding><publicatie effect="nieuwe-regeling" soort="Stb" urlidentifier=""><publicatiejaar>1990</publicatiejaar><publicatienr>222</publicatienr><uitgiftedatum isodatum="1990-05-31">31-05-1990</uitgiftedatum><ondertekeningsdatum isodatum="1990-05-30">30-05-1990</ondertekeningsdatum><dossierref dossier="21135">21135</dossierref></publicatie><inwerkingtreding.datum isodatum="1990-06-01">01-06-1990</inwerkingtreding.datum></inwerkingtreding></brondata></meta-data></citeertitel>
+  <wet-besluit>
+    <aanhef bwb-ng-variabel-deel="/Aanhef" stam-id="2961613" versie-id="4575392" id="C4575391" label-id="2910554" inwerking="1990-06-01" bron="Stb.1990-221" effect="nieuwe-regeling" ondertekening_bron="1990-05-30" publicatie_iwt="1990-05-31" status="goed">
+  <wij>Wij Beatrix, bij de gratie Gods, Koningin der Nederlanden, Prinses van Oranje-Nassau, enz. enz. enz. </wij>
+  <considerans>
+    <considerans.al>Allen, die deze zullen zien of horen lezen, saluut! doen te weten: </considerans.al>
+    <considerans.al>Alzo Wij in overweging genomen hebben, dat het wenselijk is de wet van 22 mei 1845 (<nadruk type="cur">Stb.</nadruk> 1926, 334) op de invordering van ’s Rijks directe belastingen te vervangen door een meer overzichtelijke en op verschillende punten herziene wet; </considerans.al>
+  </considerans>
+  <afkondiging>
+    <al>Zo is het, dat Wij, de Raad van State gehoord, en met gemeen overleg der Staten-Generaal, hebben goedgevonden en verstaan, gelijk Wij goedvinden en verstaan bij deze: </al>
+  </afkondiging>
+<meta-data><brondata><oorspronkelijk><publicatie effect="nieuwe-regeling" soort="Stb" urlidentifier=""><publicatiejaar>1990</publicatiejaar><publicatienr>221</publicatienr><ondertekeningsdatum isodatum="1990-05-30">30-05-1990</ondertekeningsdatum><dossierref dossier="20588">20588</dossierref></publicatie></oorspronkelijk><inwerkingtreding><publicatie effect="nieuwe-regeling" soort="Stb" urlidentifier=""><publicatiejaar>1990</publicatiejaar><publicatienr>222</publicatienr><uitgiftedatum isodatum="1990-05-31">31-05-1990</uitgiftedatum><ondertekeningsdatum isodatum="1990-05-30">30-05-1990</ondertekeningsdatum><dossierref dossier="21135">21135</dossierref></publicatie><inwerkingtreding.datum isodatum="1990-06-01">01-06-1990</inwerkingtreding.datum></inwerkingtreding></brondata></meta-data></aanhef>
+    <wettekst>
+      <hoofdstuk bwb-ng-variabel-deel="/HoofdstukI" stam-id="2961693" versie-id="26338652" id="C37435231" label-id="2910634" inwerking="2019-12-18" label="Hoofdstuk I" bron="Stb.2019-512" effect="structuurwijziging" ondertekening_bron="2019-12-18" publicatie_bron="2019-12-27" publicatie_iwt="2019-12-27" status="goed">
+  <kop>
+    <label>Hoofdstuk</label>
+    <nr status="officieel">I</nr>
+    <titel status="officieel">Algemene bepalingen </titel>
+  </kop><artikel bwb-ng-variabel-deel="/HoofdstukI/Artikel1" code="a-1" stam-id="2961623" versie-id="16495132" id="C23912411" label-id="2910564" inwerking="2009-07-01" label="Artikel 1" bron="Stb.2009-265" effect="wijziging" ondertekening_bron="2009-06-25" publicatie_bron="2009-06-30" publicatie_iwt="2009-06-30" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">1</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/HoofdstukI/Artikel1/Lid1" label-id="2910564L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Deze wet geldt bij de invordering van rijksbelastingen.</al>
+  <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=1&amp;lid=1&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="lid=1"/></jcis></meta-data></lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukI/Artikel1/Lid2" label-id="2910564L2">
+    <lidnr status="officieel">2</lidnr>
+    <al> Op deze wet zijn <extref verwijzing-id="1449420" doc="jci1.3:c:BWBR0005537&amp;artikel=3:40" bwb-id="BWBR0005537" label-id="2814634">artikel 3:40</extref>, <extref verwijzing-id="2282613" doc="jci1.3:c:BWBR0005537&amp;titeldeel=4.1" bwb-id="BWBR0005537" label-id="2814954,2819924,2819974">titels 4.1 tot en met 4.3</extref>, <extref verwijzing-id="2282614" doc="jci1.3:c:BWBR0005537&amp;artikel=4:125" bwb-id="BWBR0005537" label-id="10067134">artikel 4:125</extref>, <extref verwijzing-id="2282615" doc="jci1.3:c:BWBR0005537&amp;titeldeel=5.2" bwb-id="BWBR0005537" label-id="10067344">titel 5.2</extref>, de <extref verwijzing-id="1449423" doc="jci1.3:c:BWBR0005537&amp;hoofdstuk=6" bwb-id="BWBR0005537" label-id="2815234">hoofdstukken 6</extref> en <extref verwijzing-id="1449424" doc="jci1.3:c:BWBR0005537&amp;hoofdstuk=7" bwb-id="BWBR0005537" label-id="2815564">7</extref> en <extref verwijzing-id="1449425" doc="jci1.3:c:BWBR0005537&amp;afdeling=10.2.1" bwb-id="BWBR0005537" label-id="2820644">afdeling 10.2.1 van de Algemene wet bestuursrecht</extref> niet van toepassing. </al>
+  <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=1&amp;lid=2&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="lid=2"/></jcis></meta-data></lid>
+<meta-data><brondata><oorspronkelijk><publicatie effect="wijziging" soort="Stb" urlidentifier="stb-2009-265"><publicatiejaar>2009</publicatiejaar><publicatienr>265</publicatienr><uitgiftedatum isodatum="2009-06-30">30-06-2009</uitgiftedatum><ondertekeningsdatum isodatum="2009-06-25">25-06-2009</ondertekeningsdatum><dossierref dossier="31124">31124</dossierref></publicatie></oorspronkelijk><inwerkingtreding><publicatie effect="wijziging" soort="Stb" urlidentifier="stb-2009-266"><publicatiejaar>2009</publicatiejaar><publicatienr>266</publicatienr><uitgiftedatum isodatum="2009-06-30">30-06-2009</uitgiftedatum><ondertekeningsdatum isodatum="2009-06-25">25-06-2009</ondertekeningsdatum></publicatie><inwerkingtreding.datum isodatum="2009-07-01">01-07-2009</inwerkingtreding.datum></inwerkingtreding></brondata><jcis><jci versie="1.0" verwijzing="1.0:c:BWBR0004770&amp;artikel=1&amp;g=2026-01-01" onderdeel="artikel=1" korte-verwijzing="1.0:c:BWBR0004770&amp;artikel=1"/><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=1&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="artikel=1" korte-verwijzing="jci1.3:c:BWBR0004770&amp;artikel=1"/></jcis></meta-data></artikel><artikel bwb-ng-variabel-deel="/HoofdstukI/Artikel2" stam-id="2961633" versie-id="23150782" id="C43308381" label-id="2910574" inwerking="2016-05-01" label="Artikel 2" bron="Stb.2016-163" effect="wijziging" ondertekening_bron="2016-04-20" publicatie_bron="2016-04-28" publicatie_iwt="2016-04-28" status="goed">
+  <kop>
+    <label>Artikel</label>
+    <nr status="officieel">2</nr>
+  </kop>
+  <lid bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1" label-id="2910574L1">
+    <lidnr status="officieel">1</lidnr>
+    <al>Deze wet verstaat onder: </al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>
+          <nadruk type="cur">rijksbelastingen:</nadruk> belastingen als bedoeld in <extref doc="jci1.3:c:BWBR0002320&amp;artikel=1" label-id="2873754" verwijzing-id="2411203" bwb-id="BWBR0002320">artikel 1 van de Algemene wet inzake rijksbelastingen</extref>, alsmede rechten bij invoer en rechten bij uitvoer als bedoeld in <extref doc="jci1.3:c:BWBR0023746&amp;artikel=7:3" label-id="9452984" verwijzing-id="2411204" bwb-id="BWBR0023746">artikel 7:3 van de Algemene douanewet</extref>, die in Nederland worden geheven;</al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=a&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=a"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelaa">
+        <li.nr>aa.</li.nr>
+        <lijst level="single" nr-sluiting="." start="1" type="ongemarkeerd">
+          <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelaa/Onderdeel1">
+            <li.nr>1°.</li.nr>
+            <al>
+              <nadruk type="cur">Koninkrijk:</nadruk> Koninkrijk der Nederlanden;</al>
+          <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=aa&amp;o=1&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=1"/></jcis></meta-data></li>
+          <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelaa/Onderdeel2">
+            <li.nr>2°.</li.nr>
+            <al>
+              <nadruk type="cur">Rijk:</nadruk> het land Nederland, zijnde Nederland en de BES eilanden;</al>
+          <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=aa&amp;o=2&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=2"/></jcis></meta-data></li>
+          <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelaa/Onderdeel3">
+            <li.nr>3°.</li.nr>
+            <al>
+              <nadruk type="cur">Nederland:</nadruk> het in Europa gelegen deel van het Koninkrijk, met dien verstande dat voor de heffing van de inkomstenbelasting, de loonbelasting, de vennootschapsbelasting en de assurantiebelasting Nederland tevens omvat de exclusieve economische zone van het Koninkrijk, bedoeld in <extref doc="jci1.3:c:BWBR0010480&amp;artikel=1" label-id="1081104" verwijzing-id="2382447" bwb-id="BWBR0010480">artikel 1 van de Rijkswet instelling exclusieve economische zone</extref>, voorzover deze grenst aan de territoriale zee in Nederland;</al>
+          <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=aa&amp;o=3&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=3"/></jcis></meta-data></li>
+          <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelaa/Onderdeel4">
+            <li.nr>4°.</li.nr>
+            <al>
+              <nadruk type="cur">BES eilanden:</nadruk> de openbare lichamen Bonaire, Sint Eustatius en Saba, met daaronder begrepen, met inachtneming van de <extref doc="jci1.3:c:BWBR0028093" label-id="10628264" verwijzing-id="2382448" bwb-id="BWBR0028093">Rijkswet tot vaststelling van een zeegrens tussen Curaçao en Bonaire, en tussen Sint Maarten en Saba</extref>, het buiten de territoriale zee van de BES eilanden gelegen deel van de zeebodem en de ondergrond daarvan, voor zover het Koninkrijk daar op grond van het internationale recht ten behoeve van de exploratie en de exploitatie van natuurlijke rijkdommen soevereine rechten mag uitoefenen, alsmede de in, op, of boven dat gebied aanwezige installaties en andere inrichtingen ten behoeve van de exploratie en exploitatie van natuurlijke rijkdommen in dat gebied;</al>
+          <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=aa&amp;o=4&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=4"/></jcis></meta-data></li>
+        </lijst>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=aa&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=aa"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>belastingrente en revisierente: de belastingrente en de revisierente, bedoeld in <extref doc="jci1.3:c:BWBR0002320&amp;hoofdstuk=VA" label-id="2874184" verwijzing-id="1449430" bwb-id="BWBR0002320">hoofdstuk VA van de Algemene wet inzake rijksbelastingen</extref>; </al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=b&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=b"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelc">
+        <li.nr>c.</li.nr>
+        <al> Douanewetboek van de Unie: Verordening (EU) nr. 952/2013 van het Europees Parlement en van de Raad van 9 oktober 2013 tot vaststelling van het douanewetboek van de Unie (PbEU 2013, L 269);</al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=c&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=c"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeeld">
+        <li.nr>d.</li.nr>
+        <al> Gedelegeerde Verordening Douanewetboek van de Unie: Gedelegeerde Verordening (EU) 2015/2446 van de Commissie van 28 juli 2015 tot aanvulling van Verordening (EU) nr. 952/2013 van het Europees Parlement en de Raad met nadere regels betreffende een aantal bepalingen van het douanewetboek van de Unie (PbEU 2015, L 343);</al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=d&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=d"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeele">
+        <li.nr>e.</li.nr>
+        <al> Uitvoeringsverordening Douanewetboek van de Unie: Uitvoeringsverordening (EU) 2015/2447 van de Commissie van 24 november 2015 houdende nadere uitvoeringsvoorschriften voor enkele bepalingen van Verordening (EU) nr. 952/2013 van het Europees Parlement en de Raad tot vaststelling van het douanewetboek van de Unie (PbEU 2015, L 343);</al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=e&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=e"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelf">
+        <li.nr>f.</li.nr>
+        <al>kosten van ambtelijke werkzaamheden: de kosten, bedoeld in <extref doc="jci1.3:c:BWBR0023746&amp;paragraaf=1.2.3" label-id="9452574" verwijzing-id="2204723" bwb-id="BWBR0023746">paragraaf 1.2.3 van de Algemene douanewet</extref>; </al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=f&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=f"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelg">
+        <li.nr>g.</li.nr>
+        <al>bestuurlijke boeten: de verzuimboeten en de vergrijpboeten, bedoeld in <intref doc="jci1.3:c:BWBR0004770&amp;hoofdstuk=VIIa&amp;z=2026-01-01&amp;g=2026-01-01" label-id="10327244" verwijzing-id="2386592" bwb-id="BWBR0004770" bwb-ng-variabel-deel="/HoofdstukVIIa">hoofdstuk VIIA</intref> van deze wet, <extref doc="jci1.3:c:BWBR0002320&amp;hoofdstuk=VIIIA" label-id="2875694" verwijzing-id="2321392" bwb-id="BWBR0002320">hoofdstuk VIIIA van de Algemene wet inzake rijksbelastingen</extref> of <extref doc="jci1.3:c:BWBR0023746&amp;hoofdstuk=9" label-id="9453324" verwijzing-id="2204724" bwb-id="BWBR0023746">hoofdstuk 9 van de Algemene douanewet</extref>, dan wel in enig ander wettelijk voorschrift betreffende de heffing van rijksbelastingen;</al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=g&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=g"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelh">
+        <li.nr>h.</li.nr>
+        <al>Onze Minister: Onze Minister van Financiën; </al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=h&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=h"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeeli">
+        <li.nr>i.</li.nr>
+        <al>directeur, inspecteur of ontvanger: de functionaris die als zodanig bij ministeriële regeling is aangewezen; </al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=i&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=i"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelj">
+        <li.nr>j.</li.nr>
+        <al>belastingdeurwaarder: de door Onze Minister als zodanig aangewezen ambtenaar van de rijksbelastingdienst; </al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=j&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=j"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelk">
+        <li.nr>k.</li.nr>
+        <al>belastingschuldige: degene te wiens naam de belastingaanslag is gesteld; </al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=k&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=k"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeell">
+        <li.nr>l.</li.nr>
+        <al>werknemer, artiest, beroepssporter, buitenlands gezelschap, dienstbetrekking en inhoudingsplichtige: de werknemer, de artiest, de beroepssporter, het buitenlandse gezelschap, de dienstbetrekking en de inhoudingsplichtige in de zin van de <extref doc="jci1.3:c:BWBR0002471" label-id="2635514" verwijzing-id="1449434" bwb-id="BWBR0002471">Wet op de loonbelasting 1964</extref>; </al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=l&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=l"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelm">
+        <li.nr>m.</li.nr>
+        <al>belastingaanslag: de voorlopige aanslag, de aanslag, de uitnodiging tot betaling, de navorderingsaanslag en de naheffingsaanslag, alsmede de voorlopige conserverende aanslag, de conserverende aanslag en de conserverende navorderingsaanslag in de inkomstenbelasting en in de schenk- en erfbelasting;</al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=m&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=m"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeeln">
+        <li.nr>n.</li.nr>
+        <al>kind: eerstegraads bloedverwant en aanverwant in de neergaande lijn. </al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=n&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=n"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelo">
+        <li.nr>o.</li.nr>
+        <al>sociale verzekeringspremies: de premies voor de sociale verzekeringen, bedoeld in <extref doc="jci1.3:c:BWBR0017745&amp;artikel=2" label-id="6694314" verwijzing-id="2017885" bwb-id="BWBR0017745">artikel 2, onderdelen a en c, van de Wet financiering sociale verzekeringen</extref>, en de ingevolge de <extref doc="jci1.3:c:BWBR0018450" label-id="7147974" verwijzing-id="2017886" bwb-id="BWBR0018450">Zorgverzekeringswet</extref> geheven inkomensafhankelijke bijdrage;</al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=o&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=o"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelp">
+        <li.nr>p.</li.nr>
+        <al>strafbeschikking: de strafbeschikking, bedoeld in <extref doc="jci1.3:c:BWBR0002320&amp;artikel=76" label-id="2874784" verwijzing-id="2053441" bwb-id="BWBR0002320">artikel 76, eerste lid, van de Algemene wet inzake rijksbelastingen</extref> en <extref doc="jci1.3:c:BWBR0023746&amp;artikel=10:15" label-id="9453484" verwijzing-id="2225032" bwb-id="BWBR0023746">artikel 10:15, eerste lid, van de Algemene douanewet</extref>;</al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=p&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=p"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelq">
+        <li.nr>q.</li.nr>
+        <al> burgerservicenummer: het nummer, bedoeld in <extref doc="jci1.3:c:BWBR0022428&amp;artikel=1" label-id="9168144" verwijzing-id="2676960" bwb-id="BWBR0022428">artikel 1, onderdeel b, van de Wet algemene bepalingen burgerservicenummer</extref>;</al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=q&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=q"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelr">
+        <li.nr>r.</li.nr>
+        <al> vertragingsrente: de vertragingsrente, bedoeld in artikel 114, eerste lid, van het Douanewetboek van de Unie;</al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=r&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=r"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeels">
+        <li.nr>s.</li.nr>
+        <al> rente op achterstallen: de rente op achterstallen, bedoeld in artikel 114, tweede lid, van het Douanewetboek van de Unie;</al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=s&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=s"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid1/Onderdeelt">
+        <li.nr>t.</li.nr>
+        <al> kredietrente: de kredietrente, bedoeld in artikel 112, tweede lid, van het Douanewetboek van de Unie.</al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;o=t&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=t"/></jcis></meta-data></li>
+    </lijst>
+  <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=1&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="lid=1"/></jcis></meta-data></lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid2" label-id="2910574L2">
+    <lidnr status="officieel">2</lidnr>
+    <al> Deze wet verstaat mede onder: </al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid2/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>rijksbelastingen: de belastingrente, de revisierente, de rente op achterstallen, de kosten van ambtelijke werkzaamheden, alsmede de bestuurlijke boeten; </al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=2&amp;o=a&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=a"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid2/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>wettelijke regeling betreffende de heffing van rijksbelastingen: de wettelijke bepalingen, bedoeld in <extref doc="jci1.3:c:BWBR0023746&amp;artikel=1:1" label-id="9452354" verwijzing-id="2204725" bwb-id="BWBR0023746">artikel 1:1, eerste en tweede lid, van de Algemene douanewet</extref>, voor zover deze betrekking hebben op de heffing van rijksbelastingen; </al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=2&amp;o=b&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=b"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid2/Onderdeelc">
+        <li.nr>c.</li.nr>
+        <al>belastingaanslag: een ingevolge de <extref doc="jci1.3:c:BWBR0002320" label-id="2875044" verwijzing-id="1449436" bwb-id="BWBR0002320">Algemene wet inzake rijksbelastingen</extref> dan wel <extref doc="jci1.3:c:BWBR0023746" label-id="9453784" verwijzing-id="2204726" bwb-id="BWBR0023746">Algemene douanewet</extref> of enige andere wettelijke regeling betreffende de heffing van rijksbelastingen vastgestelde beschikking of uitspraak strekkende tot - al dan niet nadere - vaststelling van een ingevolge die regelingen verschuldigd of terug te geven bedrag; </al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=2&amp;o=c&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=c"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid2/Onderdeeld">
+        <li.nr>d.</li.nr>
+        <al>aanslagbiljet: de kennisgeving van de beschikking of de uitspraak, bedoeld in onderdeel c; </al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=2&amp;o=d&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=d"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid2/Onderdeele">
+        <li.nr>e.</li.nr>
+        <al>invorderen van rijksbelastingen: het betalen van een terug te geven bedrag aan rijksbelastingen. </al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=2&amp;o=e&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=e"/></jcis></meta-data></li>
+    </lijst>
+  <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=2&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="lid=2"/></jcis></meta-data></lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid3" label-id="2910574L3">
+    <lidnr status="officieel">3</lidnr>
+    <al>Voor de toepassing van deze wet geldt, in afwijking in zoverre van het eerste en het tweede lid en behoudens voor zover daarvan moet worden afgeweken ingevolge het elders in deze wet bepaalde, als belastingaanslag: </al>
+    <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid3/Onderdeela">
+        <li.nr>a.</li.nr>
+        <al>de belastingaanslag na toepassing van de ingevolge de <extref doc="jci1.3:c:BWBR0002320" label-id="2875044" verwijzing-id="1449437" bwb-id="BWBR0002320">Algemene wet inzake rijksbelastingen</extref> of enige andere wettelijke regeling betreffende de heffing van rijksbelastingen voorziene verrekeningen; </al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=3&amp;o=a&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=a"/></jcis></meta-data></li>
+      <li bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid3/Onderdeelb">
+        <li.nr>b.</li.nr>
+        <al>ingeval een aanslagbiljet naast een of meer belastingaanslagen als bedoeld in onderdeel a een of meer ingevolge het tweede lid, onderdeel c, met een belastingaanslag gelijkgestelde beschikkingen omvat: het gezamenlijke bedrag van de ingevolge de op het aanslagbiljet vermelde belastingaanslagen in te vorderen bedragen. </al>
+      <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=3&amp;o=b&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="o=b"/></jcis></meta-data></li>
+    </lijst>
+  <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=3&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="lid=3"/></jcis></meta-data></lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid4" label-id="2910574L4">
+    <lidnr status="officieel">4</lidnr>
+    <al>Ingeval het derde lid, aanhef en onderdeel b, toepassing vindt, worden de op het aanslagbiljet vermelde bestanddelen - wat belasting betreft na de in het derde lid, onderdeel a, bedoelde verrekening - tot een negatief bedrag geacht naar evenredigheid te zijn verrekend met de bestanddelen tot een positief bedrag en omgekeerd. </al>
+  <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=4&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="lid=4"/></jcis></meta-data></lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid5" label-id="2910574L5">
+    <lidnr status="officieel">5</lidnr>
+    <al>Bepalingen van deze wet die rechtsgevolgen verbinden aan het aangaan, het bestaan, de beëindiging of het beëindigd zijn van een huwelijk zijn van overeenkomstige toepassing op het aangaan, het bestaan, de beëindiging onderscheidenlijk het beëindigd zijn van een geregistreerd partnerschap. </al>
+  <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=5&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="lid=5"/></jcis></meta-data></lid>
+  <lid bwb-ng-variabel-deel="/HoofdstukI/Artikel2/Lid6" label-id="2910574L6">
+    <lidnr status="officieel">6</lidnr>
+    <al>Voor de toepassing van deze wet en de daarop berustende bepalingen wordt een Europese coöperatieve vennootschap gelijkgesteld met een Europese naamloze vennootschap.</al>
+  <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;lid=6&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="lid=6"/></jcis></meta-data></lid>
+<meta-data><brondata><oorspronkelijk><publicatie effect="wijziging" soort="Stb" urlidentifier="stb-2016-163"><publicatiejaar>2016</publicatiejaar><publicatienr>163</publicatienr><uitgiftedatum isodatum="2016-04-28">28-04-2016</uitgiftedatum><ondertekeningsdatum isodatum="2016-04-20">20-04-2016</ondertekeningsdatum><dossierref dossier="34409">34409</dossierref></publicatie></oorspronkelijk><inwerkingtreding><publicatie effect="wijziging" soort="Stb" urlidentifier="stb-2016-164"><publicatiejaar>2016</publicatiejaar><publicatienr>164</publicatienr><uitgiftedatum isodatum="2016-04-28">28-04-2016</uitgiftedatum><ondertekeningsdatum isodatum="2016-04-20">20-04-2016</ondertekeningsdatum></publicatie><inwerkingtreding.datum isodatum="2016-05-01">01-05-2016</inwerkingtreding.datum></inwerkingtreding><opmerkingen-inhoud><al>Artikel XV van Stb. 2016/163 bevat overgangsrecht m.b.t. deze wijziging.</al></opmerkingen-inhoud></brondata><jcis><jci versie="1.0" verwijzing="1.0:c:BWBR0004770&amp;artikel=2&amp;g=2026-01-01" onderdeel="artikel=2" korte-verwijzing="1.0:c:BWBR0004770&amp;artikel=2"/><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;artikel=2&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="artikel=2" korte-verwijzing="jci1.3:c:BWBR0004770&amp;artikel=2"/></jcis></meta-data></artikel><meta-data><brondata><oorspronkelijk><publicatie effect="structuurwijziging" soort="Stb" urlidentifier="stb-2019-512"><publicatiejaar>2019</publicatiejaar><publicatienr>512</publicatienr><uitgiftedatum isodatum="2019-12-27">27-12-2019</uitgiftedatum><ondertekeningsdatum isodatum="2019-12-18">18-12-2019</ondertekeningsdatum><dossierref dossier="35303">35303</dossierref></publicatie></oorspronkelijk><inwerkingtreding><publicatie effect="structuurwijziging" soort="Stb" urlidentifier="stb-2019-512"><publicatiejaar>2019</publicatiejaar><publicatienr>512</publicatienr><uitgiftedatum isodatum="2019-12-27">27-12-2019</uitgiftedatum><ondertekeningsdatum isodatum="2019-12-18">18-12-2019</ondertekeningsdatum><dossierref dossier="35303">35303</dossierref></publicatie><inwerkingtreding.datum isodatum="2019-12-18">18-12-2019</inwerkingtreding.datum></inwerkingtreding></brondata><jcis><jci versie="1.0" verwijzing="1.0:c:BWBR0004770&amp;hoofdstuk=I&amp;g=2026-01-01" onderdeel="hoofdstuk=I" korte-verwijzing="1.0:c:BWBR0004770&amp;hoofdstuk=I"/><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="hoofdstuk=I" korte-verwijzing="jci1.3:c:BWBR0004770&amp;hoofdstuk=I"/></jcis></meta-data></hoofdstuk>
+      </wettekst>
+    <wetsluiting bwb-ng-variabel-deel="/SlotformulierEnOndertekening" stam-id="2962553" versie-id="4576362" id="C4576361" label-id="2911494" inwerking="1990-06-01" bron="Stb.1990-221" effect="nieuwe-regeling" ondertekening_bron="1990-05-30" publicatie_iwt="1990-05-31" status="goed">
+  <slotformulering>
+    <al>Lasten en bevelen dat deze in het <nadruk type="cur">Staatsblad</nadruk> zal worden geplaatst en dat alle ministeries, autoriteiten, colleges en ambtenaren, wie zulks aangaat aan de nauwkeurige uitvoering de hand zullen houden. </al>
+  </slotformulering>
+  <gegeven>
+    <dagtekening>
+      <plaats>Gegeven te 's-Gravenhage </plaats>
+      <datum isodatum="">30 mei 1990 </datum>
+    </dagtekening>
+    <koning>Beatrix </koning>
+  </gegeven>
+  <ondertekening>
+    <functie>De Staatssecretaris van Financiën, </functie>
+    <naam>
+      <achternaam>M. J. J. van Amelsvoort </achternaam>
+    </naam>
+  </ondertekening>
+  <ondertekening>
+    <functie>De Staatssecretaris van Justitie, </functie>
+    <naam>
+      <achternaam>A. Kosto </achternaam>
+    </naam>
+  </ondertekening>
+  <uitgifte>
+    <datum isodatum="">de eenendertigste mei 1990 </datum>
+    <ondertekening>
+      <functie>De Minister van Justitie, </functie>
+      <naam>
+        <achternaam>E. M. H. Hirsch Ballin </achternaam>
+      </naam>
+    </ondertekening>
+  </uitgifte>
+<meta-data><brondata><oorspronkelijk><publicatie effect="nieuwe-regeling" soort="Stb" urlidentifier=""><publicatiejaar>1990</publicatiejaar><publicatienr>221</publicatienr><ondertekeningsdatum isodatum="1990-05-30">30-05-1990</ondertekeningsdatum><dossierref dossier="20588">20588</dossierref></publicatie></oorspronkelijk><inwerkingtreding><publicatie effect="nieuwe-regeling" soort="Stb" urlidentifier=""><publicatiejaar>1990</publicatiejaar><publicatienr>222</publicatienr><uitgiftedatum isodatum="1990-05-31">31-05-1990</uitgiftedatum><ondertekeningsdatum isodatum="1990-05-30">30-05-1990</ondertekeningsdatum><dossierref dossier="21135">21135</dossierref></publicatie><inwerkingtreding.datum isodatum="1990-06-01">01-06-1990</inwerkingtreding.datum></inwerkingtreding></brondata></meta-data></wetsluiting>
+  </wet-besluit>
+<meta-data><brondata><oorspronkelijk><publicatie effect="structuurwijziging" soort="Stb" urlidentifier="stb-2018-75"><publicatiejaar>2018</publicatiejaar><publicatienr>75</publicatienr><uitgiftedatum isodatum="2018-03-16">16-03-2018</uitgiftedatum><ondertekeningsdatum isodatum="2018-02-21">21-02-2018</ondertekeningsdatum><dossierref dossier="34753">34753</dossierref></publicatie></oorspronkelijk><inwerkingtreding><publicatie effect="structuurwijziging" soort="Stb" urlidentifier="stb-2018-75"><publicatiejaar>2018</publicatiejaar><publicatienr>75</publicatienr><uitgiftedatum isodatum="2018-03-16">16-03-2018</uitgiftedatum><ondertekeningsdatum isodatum="2018-02-21">21-02-2018</ondertekeningsdatum><dossierref dossier="34753">34753</dossierref></publicatie><inwerkingtreding.datum isodatum="2018-02-21">21-02-2018</inwerkingtreding.datum></inwerkingtreding></brondata><jcis><jci versie="1.0" verwijzing="1.0:c:BWBR0004770&amp;g=2026-01-01" onderdeel="wetgeving" korte-verwijzing="1.0:c:BWBR0004770"/><jci versie="1.3" verwijzing="jci1.3:c:BWBR0004770&amp;z=2026-01-01&amp;g=2026-01-01" onderdeel="wetgeving" korte-verwijzing="jci1.3:c:BWBR0004770"/></jcis></meta-data></wetgeving></toestand>

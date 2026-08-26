@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<toestand xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bwb-ng-vast-deel="http://wetten.overheid.nl/id/BWBR0005537/2026-06-04/0" bwb-id="BWBR0005537" inwerkingtreding="2026-06-04">
+  <wetgeving dtdversie="2.0" soort="wet" xml:lang="nl">
+    <intitule bwb-ng-variabel-deel="/Intitule">Algemene wet bestuursrecht</intitule>
+    <citeertitel bwb-ng-variabel-deel="/Citeertitel" status="officieel">Algemene wet bestuursrecht</citeertitel>
+    <wet-besluit>
+      <wettekst>
+        <artikel bwb-ng-variabel-deel="/Artikel1" label="Artikel 1" inwerking="1994-01-01">
+          <kop><label>Artikel</label><nr status="officieel">1</nr></kop>
+          <lid bwb-ng-variabel-deel="/Artikel1/Lid1">
+            <lidnr status="officieel">1</lidnr>
+            <al>Deze wet is van toepassing op besluiten van bestuursorganen.</al>
+            <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0005537&amp;artikel=1&amp;lid=1&amp;z=2026-06-04&amp;g=2026-06-04" onderdeel="lid=1"/></jcis></meta-data>
+          </lid>
+          <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0005537&amp;artikel=1&amp;z=2026-06-04&amp;g=2026-06-04" onderdeel="artikel=1"/></jcis></meta-data>
+        </artikel>
+      </wettekst>
+      <bijlage bwb-ng-variabel-deel="/Bijlage1" id="C44354271" label="Bijlage 1" inwerking="2026-01-01" bron="Stb.2025-123" effect="wijziging" status="goed">
+        <kop>
+          <label>Bijlage</label>
+          <nr status="officieel">1</nr>
+          <titel status="officieel">Regeling rechtstreeks beroep</titel>
+        </kop>
+        <al>Tegen een besluit, genomen op grond van een in deze bijlage genoemd wettelijk voorschrift, kan beroep worden ingesteld bij de rechtbank, met inachtneming van de <extref doc="jci1.3:c:BWBR0007376&amp;artikel=38" label-id="1214754" verwijzing-id="2576057" bwb-id="BWBR0007376">Archiefwet 1995</extref>.</al>
+        <lijst level="single" nr-sluiting="." start="1" type="expliciet">
+          <li bwb-ng-variabel-deel="/Bijlage1/Onderdeela">
+            <li.nr>a.</li.nr>
+            <al>de Gemeentewet;</al>
+            <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0005537&amp;bijlage=1&amp;o=a&amp;z=2026-06-04&amp;g=2026-06-04" onderdeel="o=a"/></jcis></meta-data>
+          </li>
+        </lijst>
+        <artikel bwb-ng-variabel-deel="/Bijlage1/Artikel1" label="Artikel 1">
+          <kop><label>Artikel</label><nr status="officieel">1</nr></kop>
+          <lid bwb-ng-variabel-deel="/Bijlage1/Artikel1/Lid1">
+            <lidnr status="officieel">1</lidnr>
+            <al>De situatietekening is opgenomen als illustratie.<plaatje><illustratie id="123954" breedte="1417px" formaat="png" hoogte="364px" naam="123954.png"/></plaatje></al>
+            <meta-data><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0005537&amp;bijlage=1&amp;artikel=1&amp;lid=1&amp;z=2026-06-04&amp;g=2026-06-04" onderdeel="lid=1"/></jcis></meta-data>
+          </lid>
+        </artikel>
+        <meta-data><brondata><inwerkingtreding><inwerkingtreding.datum isodatum="2026-01-01">01-01-2026</inwerkingtreding.datum><terugwerkend.datum isodatum="2025-07-01">01-07-2025</terugwerkend.datum></inwerkingtreding></brondata><jcis><jci versie="1.3" verwijzing="jci1.3:c:BWBR0005537&amp;bijlage=1&amp;z=2026-06-04&amp;g=2026-06-04" onderdeel="bijlage=1"/></jcis></meta-data>
+      </bijlage>
+      <wetsluiting bwb-ng-variabel-deel="/SlotformulierEnOndertekening">
+        <slotformulering><al>Lasten en bevelen dat deze in het Staatsblad zal worden geplaatst.</al></slotformulering>
+        <ondertekening>
+          <functie>De Minister van Justitie, </functie>
+          <naam><achternaam>E. M. H. Hirsch Ballin </achternaam></naam>
+        </ondertekening>
+      </wetsluiting>
+    </wet-besluit>
+  </wetgeving>
+</toestand>
