@@ -1,21 +1,26 @@
-# Portainer-stack voor de Wetsanalyse-frontend, achter Nginx Proxy Manager — spiegelt de
-# API- en MCP-stack.
+# Portainer-stack voor de Wetsanalyse-frontend, achter Nginx Proxy Manager.
 #
-# De image komt van GHCR (zie .github/workflows/frontend-docker-publish.yml). De container
-# publiceert GÉÉN host-poort: NPM bereikt 'm via het gedeelde Docker-netwerk op hostnaam
-# `wetsanalyse-frontend`, poort 3000. De frontend (BFF) praat intern met de API op
-# `wetsanalyse-api:3000` — de browser ziet de API nooit rechtstreeks.
+# De image komt van GHCR (zie .github/workflows/frontend-docker-publish.yml). De frontend (BFF)
+# praat intern met de API op `wetsanalyse-api:3000` en met graph-qa op `graph-qa:8080` — de browser
+# ziet die twee nooit rechtstreeks.
 #
-# In NPM → Proxy Hosts → Add: Domain `wetsanalyse.ipalm.nl`, Scheme `http`,
-# Forward Hostname `wetsanalyse-frontend`, Forward Port `3000`, SSL (Let's Encrypt) aan.
+# Bereikbaarheid: nginx-proxy-manager draait op een ANDERE host en deelt dus geen docker-netwerk met
+# deze host. Proxyen op containernaam kan daarom niet — de frontend publiceert een hostpoort
+# (${HOST_PORT}, default 8080) en NPM forwardt daarheen.
+#
+# In NPM → Proxy Hosts → Add: Domain `wetsanalyse.example` (jouw domein), Scheme `http`,
+# Forward Hostname `<docker-lxc-ip>`, Forward Port `${HOST_PORT}`, SSL (Let's Encrypt) aan.
 # Belangrijk voor SSE: zet in NPM (Advanced) proxy buffering uit, bv.
 #   proxy_buffering off;
 #   proxy_read_timeout 3600s;
 #
 # Stack-omgeving (in Portainer, of door CI via stack-update meegegeven):
-#   PROXY_NETWORK  — naam van het bestaande NPM-netwerk (default homeinfra_internal).
+#   WA_NETWORK     — gedeeld netwerk met postgres/api/graph-qa (default wetsanalyse_internal;
+#                    aangemaakt door deploy/postgres/).
+#   HOST_PORT      — hostpoort waar NPM heen forwardt (default 8080).
+#   OBS_NETWORK    — netwerk van de observability-stack (default observability_default).
 #   SECRETS_DIR    — host-pad naar de secrets-map (gedeeld met de API-stack).
-#   AUTH_URL       — PUBLIEKE origin van de webapp (bv. https://wetsanalyse.ipalm.nl). Verplicht
+#   AUTH_URL       — PUBLIEKE origin van de webapp (bv. https://wetsanalyse.example). Verplicht
 #                    achter een reverse proxy: Auth.js pint hierop z'n login/logout-redirects.
 #                    Zonder dit valt het terug op het interne 0.0.0.0:3000 en springt de browser
 #                    daarheen bij in-/uitloggen.
@@ -25,14 +30,14 @@
 #                           API-tokenlijst (api_tokens). Voeg daar bv. "frontend:<token>" toe en
 #                           zet dan louter "<token>" in dit bestand.
 #   frontend_admin_token  — idem maar de tokenwaarde uit de admin-tokenlijst (admin_tokens),
-#                           voor het /beheer-scherm (→ /v1/admin/*).
+#                           voor de beheertab (→ /v1/admin/*).
 #   frontend_auth_secret  — geheim voor de login-sessie (Auth.js). Genereer met
 #                           `openssl rand -base64 32`. De entrypoint laadt dit in AUTH_SECRET.
 #                           (2FA hergebruikt de API-secret llm_config_secret; geen extra bestand.)
 #   graph_qa_token        — het graph-qa-token (= dezelfde waarde als qa_api_token op de graph-qa-host)
 #                           voor de annotatie-workbench. Zonder dit faalt alléén het "Annoteer"-knopje;
 #                           de rest van de webapp werkt. Kopieer:
-#                             sudo cp /volume1/docker/secrets/graph-qa/qa_api_token \
+#                             sudo cp <graph-qa-secrets>/qa_api_token \
 #                                     $SECRETS_DIR/graph_qa_token && sudo chmod 644 $SECRETS_DIR/graph_qa_token
 services:
   wetsanalyse-frontend:
@@ -41,8 +46,9 @@ services:
     image: ${WETSANALYSE_FRONTEND_IMAGE:-ghcr.io/palmw01/wetsanalyse-frontend:latest}
     container_name: wetsanalyse-frontend
     restart: unless-stopped
-    expose:
-      - "3000"
+    ports:
+      # Enige naar buiten geopende poort: NPM (andere host) proxyt hierheen over het LAN.
+      - "${HOST_PORT:-8080}:3000"
     environment:
       API_BASE_URL: "http://wetsanalyse-api:3000"
       API_TOKEN_FILE: /run/secrets/frontend_api_token
@@ -52,7 +58,7 @@ services:
       GRAPH_QA_URL: "${GRAPH_QA_URL:-http://graph-qa:8080}"
       GRAPH_QA_TOKEN_FILE: /run/secrets/graph_qa_token
       # Publieke origin voor Auth.js-redirects (achter NPM). Override via de stack-env AUTH_URL.
-      AUTH_URL: "${AUTH_URL:-https://wetsanalyse.ipalm.nl}"
+      AUTH_URL: "${AUTH_URL:?AUTH_URL is verplicht — de publieke origin van de webapp}"
       NODE_ENV: production
       # Observability (BFF). OTEL_EXPORTER_OTLP_ENDPOINT leeg = OpenTelemetry uit (alleen JSON-logs
       # naar stdout); zet 'm op de OTel-Collector om traces/metrics te exporteren.
@@ -64,7 +70,8 @@ services:
     volumes:
       - ${SECRETS_DIR:-/opt/secrets/wetsanalyse-api}:/run/secrets:ro
     networks:
-      - proxy
+      - wetsanalyse
+      - observability
     # Resource-limieten: begrenzen een ontspoorde Node-server zodat één container de host niet leegtrekt.
     mem_limit: 1g
     pids_limit: 256
@@ -80,6 +87,11 @@ services:
       start_period: 10s
 
 networks:
-  proxy:
+  # Aangemaakt door de postgres-stack (deploy/postgres/) — die moet dus eerst draaien.
+  wetsanalyse:
     external: true
-    name: ${PROXY_NETWORK:-homeinfra_internal}
+    name: ${WA_NETWORK:-wetsanalyse_internal}
+  # Netwerk van de observability-stack, voor OTLP naar de collector.
+  observability:
+    external: true
+    name: ${OBS_NETWORK:-observability_default}

@@ -1,4 +1,5 @@
 import { proxy } from "@/app/api/_lib/proxy";
+import { geenSessie, sessionUserId } from "@/app/api/_lib/session";
 import { pathSegment } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
@@ -6,9 +7,15 @@ export const dynamic = "force-dynamic";
 type Params = { params: Promise<{ slug: string; id: string }> };
 
 export async function POST(req: Request, { params }: Params) {
+  const userid = await sessionUserId();
+  if (!userid) return geenSessie();
   const { slug, id } = await params;
   return proxy(
     `/v1/annotatie/documenten/${pathSegment(slug)}/elementen/${pathSegment(id)}/beslissing`,
-    { method: "POST", body: await req.text(), headers: { "Content-Type": "application/json" } },
+    {
+      method: "POST",
+      body: await req.text(),
+      headers: { "X-User-Id": userid, "Content-Type": "application/json" },
+    },
   );
 }

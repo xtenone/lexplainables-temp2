@@ -1,4 +1,4 @@
-import { proxy, readBody } from "../../_lib/proxy";
+import { proxy, readBody } from "@/app/api/_lib/proxy";
 
 export const dynamic = "force-dynamic";
 

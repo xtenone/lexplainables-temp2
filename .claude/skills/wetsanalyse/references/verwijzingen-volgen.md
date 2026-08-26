@@ -11,8 +11,8 @@ volgt de relevante, en legt ze traceerbaar vast als `verwijzingen`-array **op de
 `verwijzingen` is een **aparte as** náást de markeringen: het zijn uitgaande pointers van de
 bepaling, géén tweede plek om JAS-klassen te registreren. Een delegatie blijft óók een
 markering met klasse *Delegatiebevoegdheid en delegatie-invulling*, en is daarnaast een
-verwijzing met functie *delegatie*. Een hergebruikte brondefinitie blijft een begrip met de
-brondefinitie als definitie, en wijst met `bron_verwijzing` naar de definitie-verwijzing.
+verwijzing met functie *delegatie*. Een verwijzing naar een definitieartikel legt de
+brondefinitie vast die de betekenis van de bepaling bepaalt.
 
 ## Twee herkomsten
 
@@ -38,7 +38,7 @@ brondefinitie als definitie, en wijst met `bron_verwijzing` naar de definitie-ve
 
 | Functie | Default actie | Diepte | Tool |
 | --- | --- | --- | --- |
-| **definitie** | Ophalen; de definitie letterlijk hergebruiken in het begrip (`bron_verwijzing`) | 1 | `wettenbank_zoekterm` / `wettenbank_artikel` |
+| **definitie** | Ophalen; de brondefinitie legt de betekenis van de bepaling vast | 1 | `wettenbank_zoekterm` / `wettenbank_artikel` |
 | **schakel** | Ophalen voor zover het de focus-bepaling betekenis geeft | 1 | `wettenbank_artikel` |
 | **delegatie** | *Bounded:* vindplaats + relevante bepaling identificeren, de betekenis verwerken. Wordt de gedelegeerde regeling relevant genoeg, **promoveer haar tot een eigen bron** in het werkgebied (het werkgebied mag groeien); anders signaleer je een volledige JAS-analyse als validatiepunt | 1 (identificatie) | `wettenbank_structuur` |
 | **intra-artikel** | Als relatie vastleggen; de tekst staat al in scope | 0 | — |
@@ -69,9 +69,7 @@ Schrijf de verwijzingen als `verwijzingen`-array **op de betreffende bron** in
 `werk/activiteit-2/ronde-{N}/analyse.json` (zie het schema in
 `references/review-checkpoints.md`), met **werkgebied-breed stabiele id's** (`v1`, `v2`, …) en
 het `bron_id` van de bron. `validate_analyse.py` controleert de structuur (functie/status-enums,
-`doel.label`, id-uniciteit over bronnen, en de delegatie-koppeling); `build_rapport_json.py`
-controleert of elke `bron_verwijzing` op een begrip/regel naar een bestaande verwijzing in één
-van de bronnen wijst.
+`doel.label`, id-uniciteit over bronnen, en de delegatie-koppeling).
 
 **Houd stap 1b licht:** het is inventariseren + gericht ophalen, niet al classificeren in
 JAS-klassen — dat blijft activiteit 2. De verwijzing-inventaris hoort bij het activiteit-2

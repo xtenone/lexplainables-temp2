@@ -13,16 +13,10 @@ from pathlib import Path
 # api/app/config.py -> api/app -> api -> <projectroot>
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
+# De canonieke JAS-klassenlijst leeft in het skill-script `validate_analyse.py`; `validation.py`
+# laadt dat script op runtime in, zodat er één bron van waarheid is (zie api/Dockerfile).
 SKILL_DIR = PROJECT_ROOT / ".claude" / "skills" / "wetsanalyse"
 SKILL_SCRIPTS = SKILL_DIR / "scripts"
-REFERENCES_DIR = SKILL_DIR / "references"
-ANALYSES_DIR = PROJECT_ROOT / "analyses"
-
-# De regelspraak-skill: dezelfde references/scripts worden gedeeld met de skill (vervolgstap op
-# de wetsanalyse). De API herimplementeert de stappen in-process maar leest dezelfde references.
-REGELSPRAAK_SKILL_DIR = PROJECT_ROOT / ".claude" / "skills" / "regelspraak"
-REGELSPRAAK_SCRIPTS = REGELSPRAAK_SKILL_DIR / "scripts"
-REGELSPRAAK_REFERENCES_DIR = REGELSPRAAK_SKILL_DIR / "references"
 
 
 def _read_secret(env_name: str) -> str | None:
@@ -65,13 +59,6 @@ class Settings:
                 continue
             admin_id, token = part.split(":", 1)
             self.admin_tokens[token.strip()] = admin_id.strip()
-
-        # --- Wettenbank-MCP (intern netwerk in productie) ---
-        self.mcp_url = os.environ.get(
-            "WETTENBANK_MCP_URL", "https://wettenbank-mcp.ipalm.nl/mcp"
-        )
-        self.mcp_token = _read_secret("WETTENBANK_TOKEN")
-        self.mcp_timeout_s = float(os.environ.get("WETTENBANK_MCP_TIMEOUT", "30"))
 
         # --- LLM-adapter ---
         # Endpointtype bepaalt provider-prefix/auth (zie Fase 0): azure_ai (Foundry/MaaS) vs azure (OpenAI).
@@ -127,28 +114,10 @@ class Settings:
         self.git_sha = os.environ.get("GIT_SHA", "")
         self.build_time = os.environ.get("BUILD_TIME", "")
 
-        # --- Engine ---
-        self.max_rondes = int(os.environ.get("WETSANALYSE_MAX_RONDES", "6"))
-        self.max_autocorrectie = int(os.environ.get("WETSANALYSE_MAX_AUTOCORRECTIE", "1"))
-        # Bounded retry op transiënte LLM/MCP-fouten (429/5xx/timeout) vóór terminale `fout`.
-        self.transient_max_retries = int(os.environ.get("WETSANALYSE_TRANSIENT_MAX_RETRIES", "5"))
-        self.transient_backoff_s = float(os.environ.get("WETSANALYSE_TRANSIENT_BACKOFF", "0.5"))
-        # Plafond op de exponentiële backoff (en op een gehonoreerde Retry-After) zodat één 429
-        # de job niet eindeloos laat hangen. Jitter spreidt gelijktijdige retries (geen thundering herd).
-        self.transient_max_backoff_s = float(os.environ.get("WETSANALYSE_TRANSIENT_MAX_BACKOFF", "30"))
-
         # --- LLM-concurrency (kostenrem tegen zelf-veroorzaakte rate-limits) ---
-        # Globaal plafond op het aantal GELIJKTIJDIGE LLM-calls over alle analyses heen (per proces).
-        # 0 = uit. Voorkomt dat veel gelijktijdige analyses samen tegen de provider-quota knallen.
+        # Globaal plafond op het aantal GELIJKTIJDIGE LLM-calls (per proces). 0 = uit. De enige
+        # LLM-call is nu de admin-verbindingstest, maar de rem blijft goedkoop en veilig.
         self.llm_max_concurrency = int(os.environ.get("WETSANALYSE_LLM_MAX_CONCURRENCY", "4"))
-
-        # --- Concurrency (state-CAS, horizontaal schalen) ---
-        # Een claim op een job is geldig voor lease_s; de owner verlengt 'm via een heartbeat.
-        # Verloopt de lease (worker weg/gecrasht), dan mag de reaper de job opruimen. Kies ruim
-        # langer dan de langste realistische stap; de heartbeat tikt op lease_s/2. Reaper-interval
-        # 0 = uit (1b voegt de reaper toe; in 1a wordt alleen de lease al gezet).
-        self.lease_s = int(os.environ.get("WETSANALYSE_LEASE_S", "120"))
-        self.reaper_interval_s = int(os.environ.get("WETSANALYSE_REAPER_INTERVAL_S", "60"))
 
         # --- Misbruik-/kostenbeheersing (0 = uit) ---
         # Per-client request-rate op de muterende endpoints.
@@ -158,17 +127,6 @@ class Settings:
         # LLM-call en zit alleen achter het admin-token — een gelekt token mag geen kosten stapelen.
         self.admin_test_rate_max = int(os.environ.get("WETSANALYSE_ADMIN_TEST_RATE_MAX", "10"))
         self.admin_test_rate_window_s = float(os.environ.get("WETSANALYSE_ADMIN_TEST_RATE_WINDOW", "60"))
-        # Max gelijktijdig lopende (niet-terminale) analyses per client.
-        self.max_active_jobs = int(os.environ.get("WETSANALYSE_MAX_ACTIVE_JOBS", "5"))
-        # Token-budget per analyse; bij overschrijding stopt de job (FoutKlasse.quota).
-        self.llm_token_budget = int(os.environ.get("WETSANALYSE_LLM_TOKEN_BUDGET", "0"))
-        # Harde cap op het aantal verwezen artikelen dat per analyse wordt opgehaald (Niveau B,
-        # diepte 1). Begrenst kosten/latency van de cross-referentie-fetch-lus. 0 = niet volgen.
-        self.max_verwijzing_fetches = int(os.environ.get("WETSANALYSE_MAX_VERWIJZING_FETCHES", "6"))
-
-        self.analyses_dir = Path(
-            os.environ.get("WETSANALYSE_ANALYSES_DIR", str(ANALYSES_DIR))
-        )
 
         # --- Observability (gestructureerde logging + OpenTelemetry) ---
         # Niet-geheim → gewone env (geen *_FILE). `log_format=text` is prettiger lokaal; json is default.

@@ -26,7 +26,7 @@ een reviewronde" hoort te ontstaan:
 - een JAS-klasse die niet in `references/jas-klassen-referentie.md` staat;
 - de skill die de reviewstop overslaat of zonder bevestiging doorloopt;
 - de MCP die niets (of een fout) teruggeeft;
-- de §4-vrije-tekstvelden (reviewlog-samenvattingen, aandachtspunten) die bij opnieuw
+- de §3-vrije-tekstvelden (reviewlog-samenvatting, aandachtspunten) die bij opnieuw
   bouwen van `rapport.json` zonder de invul-flags leeglopen;
 
 … óf wanneer de lus zélf niet convergeert (dezelfde correctie landt na meerdere rondes
@@ -68,9 +68,7 @@ Waar dit in deze skill aan vastzit:
     (markeringen + verwijzingen, niet de leden-tekst) terugmelden. Zo blijft de brontekst
     van afgeronde bronnen uit de hoofdcontext terwijl je bron Y doet.
   - Lees een afgeronde `werk/.../analyse.json` niet onnodig in z'n geheel opnieuw in;
-    werk gericht met de id's. Activiteit 3 werkt werkgebied-breed op de **markeringen**,
-    niet op de volledige leden-tekst — citeer daar uit de markering, niet uit een
-    her-opgehaald artikel.
+    werk gericht met de id's.
   Symptoom dat hierop wijst: kwaliteitsverlies of trager/duurder worden naarmate er
   bronnen bijkomen, of het model dat brontekst van een eerdere bron door elkaar haalt.
 
@@ -94,8 +92,8 @@ Veelvoorkomende toolfouten:
   model verdenkt.
 - Verkeerde `bwbId` of jci-`bronreferentie`, of structuur niet eerst opgehaald → verkeerd
   of leeg artikel.
-- `build_rapport_json.py` opnieuw gedraaid zónder de §4-flags
-  (`--reviewlog-act2/-act3/--aandachtspunten`): de vrije-tekstvelden in `rapport.json` lopen
+- `build_rapport_json.py` opnieuw gedraaid zónder de §3-flags
+  (`--reviewlog-act2/--aandachtspunten`): de vrije-tekstvelden in `rapport.json` lopen
   dan leeg (zie ook Governance).
 
 ## 3. Loop — hoe bewoog de agent?
@@ -105,7 +103,7 @@ stopcondities — of liep het op hol?
 
 De lus van deze skill is bewust begrensd:
 
-- **De vaste stappen:** activiteit 2 → checkpoint → activiteit 3 → checkpoint → rapport.
+- **De vaste stappen:** activiteit 2 → checkpoint → rapport.
 - **Stopconditie:** `feedback.json` met `status: "akkoord"` én zonder `items`/`algemeen` =
   klaar. Stopt de skill te vroeg (bij feedback die er nog is) of juist niet (negeert
   akkoord), dan zit de fout in hoe de stopconditie wordt gelezen.
@@ -125,10 +123,10 @@ De begrenzing in deze skill:
   omgeving staat (die vlag is alleen voor geautomatiseerde evals bedoeld).
 - **Rapport gegenereerd, niet overgetypt.** `build_rapport_json.py` combineert de
   gevalideerde `analyse.json`'s van de hoogste reviewronde tot `rapport.json`; de
-  deterministische secties 0-3 komen brongetrouw uit die bestanden, het model levert alleen
-  synthese in de §4-vrije-tekstvelden (via de flags of de viewer). Dat begrenst de blast
-  radius — feiten verzinnen in secties 0-3 hoort architectonisch onmogelijk te zijn.
-  Verschijnen er tóch afwijkingen daar, of lopen de §4-velden leeg, dan is er buiten de
+  deterministische secties 0-2 komen brongetrouw uit die bestanden, het model levert alleen
+  synthese in de §3-vrije-tekstvelden (via de flags of de viewer). Dat begrenst de blast
+  radius — feiten verzinnen in secties 0-2 hoort architectonisch onmogelijk te zijn.
+  Verschijnen er tóch afwijkingen daar, of lopen de §3-velden leeg, dan is er buiten de
   generator om gewerkt of zonder de invul-flags herbouwd.
 - **Brongetrouwheid = out-of-bounds.** Tekst verzinnen of een parafrase als citaat opvoeren
   is geen stijlkwestie maar een grensoverschrijding.
@@ -146,5 +144,5 @@ De begrenzing in deze skill:
 | Skill loopt door zonder review | Governance (`WETSANALYSE_NO_REVIEW` lekt) of Loop (stopconditie verkeerd gelezen) |
 | Eindeloze of te vroeg afgebroken rondes | Loop (stopconditie / 6-rondencap) |
 | Analyse wordt slechter over de rondes | Context (overload) of Loop (feedback landt niet) |
-| §4-vrije tekst verdwenen / afwijking in secties 0-3 | Governance/Tools (`build_rapport_json.py` zonder §4-flags herbouwd of buiten de generator om gewerkt) |
-| Markeringen/begrippen verschuiven tussen rondes | Tools/Loop (instabiele id's) |
+| §3-vrije tekst verdwenen / afwijking in secties 0-2 | Governance/Tools (`build_rapport_json.py` zonder §3-flags herbouwd of buiten de generator om gewerkt) |
+| Markeringen verschuiven tussen rondes | Tools/Loop (instabiele id's) |

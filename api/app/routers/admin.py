@@ -1,40 +1,35 @@
-"""Admin-resource (gemount onder /v1/admin) — LLM-modelprofielen beheren + token-verbruik.
+"""Admin-resource (gemount onder /v1/admin) — LLM-modelprofielen, gebruikers en genereerbare
+API-tokens beheren.
 
 Alles achter `require_admin` (aparte admin-bearer, fail-closed). De plaintext-API-key komt
 NOOIT terug in een respons: clients zien alleen `api_key_set`. Het schrijven van een key
 vereist een geconfigureerde master key (LLM_CONFIG_SECRET); ontbreekt die → 400.
 
 PUT    /v1/admin/profiles/{name}          — maak/werk profiel bij (api_key write-only)
-GET    /v1/admin/profiles                 — lijst (incl. verbruik per profiel)
+GET    /v1/admin/profiles                 — lijst
 GET    /v1/admin/profiles/{name}          — één profiel
 DELETE /v1/admin/profiles/{name}          — verwijder (niet de default)
 POST   /v1/admin/profiles/{name}/default  — markeer als default
 POST   /v1/admin/profiles/{name}/test     — test de verbinding (kleine LLM-call)
-GET    /v1/admin/usage                    — token-verbruik (aggregatie over provenance)
-
-PUT    /v1/admin/wetten/{bwbId}           — maak/werk wet-catalogus-item bij (BWB-id + naam)
-GET    /v1/admin/wetten                   — lijst catalogus-items
-DELETE /v1/admin/wetten/{bwbId}           — verwijder catalogus-item
-POST   /v1/admin/wetten/{bwbId}/resolve   — stel de officiële citeertitel voor via de MCP
 """
 
 from __future__ import annotations
 
+import asyncio
 import logging
+from datetime import datetime
+from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel, Field
 
-from .. import api_tokens, app_settings, profiles, usage, users, wetten
+from .. import api_tokens, berichten as berichten_svc, feedback as feedback_svc, profiles, users
 from ..auth import require_admin
-from ..deps import get_store
-from ..jobstore import JobStore
 from ..llm.litellm_client import build_llm_client
 from ..llm_profile import LlmProfile
 from ..ratelimit import rate_limited_admin_test
 from ..secrets_crypto import SecretsCryptoError, crypto_beschikbaar
-from ..wet_catalog import WetCatalogus
-from ..wettenbank import WettenbankError
+from .auth import huidige_beheerder, vergeet_actief
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +62,6 @@ class ProfileOut(BaseModel):
     api_key_set: bool
     updated_by: str = ""
     updated: str = ""
-    verbruik: dict | None = None
 
 
 class TestResult(BaseModel):
@@ -78,7 +72,7 @@ class TestResult(BaseModel):
     detail: str = ""
 
 
-def _to_out(p: LlmProfile, verbruik: dict | None = None) -> ProfileOut:
+def _to_out(p: LlmProfile) -> ProfileOut:
     return ProfileOut(
         name=p.name,
         provider=p.provider,
@@ -91,7 +85,6 @@ def _to_out(p: LlmProfile, verbruik: dict | None = None) -> ProfileOut:
         api_key_set=bool(p.enc_api_key),
         updated_by=p.updated_by,
         updated=p.updated.isoformat(),
-        verbruik=verbruik,
     )
 
 
@@ -99,9 +92,7 @@ def _to_out(p: LlmProfile, verbruik: dict | None = None) -> ProfileOut:
 
 @router.get("/profiles", response_model=list[ProfileOut])
 async def lijst_profielen():
-    items = await profiles.list_profiles()
-    verbruik = await usage.usage_per_profiel()
-    return [_to_out(p, verbruik.get(p.name)) for p in items]
+    return [_to_out(p) for p in await profiles.list_profiles()]
 
 
 @router.get("/profiles/{name}", response_model=ProfileOut)
@@ -185,69 +176,6 @@ async def test_profiel(name: str):
     return TestResult(ok=True, model=res.model, tokens_in=res.tokens_in, tokens_out=res.tokens_out)
 
 
-# --- verbruik ------------------------------------------------------------------
-
-@router.get("/usage")
-async def token_verbruik(
-    group_by: str = Query("model"),
-    van: str | None = Query(None),
-    tot: str | None = Query(None),
-):
-    try:
-        return await usage.usage_report(group_by=group_by, van=van, tot=tot)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-# --- wet-catalogus -------------------------------------------------------------
-
-class WetIn(BaseModel):
-    naam: str = Field(default="", max_length=256)
-
-
-class WetOut(BaseModel):
-    bwbId: str
-    naam: str
-    updated_by: str = ""
-    updated: str = ""
-
-
-class ResolveResult(BaseModel):
-    naam: str
-
-
-def _wet_to_out(w: WetCatalogus) -> WetOut:
-    return WetOut(bwbId=w.bwbId, naam=w.naam, updated_by=w.updated_by, updated=w.updated.isoformat())
-
-
-@router.get("/wetten", response_model=list[WetOut])
-async def lijst_wetten():
-    return [_wet_to_out(w) for w in await wetten.list_wetten()]
-
-
-@router.put("/wetten/{bwbId}", response_model=WetOut)
-async def upsert_wet(bwbId: str, body: WetIn, admin_id: str = Depends(require_admin)):
-    w = await wetten.upsert_wet(bwbId, naam=body.naam, updated_by=admin_id)
-    return _wet_to_out(w)
-
-
-@router.delete("/wetten/{bwbId}", status_code=status.HTTP_204_NO_CONTENT)
-async def verwijder_wet(bwbId: str):
-    try:
-        await wetten.delete_wet(bwbId)
-    except wetten.WetError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-
-@router.post("/wetten/{bwbId}/resolve", response_model=ResolveResult)
-async def resolve_wet_naam(bwbId: str):
-    try:
-        naam = await wetten.resolve_naam(bwbId)
-    except WettenbankError as e:
-        raise HTTPException(status_code=502, detail=str(e))
-    return ResolveResult(naam=naam)
-
-
 # --- gebruikersbeheer ----------------------------------------------------------
 
 class UserOut(BaseModel):
@@ -311,6 +239,8 @@ async def wijzig_user(userid: str, body: UserPatchIn):
         user = await users.patch_user(userid, role=body.role, active=body.active)
     except users.UserError as e:
         raise HTTPException(status_code=409, detail=str(e))
+    # Deactiveren moet meteen bijten, niet pas als de actief-cache verloopt.
+    vergeet_actief(userid)
     return _user_to_out(user)
 
 
@@ -329,6 +259,7 @@ async def verwijder_user(userid: str):
         await users.delete_user(userid)
     except users.UserError as e:
         raise HTTPException(status_code=409, detail=str(e))
+    vergeet_actief(userid)
 
 
 # --- genereerbare API-tokens ---------------------------------------------------
@@ -388,68 +319,171 @@ async def trek_api_token_in(token_id: str, admin_id: str = Depends(require_admin
     })
 
 
-# --- runtime-instellingen + LLM-call-capture -----------------------------------
+# --- berichtensysteem ---------------------------------------------------------
 
-class SettingsOut(BaseModel):
-    capture_llm_calls: bool = False
-
-
-class SettingsIn(BaseModel):
-    # Partiële update (None = ongewijzigd).
-    capture_llm_calls: bool | None = None
-
-
-class LlmCallOut(BaseModel):
+class AdminBerichtOut(BaseModel):
     id: int
-    project_slug: str
-    activiteit: str = ""
-    ronde: int = 0
-    poging: int = 1
-    fase: str = ""
-    model: str = ""
-    provider: str = ""
-    system_prompt: str = ""
-    user_prompt: str = ""
-    response_text: str = ""
-    tokens_in: int = 0
-    tokens_out: int = 0
-    ok: bool = True
-    error: str | None = None
-    tijdstip: str = ""
+    titel: str
+    inhoud: str
+    type: str
+    versie: str | None = None
+    gepubliceerd: bool
+    gepubliceerd_op: str | None = None
+    aangemaakt_door: str = ""
+    created: str = ""
+    updated: str = ""
 
 
-async def _settings_out(store: JobStore) -> SettingsOut:
-    return SettingsOut(capture_llm_calls=await app_settings.capture_enabled(store))
+class BerichtAanmakenIn(BaseModel):
+    titel: str = Field(max_length=256)
+    inhoud: str = Field(max_length=10000)
+    type: Literal["info", "update", "waarschuwing", "kritiek"] = "info"
+    versie: str | None = Field(default=None, max_length=32)
 
 
-@router.get("/settings", response_model=SettingsOut)
-async def haal_settings(store: JobStore = Depends(get_store)):
-    return await _settings_out(store)
+class BerichtPublicatieIn(BaseModel):
+    gepubliceerd: bool
 
 
-@router.put("/settings", response_model=SettingsOut)
-async def zet_settings(body: SettingsIn, store: JobStore = Depends(get_store)):
-    if body.capture_llm_calls is not None:
-        await app_settings.set_capture(store, body.capture_llm_calls)
-    return await _settings_out(store)
+def _bericht_out(row: dict) -> AdminBerichtOut:
+    gp_op = row.get("gepubliceerd_op")
+    return AdminBerichtOut(
+        id=row["id"],
+        titel=row["titel"],
+        inhoud=row["inhoud"],
+        type=row["type"],
+        versie=row.get("versie"),
+        gepubliceerd=bool(row["gepubliceerd"]),
+        gepubliceerd_op=gp_op.isoformat() if gp_op else None,
+        aangemaakt_door=row.get("aangemaakt_door", ""),
+        created=row["created"].isoformat() if row.get("created") else "",
+        updated=row["updated"].isoformat() if row.get("updated") else "",
+    )
 
 
-@router.get("/projects/{slug}/llm-calls", response_model=list[LlmCallOut])
-async def lijst_llm_calls(slug: str, store: JobStore = Depends(get_store)):
-    """Vastgelegde LLM-calls (prompt + ruwe respons) van één analyse, op volgorde. Admin-only."""
-    rijen = await store.lijst_llm_calls(slug)
-    out: list[LlmCallOut] = []
-    for r in rijen:
-        ts = r.get("tijdstip")
-        out.append(LlmCallOut(
-            id=r["id"], project_slug=r.get("project_slug", ""),
-            activiteit=r.get("activiteit", ""), ronde=r.get("ronde", 0),
-            poging=r.get("poging", 1), fase=r.get("fase", ""),
-            model=r.get("model", ""), provider=r.get("provider", ""),
-            system_prompt=r.get("system_prompt", ""), user_prompt=r.get("user_prompt", ""),
-            response_text=r.get("response_text", ""),
-            tokens_in=r.get("tokens_in", 0), tokens_out=r.get("tokens_out", 0),
-            ok=bool(r.get("ok", True)), error=r.get("error"),
-            tijdstip=ts.isoformat() if hasattr(ts, "isoformat") else (ts or ""),
-        ))
-    return out
+class AdminBerichtenPaginaOut(BaseModel):
+    items: list[AdminBerichtOut]
+    totaal: int
+    pagina: int
+    per_pagina: int
+
+
+@router.get("/berichten", response_model=AdminBerichtenPaginaOut)
+async def lijst_berichten(
+    pagina: int = Query(default=1, ge=1),
+    # Default ruim gehouden (i.t.t. de 20 van de analist-route): tools/wetsanalyse-admin-mcp
+    # roept dit endpoint ongepagineerd aan voor de "release notes schrijven"-workflow en
+    # heeft geen offset/limit-parameter om verder te bladeren — een kleinere default zou
+    # oudere berichten stil onbereikbaar maken voor die tool.
+    per_pagina: int = Query(default=100, ge=1, le=500),
+):
+    offset = (pagina - 1) * per_pagina
+    rows, totaal = await asyncio.gather(
+        berichten_svc.list_alle_berichten(offset=offset, limit=per_pagina),
+        berichten_svc.list_alle_berichten_totaal(),
+    )
+    return AdminBerichtenPaginaOut(
+        items=[_bericht_out(r) for r in rows],
+        totaal=totaal,
+        pagina=pagina,
+        per_pagina=per_pagina,
+    )
+
+
+@router.post("/berichten", response_model=AdminBerichtOut, status_code=status.HTTP_201_CREATED)
+async def maak_bericht(body: BerichtAanmakenIn, admin_id: str = Depends(require_admin)):
+    row = await berichten_svc.maak_bericht(
+        body.titel, body.inhoud, body.type, body.versie, admin_id
+    )
+    return _bericht_out(row)
+
+
+@router.put("/berichten/{bericht_id}", response_model=AdminBerichtOut)
+async def bewerk_bericht(bericht_id: int, body: BerichtAanmakenIn):
+    try:
+        row = await berichten_svc.update_bericht(bericht_id, body.titel, body.inhoud, body.type, body.versie)
+    except berichten_svc.BerichtError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return _bericht_out(row)
+
+
+@router.patch("/berichten/{bericht_id}/publicatie", response_model=AdminBerichtOut)
+async def zet_publicatie(bericht_id: int, body: BerichtPublicatieIn):
+    try:
+        row = await berichten_svc.set_gepubliceerd(bericht_id, body.gepubliceerd)
+    except berichten_svc.BerichtError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return _bericht_out(row)
+
+
+@router.delete("/berichten/{bericht_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def verwijder_bericht(bericht_id: int):
+    try:
+        await berichten_svc.verwijder_bericht(bericht_id)
+    except berichten_svc.BerichtError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# --- gebruikersfeedback --------------------------------------------------------
+
+class FeedbackAdminOut(BaseModel):
+    id: int
+    client_id: str
+    userid: str
+    categorie: str
+    tekst: str
+    pagina: str | None = None
+    created: str
+
+
+class OngelezenFeedbackOut(BaseModel):
+    aantal: int
+
+
+class MarkeerGezienIn(BaseModel):
+    tot: datetime | None = None
+
+
+class FeedbackAdminPaginaOut(BaseModel):
+    items: list[FeedbackAdminOut]
+    totaal: int
+
+
+@router.delete("/feedback/{feedback_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def verwijder_feedback(feedback_id: int):
+    try:
+        await feedback_svc.verwijder_feedback(feedback_id)
+    except feedback_svc.FeedbackError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/feedback/ongelezen-aantal", response_model=OngelezenFeedbackOut)
+async def get_ongelezen_feedback_aantal(userid: str = Depends(huidige_beheerder)):
+    aantal = await feedback_svc.ongelezen_feedback_aantal(userid)
+    return OngelezenFeedbackOut(aantal=aantal)
+
+
+@router.post("/feedback/markeer-gezien", status_code=status.HTTP_204_NO_CONTENT)
+async def post_markeer_feedback_gezien(
+    body: MarkeerGezienIn = MarkeerGezienIn(), userid: str = Depends(huidige_beheerder)
+):
+    await feedback_svc.markeer_feedback_gezien(userid, tot=body.tot)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/feedback", response_model=FeedbackAdminPaginaOut)
+async def get_feedback(offset: int = Query(0, ge=0), limit: int = Query(50, ge=1, le=200)):
+    rows, totaal = await asyncio.gather(
+        feedback_svc.lijst_feedback(offset=offset, limit=limit),
+        feedback_svc.lijst_feedback_totaal(),
+    )
+    items = [
+        FeedbackAdminOut(
+            **{k: v for k, v in row.items() if k != "created"},
+            created=row["created"].isoformat(),
+        )
+        for row in rows
+    ]
+    return FeedbackAdminPaginaOut(items=items, totaal=totaal)

@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import QRCode from "qrcode";
+import { Vinkje } from "@/components/ui/Icoon";
 import { Button } from "@/components/ui/Button";
-import { ButtonRow } from "@/components/ui/ButtonRow";
-import { Card, Section } from "@/components/ui/Card";
+import { SettingGroup, SettingList, SettingRow } from "@/components/ui/SettingRow";
 import { Field, Input } from "@/components/ui/Field";
 import { Melding } from "@/components/ui/Melding";
 import { Tag } from "@/components/ui/Badge";
@@ -40,6 +40,8 @@ export function AccountClient() {
   }, []);
 
   useEffect(() => {
+    // Data-load bij mount: setState gebeurt async ná de fetch (geen synchrone render-cascade).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     laad();
   }, [laad]);
 
@@ -94,7 +96,10 @@ export function AccountClient() {
   }
 
   return (
-    <Section title="Tweestapsverificatie (2FA)" subtitle="Optioneel">
+    <SettingGroup
+      titel="Beveiliging"
+      omschrijving="Tweestapsverificatie is optioneel. Staat die aan, dan vraagt het inloggen om een code uit je authenticator-app."
+    >
       {fout && (
         <Melding type="fout" className="mb-3">
           {fout}
@@ -102,13 +107,19 @@ export function AccountClient() {
       )}
 
       {account && (
-        <Card className="p-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="font-display font-semibold text-ink">{account.userid}</span>
-            <span className="text-sm text-muted">{account.email}</span>
-            <Tag>{account.role}</Tag>
-            {account.totp_enabled ? <Tag>2FA ✓</Tag> : <Tag>2FA uit</Tag>}
-          </div>
+        <div>
+          <SettingList>
+            <SettingRow label="Account" omschrijving={account.email}>
+              <span className="text-sm text-ink">{account.userid}</span>
+              <Tag>{account.role}</Tag>
+            </SettingRow>
+            <SettingRow
+              label="Tweestapsverificatie"
+              omschrijving={account.totp_enabled ? "Ingeschakeld." : "Uitgeschakeld."}
+            >
+              {account.totp_enabled ? <Tag><span className="inline-flex items-center gap-1">2FA <Vinkje /></span></Tag> : <Tag>2FA uit</Tag>}
+            </SettingRow>
+          </SettingList>
 
           {account.totp_enabled ? (
             <form onSubmit={onUitschakelen} className="mt-4 space-y-3">
@@ -125,11 +136,12 @@ export function AccountClient() {
                     onChange={(e) => setUitschakelCode(e.target.value)}
                   />
                 </Field>
-                <Button type="submit" variant="danger" disabled={bezig} className="w-full sm:w-auto">
+                <Button type="submit" size="sm" variant="danger" disabled={bezig} className="w-full sm:w-auto">
                   2FA uitschakelen
                 </Button>
                 <Button
                   type="button"
+                  size="sm"
                   variant="ghost"
                   onClick={() => setUitschakelCode("")}
                   disabled={bezig}
@@ -161,11 +173,12 @@ export function AccountClient() {
                     onChange={(e) => setCode(e.target.value)}
                   />
                 </Field>
-                <Button type="submit" disabled={bezig} className="w-full sm:w-auto">
+                <Button type="submit" size="sm" disabled={bezig} className="w-full sm:w-auto">
                   Bevestigen
                 </Button>
                 <Button
                   type="button"
+                  size="sm"
                   variant="ghost"
                   onClick={() => setKoppeling(null)}
                   disabled={bezig}
@@ -176,14 +189,14 @@ export function AccountClient() {
               </form>
             </div>
           ) : (
-            <ButtonRow align="start" className="mt-3">
-              <Button onClick={onStart} disabled={bezig}>
+            <div className="mt-4 flex sm:justify-end">
+              <Button size="sm" onClick={onStart} disabled={bezig} className="w-full sm:w-auto">
                 2FA inschakelen
               </Button>
-            </ButtonRow>
+            </div>
           )}
-        </Card>
+        </div>
       )}
-    </Section>
+    </SettingGroup>
   );
 }

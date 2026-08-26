@@ -18,7 +18,7 @@ export const JAS_KLASSEN = [
 ] as const;
 
 // Tailwind-klassen per JAS-klasse (achtergrond + tekst + rand). De achtergrondkleuren zijn
-// de exacte labelkleuren uit de officiële JAS-tabel (docs/wa-table.png), per pixel gesampled;
+// de exacte labelkleuren uit de officiële JAS-tabel (docs/wetsanalyse/wa-table.png), per pixel gesampled;
 // de rand is dezelfde kleur ~22% donkerder. Tekst is text-ink (#1A1A1A, ≥ 5,4:1 op elke tint).
 // Samengevoegde klassen nemen de hoofdkleur uit de tabel (Variabele / Parameter / Delegatiebevoegdheid).
 const KLASSE_STYLE: Record<string, string> = {

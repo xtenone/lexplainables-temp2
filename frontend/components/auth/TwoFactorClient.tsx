@@ -23,8 +23,12 @@ export function TwoFactorClient() {
   // De (niet-gevoelige) userid + remember-keuze komen uit stap 1 (/login). Ontbreekt de userid →
   // opnieuw beginnen.
   useEffect(() => {
+    // Browser-only hydratie uit sessionStorage (van stap 1 /login): het effect is hier het
+    // SSR-correcte patroon — een lazy initializer zou een server/client-mismatch geven.
+    /* eslint-disable react-hooks/set-state-in-effect */
     setUserid(sessionStorage.getItem("wa_login_userid"));
     setOnthouden(sessionStorage.getItem("wa_login_remember") === "1");
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   async function onSubmit(e: React.FormEvent) {
@@ -59,6 +63,9 @@ export function TwoFactorClient() {
       // Harde navigatie, zie de toelichting in LoginClient.tsx: de disclaimer-gate kan hier
       // omleiden, en dat combineert niet goed met een soft router.push.
       window.location.href = veiligPad(params.get("callbackUrl"), window.location.origin);
+    } catch {
+      // Zie LoginClient: een transportfout is geen antwoord en viel dus buiten alle afhandeling.
+      setFout("De code kon niet worden gecontroleerd — de dienst is niet bereikbaar. Probeer het zo opnieuw.");
     } finally {
       setBezig(false);
     }

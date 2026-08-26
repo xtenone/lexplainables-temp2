@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bronHref, normaliseerJci, pathSegment, veiligPad, wettenOverheidHref } from "./url";
+import { bronHref, normaliseerJci, pathSegment, veiligPad } from "./url";
 
 describe("normaliseerJci", () => {
   it("voegt &z= toe (gelijk aan &g=) als alleen &g= aanwezig is", () => {
@@ -77,29 +77,43 @@ describe("bronHref", () => {
     expect(bronHref("JavaScript:alert(1)")).toBeUndefined();
   });
 
+  it("vertaalt een graaf-IRI naar de deeplink van de bepaling", () => {
+    // De agent levert vindplaatsen ook als IRI uit de kennisgraaf. Die werden eerder achter
+    // wetten.overheid.nl geplakt — een klikbare link naar een 404.
+    expect(bronHref("urn:bwb:BWBR0004770:artikel:9")).toBe(
+      "https://wetten.overheid.nl/jci1.3:c:BWBR0004770&artikel=9",
+    );
+    expect(bronHref("urn:bwb:BWBR0004770:artikel:2:lid:1")).toBe(
+      "https://wetten.overheid.nl/jci1.3:c:BWBR0004770&artikel=2&lid=1",
+    );
+  });
+
+  it("vertaalt de IRI van een hele wet naar de regelingpagina", () => {
+    expect(bronHref("urn:bwb:BWBR0004770")).toBe(
+      "https://wetten.overheid.nl/BWBR0004770",
+    );
+  });
+
+  it("maakt van een kaal BWB-id een regelingpagina", () => {
+    expect(bronHref("BWBR0004770")).toBe("https://wetten.overheid.nl/BWBR0004770");
+  });
+
+  it("geeft geen link bij een IRI die niet te citeren is", () => {
+    // Interne knopen (id/, ref/, begrip/, graph/) hebben geen publieke vindplaats. Dan liever geen
+    // link dan een link die ergens anders uitkomt.
+    expect(bronHref("urn:bwb:BWBR0004770:id:art9-lid1")).toBeUndefined();
+    expect(bronHref("urn:bwb:ref:9f2c1a")).toBeUndefined();
+    expect(bronHref("urn:bwb:begrip:belastingschuldige")).toBeUndefined();
+  });
+
+  it("weigert een IRI-achtige URL op een vreemde host", () => {
+    expect(bronHref("https://evil.example/bwb/BWBR0004770/artikel/9")).toBeUndefined();
+  });
+
   it("weigert een data:-URL en lege invoer → undefined", () => {
     expect(bronHref("data:text/html,<script>alert(1)</script>")).toBeUndefined();
     expect(bronHref("")).toBeUndefined();
     expect(bronHref(undefined)).toBeUndefined();
-  });
-});
-
-describe("wettenOverheidHref", () => {
-  it("bouwt een pad onder wetten.overheid.nl", () => {
-    expect(wettenOverheidHref("jci1.3:c:BWBR0004770&artikel=9")).toBe(
-      "https://wetten.overheid.nl/jci1.3:c:BWBR0004770&artikel=9",
-    );
-  });
-
-  it("laat de host niet ontsnappen via een vreemde target", () => {
-    // encodeURI codeert geen backslash/at; de URL-parse moet host wetten.overheid.nl houden.
-    const href = wettenOverheidHref("@evil.example/pad");
-    expect(href === undefined || new URL(href).hostname === "wetten.overheid.nl").toBe(true);
-  });
-
-  it("geeft undefined bij lege invoer", () => {
-    expect(wettenOverheidHref("")).toBeUndefined();
-    expect(wettenOverheidHref(null)).toBeUndefined();
   });
 });
 

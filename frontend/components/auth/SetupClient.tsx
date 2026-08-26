@@ -46,6 +46,9 @@ export function SetupClient() {
       // goed met een soft router.push (zie de toelichting in LoginClient.tsx).
       const login = await signIn("credentials", { redirect: false, userid, password });
       window.location.href = login?.error ? "/login" : "/";
+    } catch {
+      // Zie LoginClient: een transportfout is geen antwoord en viel dus buiten alle afhandeling.
+      setFout("Aanmaken lukt nu niet — de dienst is niet bereikbaar. Probeer het zo opnieuw.");
     } finally {
       setBezig(false);
     }

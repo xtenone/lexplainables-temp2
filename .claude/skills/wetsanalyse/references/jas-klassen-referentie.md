@@ -163,9 +163,8 @@ de uitdrukkingswijze in de wettekst.
 - **Omschrijving:** Een begripsomschrijving die expliciet in de wetgeving is opgenomen en een
   veelgebruikte term een eenduidige betekenis geeft. Staat doorgaans in een of meer artikelen
   vooraan een wet of regeling. Een in de wet gedefinieerde term wordt standaard hergebruikt in
-  de daarop gebaseerde gedelegeerde regelingen. **Let op:** brondefinities zijn iets anders dan
-  de begrippen die je bij activiteit 3 zelf maakt — die laatste hebben geen directe wettelijke
-  bron maar dienen om formuleringen uniek aan te duiden.
+  de daarop gebaseerde gedelegeerde regelingen. **Let op:** een brondefinitie staat expliciet in
+  de wettekst — het is een gemarkeerde formulering, geen zelf-geformuleerde werkdefinitie.
 - **Vraag:** Is deze term uitdrukkelijk omschreven in de wetgeving?
 - **Uitdrukkingswijze:** Een definitieartikel met aanhef ('In deze wet wordt verstaan onder…')
   en onderdelen, bij voorkeur alfabetisch. Kan ook voor een specifiek hoofdstuk/paragraaf/artikel

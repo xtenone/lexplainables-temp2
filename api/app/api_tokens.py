@@ -86,27 +86,42 @@ async def revoke(token_id: str) -> None:
         raise ApiTokenError(f"Onbekend token: {token_id}")
 
 
+async def _touch_last_used(token_id: str) -> None:
+    """Best-effort `last_used`-bijwerking, geïsoleerd van de auth-beslissing: een schrijffout mag een
+    al-gevalideerd token nooit alsnog ongeldig maken (geen 401 door een metadata-hapering)."""
+    try:
+        async with db.get_engine().begin() as conn:
+            await conn.execute(
+                update(db.api_tokens).where(db.api_tokens.c.id == token_id).values(last_used=_utcnow())
+            )
+    except Exception:  # noqa: BLE001 — puur metadata; stil falen
+        pass
+
+
 async def verify(presented: str | None) -> str | None:
     """Valideer een aangeboden token tegen de actieve DB-tokens. Geeft een admin-id of None.
 
-    Best-effort `last_used`-update. Faalt nooit hard richting de caller (auth beslist op None).
+    De auth-beslissing komt uit een read-only lookup; de `last_used`-update is een aparte, best-effort
+    stap (zie `_touch_last_used`) zodat een schrijffout de geldigheid niet ongedaan maakt.
     """
     if not presented or not presented.startswith(TOKEN_PREFIX):
         return None
     token_hash = _hash(presented)
     try:
-        async with db.get_engine().begin() as conn:
+        async with db.get_engine().connect() as conn:
             row = (await conn.execute(
                 select(db.api_tokens).where(
                     db.api_tokens.c.token_hash == token_hash,
                     db.api_tokens.c.active.is_(True),
                 )
             )).mappings().first()
-            if row is None:
-                return None
-            await conn.execute(
-                update(db.api_tokens).where(db.api_tokens.c.id == row["id"]).values(last_used=_utcnow())
-            )
-        return f"apitoken:{row['label'] or row['id'][:8]}"
     except Exception:  # noqa: BLE001 — een DB-hapering mag geen 500 worden; behandel als 'geen match'
         return None
+    if row is None:
+        return None
+    admin_id = f"apitoken:{row['label'] or row['id'][:8]}"
+    try:
+        await _touch_last_used(row["id"])
+    except Exception:  # noqa: BLE001 — dubbele vangnet; de touch is nooit auth-bepalend
+        pass
+    return admin_id

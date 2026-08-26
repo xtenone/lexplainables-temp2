@@ -103,7 +103,7 @@ export function ProfileEditor({ profile, onDone, onCancel }: Props) {
           </Field>
           <Field
             label="API-key"
-            hint={profile?.api_key_set ? "ingesteld ✓ — leeg = ongewijzigd" : "write-only"}
+            hint={profile?.api_key_set ? "ingesteld — leeg laten = ongewijzigd" : "write-only"}
           >
             <Input type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder={profile?.api_key_set ? "••••••••" : "sk-…"} autoComplete="new-password" />
           </Field>
@@ -112,10 +112,10 @@ export function ProfileEditor({ profile, onDone, onCancel }: Props) {
         {fout && <Melding type="fout">{fout}</Melding>}
 
         <ButtonRow className="pt-2">
-          <Button type="button" variant="ghost" onClick={onCancel} disabled={bezig}>
+          <Button size="sm" type="button" variant="ghost" onClick={onCancel} disabled={bezig}>
             Annuleren
           </Button>
-          <Button type="submit" disabled={bezig}>
+          <Button size="sm" type="submit" disabled={bezig}>
             {bezig ? "Bezig met opslaan…" : "Opslaan"}
           </Button>
         </ButtonRow>

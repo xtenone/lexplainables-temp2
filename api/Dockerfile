@@ -45,19 +45,18 @@ RUN pip install --no-cache-dir --upgrade 'pip>=26.1' 'setuptools>=83.0.0' \
 # ↑ pip 26.x bakt een CycloneDX-SBOM van zijn vendored deps mee (msgpack 1.1.2,
 # setuptools 70.3.0, …). Trivy pikt die op als "third-party SBOM" en rapporteert
 # die versies als kwetsbaar — ook al is de echte image al gepatcht. Verwijderen
-# sluit de valse alerts (#100/#101/#102) zonder pip-functionaliteit te breken.
+# sluit de valse alerts zonder pip-functionaliteit te breken.
 
 WORKDIR /app/api
 
 # De gebouwde virtualenv uit de builder (bevat alle runtime-dependencies).
 COPY --from=builder /app/api/.venv /app/api/.venv
 
-# Applicatiecode + de gedeelde skill-kennis (references/scripts). analyses/ is een volume.
-# De API leest bij import zowel de wetsanalyse- als de regelspraak-skill (config.REGELSPRAAK_SCRIPTS
-# /_REFERENCES; validation.py laadt validate_regelspraak op import-tijd) — beide moeten mee.
+# Applicatiecode + de gedeelde wetsanalyse-skill-kennis (references/scripts). `validation.py` laadt
+# op import-tijd `validate_analyse` uit die skill voor de canonieke JAS-klassenlijst, dus de skill
+# moet mee in de image.
 COPY api /app/api
 COPY .claude/skills/wetsanalyse /app/.claude/skills/wetsanalyse
-COPY .claude/skills/regelspraak /app/.claude/skills/regelspraak
 
 # Build-herkomst, door CI meegegeven → leesbaar voor de service op /health (deploy-pariteit).
 ARG GIT_SHA=""
@@ -68,7 +67,7 @@ ENV PATH="/app/api/.venv/bin:$PATH" \
 
 EXPOSE 3000
 
-# Non-root + read-only-fs-proof: de service schrijft niet naar de filesystem (jobstore = PostgreSQL).
+# Non-root + read-only-fs-proof: de service schrijft niet naar de filesystem (opslag = PostgreSQL).
 # We maken /app groep-root-eigendom met groep=gebruiker-rechten, zodat de container ook onder een
 # willekeurige UID (lid van groep 0) de code kan lezen/uitvoeren. HOME=/tmp zodat eventuele
 # home-caches naar een schrijfbare (tmpfs) plek gaan i.p.v. een niet-schrijfbare root-fs. USER 10001.
@@ -80,7 +79,7 @@ USER 10001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:3000/health').status==200 else 1)"
 
-# Conservatieve default van één worker. Het concurrency-model is een atomaire state-CAS
-# (geen in-process lock), dus `--workers >1` en meerdere replica's zijn veilig — verhoog dit
-# gerust voor horizontaal schalen (elke worker krijgt een eigen owner-id + reaper).
+# Conservatieve default van één worker. De request-afhandeling is stateless (de opslag is de
+# gedeelde PostgreSQL), dus `--workers >1` en meerdere replica's zijn veilig — verhoog dit gerust
+# voor horizontaal schalen.
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "3000", "--workers", "1"]

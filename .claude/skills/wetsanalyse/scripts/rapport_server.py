@@ -2,7 +2,7 @@
 """Rapport-server voor de wetsanalyse-skill.
 
 Serveert de rapport.html-viewer met het gegenereerde rapport.json en biedt twee
-acties: het opslaan van bewerkingen op de vrije-tekstvelden (§4), en het
+acties: het opslaan van bewerkingen op de vrije-tekstvelden (§3), en het
 downloaden van het rapport als Markdown-bestand.
 
 Geen dependencies buiten de standaardbibliotheek.
@@ -70,102 +70,16 @@ def vindplaats_text(vps, bron_label: dict) -> str:
     return "; ".join(d for d in delen if d)
 
 
-# --- act-3-weergave: begrippen zijn de bouwstenen van regels (id → naam) ---------
-
-def begrip_naam_map(begrippen) -> dict:
-    return {b.get("id"): (b.get("naam") or b.get("id") or "")
-            for b in (begrippen or []) if b.get("id")}
-
-
-def begrip_ref(bid, namen: dict) -> str:
-    if not bid:
-        return ""
-    naam = namen.get(bid)
-    return f"{naam} ({bid})" if naam and naam != bid else str(bid)
-
-
-def definitie_text(b: dict) -> str:
-    d = b.get("definitie") or ""
-    return d + (" [interpretatie]" if d and b.get("is_interpretatie") else "")
-
-
-def relaties_text(relaties, namen: dict) -> str:
-    delen = []
-    for r in (relaties or []):
-        if not isinstance(r, dict):
-            continue
-        doel = f" → {begrip_ref(r['doel_begrip'], namen)}" if r.get("doel_begrip") else ""
-        soort = f"{r['soort']}: " if r.get("soort") else ""
-        delen.append(f"{soort}{r.get('beschrijving', '')}{doel}")
-    return "; ".join(d for d in delen if d)
-
-
-def herkomst_text(h) -> str:
-    if not isinstance(h, dict) or not h.get("status"):
-        return ""
-    t = f"{h['status']} ({h['aangeleverd_id']})" if h.get("aangeleverd_id") else h["status"]
-    if h.get("motivatie"):
-        t += f" — {h['motivatie']}"
-    return t
-
-
-def uitvoer_text(uitvoer, namen: dict) -> str:
-    if not isinstance(uitvoer, dict) or not uitvoer.get("begrip_id"):
-        return ""
-    t = begrip_ref(uitvoer["begrip_id"], namen)
-    return t + (f" — {uitvoer['toelichting']}" if uitvoer.get("toelichting") else "")
-
-
-def invoer_text(invoer, namen: dict) -> str:
-    delen = []
-    for i in (invoer or []):
-        if not isinstance(i, dict):
-            continue
-        delen.append(begrip_ref(i.get("begrip_id"), namen)
-                     + (f" — {i['toelichting']}" if i.get("toelichting") else ""))
-    return "; ".join(d for d in delen if d)
-
-
-def parameters_text(params, namen: dict) -> str:
-    delen = []
-    for p in (params or []):
-        if not isinstance(p, dict):
-            continue
-        stuk = [begrip_ref(p.get("begrip_id"), namen)]
-        if p.get("waarde"):
-            stuk.append(f"= {p['waarde']}" + (f" {p['eenheid']}" if p.get("eenheid") else ""))
-        else:
-            stuk.append("(waarde in delegatie)")
-        if p.get("geldigheid"):
-            stuk.append(f"[{p['geldigheid']}]")
-        if p.get("toelichting"):
-            stuk.append(f"— {p['toelichting']}")
-        delen.append(" ".join(s for s in stuk if s))
-    return "; ".join(delen)
-
-
-def voorwaarden_text(vws, namen: dict) -> str:
-    delen = []
-    for i, v in enumerate(vws or []):
-        if not isinstance(v, dict):
-            continue
-        prefix = f"{v['verbinding']} " if i > 0 and v.get("verbinding") else ""
-        ids = ", ".join(begrip_ref(x, namen) for x in (v.get("begrip_ids") or []))
-        delen.append(prefix + (v.get("tekst") or "") + (f" [{ids}]" if ids else ""))
-    return " · ".join(delen)
-
-
 def rapport_naar_md(d: dict) -> str:
     regels: list[str] = []
     wg = d.get("werkgebied") or {}
     bronnen = d.get("bronnen") or []
-    bron_label = {b.get("bron_id"): (b.get("label") or bron_titel(b)) for b in bronnen}
 
     titel = wg.get("naam") or (bron_titel(bronnen[0]) if len(bronnen) == 1 else "werkgebied")
     regels += [
         f"# Wetsanalyse — {titel}",
         "",
-        "> Analyse volgens de methode Wetsanalyse (Ausems, Bulles & Lokin), activiteit 2 + 3.",
+        "> Analyse volgens de methode Wetsanalyse (Ausems, Bulles & Lokin), activiteit 2.",
         "> Dit is een **concept-analyse als hulpmiddel**: bedoeld voor multidisciplinaire validatie",
         "> (jurist, informatieanalist, ICT). Interpretatiekeuzes zijn als zodanig gemarkeerd.",
         "",
@@ -231,63 +145,17 @@ def rapport_naar_md(d: dict) -> str:
         if b.get("samenhang"):
             regels += ["**Samenhang centrale klassen**", "", b["samenhang"], ""]
 
-    # §3 Begrippen + afleidingsregels (gedeeld over het werkgebied)
-    namen = begrip_naam_map(d.get("begrippen"))
-    regels += [
-        "## 3. Activiteit 3 — Betekenis (gedeeld over het werkgebied)",
-        "",
-        "### 3a — Begrippen",
-        "",
-        "| Begripsnaam | Synoniemen | Klasse | Definitie | Grondformulering | Voorbeeld | "
-        "Kenmerken / relaties | Verwijst naar | Herkomst | Vindplaats | Twijfel/aanname |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
-    ]
-    for b in sorted(d.get("begrippen", []),
-                    key=lambda b: jas_sorteersleutel(b.get("klasse", ""))):
-        kenmerken = "; ".join(x for x in [b.get("kenmerken") or "",
-                                          relaties_text(b.get("relaties"), namen)] if x)
-        verwijst = ", ".join(begrip_ref(x, namen)
-                             for x in (b.get("verwijst_naar_begrippen") or []))
-        regels.append(
-            f"| {cel(b.get('naam'))} | {cel(', '.join(b.get('synoniemen') or []))} | "
-            f"{cel(b.get('klasse'))} | {cel(definitie_text(b))} | {cel(b.get('grondformulering'))} | "
-            f"{cel(b.get('voorbeeld'))} | {cel(kenmerken)} | {cel(verwijst)} | "
-            f"{cel(herkomst_text(b.get('herkomst')))} | "
-            f"{cel(vindplaats_text(b.get('vindplaatsen'), bron_label))} | {cel(b.get('twijfel'))} |"
-        )
-    regels += ["", "### 3b — Afleidingsregels", ""]
-    for r in d.get("afleidingsregels", []):
-        regels += [f"#### {r.get('naam', '')} — {r.get('type', '')}", ""]
-        for lbl, waarde in [
-            ("Uitvoer", uitvoer_text(r.get("uitvoer"), namen)),
-            ("Invoer", invoer_text(r.get("invoer"), namen)),
-            ("Parameters", parameters_text(r.get("parameters"), namen)),
-            ("Voorwaarden", voorwaarden_text(r.get("voorwaarden"), namen)),
-            ("Toelichting", r.get("toelichting") or ""),
-            ("Markeringen", ", ".join(r.get("markering_ids") or [])),
-        ]:
-            if waarde:
-                regels.append(f"- **{lbl}:** {waarde}")
-        vp = vindplaats_text(r.get("vindplaatsen"), bron_label)
-        if vp:
-            regels.append(f"- **Vindplaats / bron:** {vp}")
-        if r.get("twijfel"):
-            regels.append(f"- **Twijfel/aanname:** {r['twijfel']}")
-        regels.append("")
-
-    # §4 Reviewlog + aandachtspunten
+    # §3 Reviewlog + aandachtspunten (act2-only; begrippen/afleidingsregels zijn uit scope)
     rl = d.get("reviewlog", {})
     act2_samen = (rl.get("activiteit2") or {}).get("samenvatting", "")
-    act3_samen = (rl.get("activiteit3") or {}).get("samenvatting", "")
     aandacht = d.get("aandachtspunten", "")
 
     regels += [
-        "## 4. Reviewlog en aandachtspunten voor validatie",
+        "## 3. Reviewlog en aandachtspunten voor validatie",
         "",
         "### Reviewlog",
         "",
         f"- **Activiteit 2:** {act2_samen or '_TODO_'}",
-        f"- **Activiteit 3:** {act3_samen or '_TODO_'}",
         "",
         "### Aandachtspunten voor multidisciplinaire validatie",
         "",
@@ -395,9 +263,6 @@ class RapportHandler(BaseHTTPRequestHandler):
         if "reviewlog_act2" in body:
             huidig.setdefault("reviewlog", {}).setdefault("activiteit2", {})
             huidig["reviewlog"]["activiteit2"]["samenvatting"] = str(body["reviewlog_act2"])
-        if "reviewlog_act3" in body:
-            huidig.setdefault("reviewlog", {}).setdefault("activiteit3", {})
-            huidig["reviewlog"]["activiteit3"]["samenvatting"] = str(body["reviewlog_act3"])
         if "aandachtspunten" in body:
             huidig["aandachtspunten"] = str(body["aandachtspunten"])
 
@@ -508,7 +373,7 @@ def main():
     print(f"  -----------------------------------------")
     print(f"  URL:      {url}")
     print(f"  Rapport:  {args.input}")
-    print(f"\n  Bekijk het rapport, pas §4-velden aan en klik Opslaan.")
+    print(f"\n  Bekijk het rapport, pas §3-velden aan en klik Opslaan.")
     print(f"  Download de Markdown via de knop in de browser.")
     print(f"  Druk Ctrl+C om de server te stoppen.\n")
 

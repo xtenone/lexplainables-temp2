@@ -179,4 +179,61 @@ describe("PoC-disclaimer-gate", () => {
     });
     expect(new URL((res as Response).headers.get("location")!).pathname).toBe("/disclaimer");
   });
+
+  // De beheer-tabs van het instellingenvenster vallen onder dezelfde rolgate als het oude /beheer.
+  it("weert een analist van een beheer-tab in de instellingen", async () => {
+    const res = await authorized({
+      auth: sessie,
+      request: fakeRequest("GET", "https://app.example/instellingen/beheer/gebruikers", {}, true),
+    });
+    expect(new URL((res as Response).headers.get("location")!).pathname).toBe("/");
+  });
+
+  it("laat een analist wél bij de eigen instellingen", async () => {
+    const res = await authorized({
+      auth: sessie,
+      request: fakeRequest("GET", "https://app.example/instellingen/account", {}, true),
+    });
+    expect(res).toBe(true);
+  });
+
+  it("laat een beheerder bij de beheer-tabs", async () => {
+    const res = await authorized({
+      auth: { user: { userid: "be1", role: "beheerder" } },
+      request: fakeRequest("GET", "https://app.example/instellingen/beheer/gebruikers", {}, true),
+    });
+    expect(res).toBe(true);
+  });
+});
+
+describe("rol-gate op /api/admin", () => {
+  it("geeft een analist een 403 in JSON, geen omleiding naar HTML", async () => {
+    // `fetch` volgt een redirect en krijgt dan de homepage met status 200 terug, waarna `res.json()`
+    // struikelt op een parsefout — de UI toonde dus een onbegrijpelijke melding in plaats van
+    // "Alleen voor beheerders".
+    const res = await authorized({
+      auth: sessie,
+      request: fakeRequest("GET", "https://app.example/api/admin/users"),
+    });
+    expect(res).toBeInstanceOf(Response);
+    expect((res as Response).status).toBe(403);
+    expect(await (res as Response).json()).toEqual({ detail: "Alleen voor beheerders." });
+  });
+
+  it("stuurt een analist op een beheerpágina wél door naar de start", async () => {
+    const res = await authorized({
+      auth: sessie,
+      request: fakeRequest("GET", "https://app.example/instellingen/beheer"),
+    });
+    expect((res as Response).status).toBe(302);
+    expect((res as Response).headers.get("location")).toBe("https://app.example/");
+  });
+
+  it("laat een beheerder gewoon door op de admin-BFF", async () => {
+    const res = await authorized({
+      auth: { user: { userid: "bh1", role: "beheerder" } },
+      request: fakeRequest("GET", "https://app.example/api/admin/users"),
+    });
+    expect(res).toBe(true);
+  });
 });

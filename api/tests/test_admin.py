@@ -107,45 +107,13 @@ async def test_default_wisselen_en_niet_verwijderen(monkeypatch, db):
     await profiles.delete_profile("a")  # niet-default mag wel
 
 
-# --- usage ---------------------------------------------------------------------
-
-async def test_usage_aggregatie(monkeypatch, db):
-    s = _fresh_settings(monkeypatch)
-    from app import usage
-    from app.contracts import Job, RondeProvenance
-    from app.postgres_store import PostgresStore
-
-    def prov(model, ti, to):
-        return RondeProvenance(
-            activiteit="2", ronde=1, model=model, provider="p",
-            tokens_in=ti, tokens_out=to, tijdstip="2026-06-01T00:00:00",
-        )
-
-    store = PostgresStore(s)
-    await store.save_job(Job(id="p1", model_profile="snel", provenance=[prov("m1", 10, 5), prov("m1", 20, 10)]))
-    await store.save_job(Job(id="p2", model_profile="snel", provenance=[prov("m2", 1, 1)]))
-
-    rapport = await usage.usage_report(group_by="model")
-    per_model = {r["sleutel"]: r for r in rapport["rows"]}
-    assert per_model["m1"]["tokens_in"] == 30
-    assert per_model["m1"]["rondes"] == 2
-    assert per_model["m1"]["analyses"] == 1
-    assert rapport["totaal"]["tokens_in"] == 31
-    assert rapport["totaal"]["tokens_out"] == 16
-
-    per_profiel = await usage.usage_per_profiel()
-    assert per_profiel["snel"]["tokens_in"] == 31
-
-
 # --- admin-API -----------------------------------------------------------------
 
 @pytest.fixture
 async def admin_client(monkeypatch):
     _fresh_settings(monkeypatch, WETSANALYSE_ADMIN_TOKENS="adm:admin-token", WETSANALYSE_AUTH_REQUIRED="0")
 
-    from app.deps import get_store
     from app import db, ratelimit
-    get_store.cache_clear()
     ratelimit.reset()
 
     db.init_engine("sqlite+aiosqlite://")
@@ -155,7 +123,6 @@ async def admin_client(monkeypatch):
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
-    get_store.cache_clear()
     await db.dispose_engine()
 
 
@@ -268,109 +235,3 @@ async def test_catalog_profiles_zonder_admin(admin_client):
     rows = r.json()
     assert rows == [{"name": "snel", "is_default": True}]
     assert "gpt-x" not in r.text  # geen model/provider/key lekken
-
-
-async def test_admin_usage_endpoint(admin_client):
-    r = await admin_client.get("/v1/admin/usage", headers=_H)
-    assert r.status_code == 200
-    assert "totaal" in r.json() and "rows" in r.json()
-    assert (await admin_client.get("/v1/admin/usage", headers=_H, params={"group_by": "fout"})).status_code == 400
-
-
-# --- wet-catalogus -------------------------------------------------------------
-
-async def test_wet_catalogus_crud(admin_client):
-    # Upsert (admin) → terug in lijst.
-    r = await admin_client.put("/v1/admin/wetten/BWBR0004770", headers=_H, json={"naam": "Successiewet 1956"})
-    assert r.status_code == 200, r.text
-    assert r.json() == {
-        "bwbId": "BWBR0004770", "naam": "Successiewet 1956",
-        "updated_by": r.json()["updated_by"], "updated": r.json()["updated"],
-    }
-    lijst = (await admin_client.get("/v1/admin/wetten", headers=_H)).json()
-    assert [w["bwbId"] for w in lijst] == ["BWBR0004770"]
-
-    # Bijwerken (zelfde sleutel) en verwijderen.
-    await admin_client.put("/v1/admin/wetten/BWBR0004770", headers=_H, json={"naam": "Successiewet"})
-    assert (await admin_client.get("/v1/admin/wetten", headers=_H)).json()[0]["naam"] == "Successiewet"
-    assert (await admin_client.delete("/v1/admin/wetten/BWBR0004770", headers=_H)).status_code == 204
-    assert (await admin_client.delete("/v1/admin/wetten/BWBR0004770", headers=_H)).status_code == 404
-
-
-async def test_wet_catalogus_admin_only(admin_client):
-    # Beheer vereist het admin-token; de keuzelijst niet.
-    assert (await admin_client.get("/v1/admin/wetten")).status_code == 401
-    assert (await admin_client.put("/v1/admin/wetten/BWBR0004770", json={"naam": "x"})).status_code == 401
-
-
-async def test_catalog_wetten_zonder_admin(admin_client):
-    await admin_client.put("/v1/admin/wetten/BWBR0004770", headers=_H, json={"naam": "Successiewet 1956"})
-    r = await admin_client.get("/v1/wetten")
-    assert r.status_code == 200
-    assert r.json() == [{"bwbId": "BWBR0004770", "naam": "Successiewet 1956"}]
-
-
-async def test_wet_resolve_via_mcp(admin_client, monkeypatch):
-    class FakeClient:
-        def __init__(self, *a, **kw):
-            pass
-
-        async def structuur(self, bwb_id):
-            return {"bwbId": bwb_id, "citeertitel": "Successiewet 1956"}
-
-    monkeypatch.setattr("app.wetten.WettenbankClient", FakeClient)
-    r = await admin_client.post("/v1/admin/wetten/BWBR0004770/resolve", headers=_H)
-    assert r.status_code == 200, r.text
-    assert r.json() == {"naam": "Successiewet 1956"}
-
-
-async def test_wet_resolve_mcp_fout_geeft_502(admin_client, monkeypatch):
-    from app.wettenbank import WettenbankError
-
-    class FakeClient:
-        def __init__(self, *a, **kw):
-            pass
-
-        async def structuur(self, bwb_id):
-            raise WettenbankError("MCP onbereikbaar")
-
-    monkeypatch.setattr("app.wetten.WettenbankClient", FakeClient)
-    r = await admin_client.post("/v1/admin/wetten/BWBR0004770/resolve", headers=_H)
-    assert r.status_code == 502
-
-
-# --- runtime-instellingen + LLM-call-capture -----------------------------------
-
-async def test_settings_default_uit_en_toggle(admin_client):
-    from app import app_settings
-    app_settings._wis_cache()
-    # Default: capture uit.
-    r = await admin_client.get("/v1/admin/settings", headers=_H)
-    assert r.status_code == 200 and r.json()["capture_llm_calls"] is False
-    # Aanzetten en teruglezen.
-    r = await admin_client.put("/v1/admin/settings", headers=_H, json={"capture_llm_calls": True})
-    assert r.status_code == 200 and r.json()["capture_llm_calls"] is True
-    assert (await admin_client.get("/v1/admin/settings", headers=_H)).json()["capture_llm_calls"] is True
-    app_settings._wis_cache()
-
-
-async def test_settings_en_llm_calls_vereisen_admin(admin_client):
-    assert (await admin_client.get("/v1/admin/settings")).status_code == 401
-    assert (await admin_client.get("/v1/admin/projects/p1/llm-calls")).status_code == 401
-
-
-async def test_llm_calls_endpoint_geeft_vastgelegde_calls(admin_client):
-    from app.deps import get_store
-    store = get_store()
-    await store.schrijf_llm_call({
-        "project_slug": "p1", "activiteit": "2", "ronde": 1, "poging": 1, "fase": "generatie",
-        "model": "m", "provider": "p", "system_prompt": "sys", "user_prompt": "usr",
-        "response_text": "resp", "tokens_in": 1, "tokens_out": 2, "ok": True,
-    })
-    r = await admin_client.get("/v1/admin/projects/p1/llm-calls", headers=_H)
-    assert r.status_code == 200, r.text
-    body = r.json()
-    assert len(body) == 1 and body[0]["system_prompt"] == "sys"
-    assert body[0]["response_text"] == "resp" and body[0]["tijdstip"]
-    # Andere analyse: leeg.
-    assert (await admin_client.get("/v1/admin/projects/ander/llm-calls", headers=_H)).json() == []

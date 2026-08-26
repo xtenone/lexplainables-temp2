@@ -9,7 +9,20 @@ import { veiligPad } from "@/lib/url";
 
 // Twee standen. Zonder akkoord (de gate stuurde je hierheen) staat er een knop; mét akkoord is dit
 // een leespagina die je via de strip bovenaan altijd kunt terugvinden.
-export function DisclaimerClient({ alGeaccepteerd }: { alGeaccepteerd: boolean }) {
+//
+// `onSluiten` onderscheidt de twee schillen. Als dialoog (vanuit de werkplek) hoort de afsluitknop
+// hetzelfde te doen als het kruisje: één stap terug in de historie. Er stond een link naar `/`, en
+// dat sluit een intercepting-route-modal juist NIET — het modal-slot houdt zijn toestand vast bij een
+// soft navigation, en `/` leidt ook nog door naar `/workbench`. Je hield de popup én kreeg er een
+// history-entry bij, waarna het kruisje (`router.back()`) je terugbracht náár de voorwaarden.
+export function DisclaimerClient({
+  alGeaccepteerd,
+  onSluiten,
+}: {
+  alGeaccepteerd: boolean;
+  /** Meegeven in de dialoogschil; weglaten op de volle pagina, die gewoon wegnavigeert. */
+  onSluiten?: () => void;
+}) {
   const params = useSearchParams();
   const [fout, setFout] = useState<string | null>(null);
   const [bezig, setBezig] = useState(false);
@@ -55,9 +68,15 @@ export function DisclaimerClient({ alGeaccepteerd }: { alGeaccepteerd: boolean }
       </Melding>
 
       {alGeaccepteerd ? (
-        <LinkButton href="/" className="w-full sm:w-auto">
-          Terug naar de analyses
-        </LinkButton>
+        onSluiten ? (
+          <Button type="button" onClick={onSluiten} className="w-full sm:w-auto">
+            Sluiten
+          </Button>
+        ) : (
+          <LinkButton href="/" className="w-full sm:w-auto">
+            Terug naar de werkplek
+          </LinkButton>
+        )
       ) : (
         <Button type="button" onClick={onAkkoord} disabled={bezig} className="w-full sm:w-auto">
           {bezig ? "Bezig…" : "Begrepen — doorgaan"}

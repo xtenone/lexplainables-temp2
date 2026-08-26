@@ -21,7 +21,9 @@ export function Pagination({
   const tot = Math.min(page * pageSize, total);
 
   return (
-    <div className="flex items-center justify-between gap-3 pt-3">
+    // Wrappend: bij vier cijfers ("1–20 van 1240") past de telling naast Vorige/Volgende niet meer
+    // op een telefoon, en dan liep de rij over de rand.
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 pt-3">
       <span className="text-xs text-muted">
         {van}–{tot} van {total}
       </span>

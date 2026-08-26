@@ -1,12 +1,12 @@
 """Async SQLAlchemy-Core laag: engine-beheer + tabeldefinities.
 
-De datalaag is bewust **Core** (geen ORM): alle SQL is geïsoleerd in de store en de service-
-modules (profiles/wetten/usage), de domeinmodellen blijven plain Pydantic. De types zijn
-portable — `JSON` wordt `JSONB` op PostgreSQL en gewone `JSON` op SQLite, zodat de unit-tests
-op een in-memory SQLite draaien en productie op PostgreSQL (CloudNativePG).
+De datalaag is bewust **Core** (geen ORM): alle SQL is geïsoleerd in de service-modules
+(profiles/users/api_tokens/annotatie_store), de domeinmodellen blijven plain Pydantic. De
+types zijn portable — `JSON` wordt `JSONB` op PostgreSQL en gewone `JSON` op SQLite, zodat de
+unit-tests op een in-memory SQLite draaien en productie op PostgreSQL (CloudNativePG).
 
-De engine wordt lui geïnitialiseerd (lifespan in productie, fixture in tests) zodat de store
-zonder verbinding importeerbaar blijft.
+De engine wordt lui geïnitialiseerd (lifespan in productie, fixture in tests) zodat de modules
+zonder verbinding importeerbaar blijven.
 """
 
 from __future__ import annotations
@@ -20,14 +20,15 @@ from sqlalchemy import (
     DateTime,
     Float,
     Index,
+    PrimaryKeyConstraint,
     Integer,
     MetaData,
-    PrimaryKeyConstraint,
     String,
     Table,
     Text,
-    inspect,
+    text,
 )
+from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.pool import StaticPool
@@ -40,60 +41,10 @@ _DT = DateTime(timezone=True)
 
 metadata = MetaData()
 
-# Eén rij per analyse-project: state-machine-velden (typed) + JSON voor de samengestelde velden.
-# rondes/feedback staan in een aparte tabel (ronde-immutabiliteit, gerichte writes); het
-# eindrapport zit als JSON-kolom op het project.
-projects = Table(
-    "projects",
-    metadata,
-    Column("slug", String(255), primary_key=True),
-    Column("naam", Text, nullable=False, default=""),
-    Column("omschrijving", Text, nullable=False, default=""),
-    # Het werkgebied bevat meerdere bronnen: list[{bwbId, artikel, lid}] als JSON.
-    Column("bronnen", _JSON, nullable=False, default=list),
-    Column("analysefocus", Text, nullable=False, default=""),
-    # Aangeleverde bestaande begrippenlijst (suggestieve act-3-invoer): list[BegripInvoer] als JSON.
-    Column("begrippenlijst", _JSON, nullable=False, default=list),
-    Column("review", Boolean, nullable=False, default=True),
-    Column("model_profile", String(128), nullable=False, default=""),
-    Column("client_id", String(128), nullable=False, default=""),
-    Column("state", String(32), nullable=False),
-    # Analyse-omvang: "volledig" of "act2" (bewust afgerond zonder activiteit 3).
-    Column("scope", String(16), nullable=False, default="volledig"),
-    # Ruim genoeg voor de regelspraak-codes ("rs-gegevens"/"rs-regels") náást "2"/"3".
-    Column("current_activiteit", String(16), nullable=True),
-    Column("current_ronde", Integer, nullable=False, default=0),
-    Column("current_fase", String(64), nullable=True),
-    Column("current_fase_sinds", _DT, nullable=True),
-    Column("waarschuwingen", _JSON, nullable=False, default=list),
-    Column("error", _JSON, nullable=True),
-    Column("provenance", _JSON, nullable=False, default=list),
-    # Concurrency-claim: alleen door claim()/verleng_lease() beheerd (nooit via save_job).
-    Column("owner", String(128), nullable=True),
-    Column("lease_until", _DT, nullable=True),
-    Column("created", _DT, nullable=False),
-    Column("updated", _DT, nullable=False),
-    Column("rapport", _JSON, nullable=True),
-    # RegelSpraak-vervolgfase: het eind-model.json + of die fase met review draait.
-    Column("regelspraak", _JSON, nullable=True),
-    Column("regelspraak_review", Boolean, nullable=True),
-    # Hot-path indexen: list_projects filtert op client_id + sorteert op updated DESC;
-    # reaper/quota scannen op state. Zonder deze is dat een seq scan zodra de tabel groeit.
-    Index("ix_projects_client_id_updated", "client_id", "updated"),
-    Index("ix_projects_state", "state"),
-)
-
-# Immutabele analyse-ronde per (project, activiteit, ronde) + de bijbehorende review-feedback.
-rondes = Table(
-    "rondes",
-    metadata,
-    Column("project_slug", String(255), nullable=False),
-    Column("activiteit", String(16), nullable=False),
-    Column("ronde", Integer, nullable=False),
-    Column("analyse", _JSON, nullable=False, default=dict),
-    Column("feedback", _JSON, nullable=True),
-    PrimaryKeyConstraint("project_slug", "activiteit", "ronde"),
-)
+# NB: de analyse-pijplijn en de wet-catalogus zijn verwijderd. De bijbehorende tabellen (`projects`,
+# `rondes`, `llm_calls`, `app_settings`, `wet_catalogus`) worden niet meer gedefinieerd of aangemaakt;
+# op een bestaande productie-DB blijven ze verweesd staan (samen met een eventuele Grafana-view erop)
+# — het daadwerkelijk droppen is een aparte, bewuste migratie, niet iets dat hier stil bij de start gebeurt.
 
 llm_profiles = Table(
     "llm_profiles",
@@ -107,16 +58,6 @@ llm_profiles = Table(
     Column("temperature", Float, nullable=False, default=0.0),
     Column("enc_api_key", Text, nullable=True),
     Column("is_default", Boolean, nullable=False, default=False),
-    Column("updated_by", String(128), nullable=False, default=""),
-    Column("created", _DT, nullable=False),
-    Column("updated", _DT, nullable=False),
-)
-
-wet_catalogus = Table(
-    "wet_catalogus",
-    metadata,
-    Column("bwbId", String(64), primary_key=True),
-    Column("naam", Text, nullable=False, default=""),
     Column("updated_by", String(128), nullable=False, default=""),
     Column("created", _DT, nullable=False),
     Column("updated", _DT, nullable=False),
@@ -136,8 +77,61 @@ users = Table(
     Column("totp_secret_enc", Text, nullable=True),
     Column("totp_enabled", Boolean, nullable=False, default=False),
     Column("active", Boolean, nullable=False, default=True),
+    # Sessie-epoch: JWT-sessies met een `loginAt` vóór deze tijd zijn ongeldig (revocatie bij
+    # wachtwoordwijziging/-reset). NULL = nooit gewijzigd → geen revocatie.
+    Column("sessions_valid_from", _DT, nullable=True),
+    # Tijdstip waarop een beheerder de feedbacklijst voor het laatst bekeek; NULL = nooit.
+    # Declaratief hier (nieuwe DB's via create_all) én idempotent via ALTER in reconcile_schema
+    # (bestaande DB's). Zonder deze Column-declaratie crasht elke query die de kolom aanraakt met
+    # AttributeError, ook al bestaat ze in de echte database — SQLAlchemy Core kent haar pas via
+    # het Table-object.
+    Column("feedback_gezien_op", _DT, nullable=True),
     Column("created", _DT, nullable=False),
     Column("updated", _DT, nullable=False),
+)
+
+# --- Berichtensysteem -----------------------------------------------------------
+# Release notes en aankondigingen: beheerders schrijven berichten (concept → gepubliceerd),
+# analisten lezen ze. Leesbewijzen zijn (bericht, user)-paren.
+berichten = Table(
+    "berichten",
+    metadata,
+    Column("id",              Integer, primary_key=True, autoincrement=True),
+    Column("titel",           Text, nullable=False, default=""),
+    Column("inhoud",          Text, nullable=False, default=""),
+    Column("type",            String(16), nullable=False, default="info"),
+    Column("versie",          String(32), nullable=True),
+    Column("gepubliceerd",    Boolean, nullable=False, default=False),
+    Column("gepubliceerd_op", _DT, nullable=True),
+    Column("aangemaakt_door", String(128), nullable=False, default=""),
+    Column("created",         _DT, nullable=False),
+    Column("updated",         _DT, nullable=False),
+    Index("ix_berichten_gepubliceerd_created", "gepubliceerd", "created"),
+)
+
+bericht_leesbewijzen = Table(
+    "bericht_leesbewijzen",
+    metadata,
+    Column("bericht_id", Integer, nullable=False),
+    Column("userid",     String(64), nullable=False),
+    Column("gelezen_op", _DT, nullable=False),
+    PrimaryKeyConstraint("bericht_id", "userid"),
+)
+
+# Gebruikersfeedback vanuit de webapp. Elke rij is onwijzigbaar; beheerders lezen via
+# /v1/admin/feedback.
+user_feedback = Table(
+    "user_feedback",
+    metadata,
+    Column("id",        Integer, primary_key=True, autoincrement=True),
+    Column("client_id", String(128), nullable=False),
+    Column("userid",    String(128), nullable=False),
+    Column("categorie", String(32),  nullable=False),
+    Column("tekst",     Text,        nullable=False),
+    # Pad waar de feedback vandaan kwam, zodat een melding te plaatsen is.
+    Column("pagina",    Text,        nullable=True),
+    Column("created",   _DT,         nullable=False),
+    Index("ix_user_feedback_created", "created"),
 )
 
 # Genereerbare API-tokens voor programmatische admin-toegang (bv. de admin-MCP), náást de
@@ -158,60 +152,30 @@ api_tokens = Table(
     Column("last_used", _DT, nullable=True),
 )
 
-# Generieke runtime-config (key/value) — beheerbaar via /v1/admin/settings + /beheer. Eerste
-# sleutel: `capture_llm_calls` (bool). Bewust een aparte, kleine tabel zodat een toggle de hot
-# projects-rij niet raakt en latere instellingen er zonder migratie bij kunnen.
-app_settings = Table(
-    "app_settings",
-    metadata,
-    Column("key", String(64), primary_key=True),
-    Column("value", _JSON, nullable=True),
-    Column("updated", _DT, nullable=False),
-)
-
-# Eén rij per feitelijke LLM-call (incl. auto-correctie-herhalingen, de verwijzing-inventaris en
-# gefaalde pogingen). Legt de letterlijke prompt + ruwe respons vast voor prompt-/gedragsanalyse.
-# Apart van `rondes` (die alleen het uiteindelijke ronde-resultaat bewaart) en standaard leeg —
-# capture staat default uit (app_settings.capture_llm_calls).
-llm_calls = Table(
-    "llm_calls",
-    metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("project_slug", String(255), nullable=False),
-    Column("activiteit", String(16), nullable=False, default=""),
-    Column("ronde", Integer, nullable=False, default=0),
-    Column("poging", Integer, nullable=False, default=1),
-    Column("fase", String(32), nullable=False, default=""),
-    Column("model", String(128), nullable=False, default=""),
-    Column("provider", String(64), nullable=False, default=""),
-    Column("system_prompt", Text, nullable=False, default=""),
-    Column("user_prompt", Text, nullable=False, default=""),
-    Column("response_text", Text, nullable=False, default=""),
-    Column("tokens_in", Integer, nullable=False, default=0),
-    Column("tokens_out", Integer, nullable=False, default=0),
-    Column("ok", Boolean, nullable=False, default=True),
-    Column("error", Text, nullable=True),
-    Column("tijdstip", _DT, nullable=False),
-    Index("ix_llm_calls_project_slug_id", "project_slug", "id"),
-)
-
 # --- Annotatie-domein (wetsanalyse-workbench) ---------------------------------
-# Vers domein, los van de analyse-tabellen. Eén rij per bron-document; de elementen (met hun
-# review-levenscyclus + beslissingen) staan als JSON — het document draagt de HUIDIGE staat.
+# Eén rij per bron-document; de elementen (met hun review-levenscyclus + beslissingen) staan als
+# JSON — het document draagt de HUIDIGE staat.
 annotatie_documenten = Table(
     "annotatie_documenten",
     metadata,
     Column("slug", String(255), primary_key=True),
+    # Eigenaar = de ingelogde gebruiker (per-gebruiker gescopet, zoals de gesprekken). `client_id`
+    # blijft de bearer-client als herkomst-/tenant-veld, maar de zichtbaarheid gaat op `user_id`.
+    Column("user_id", String(64), nullable=False, default=""),
     Column("client_id", String(128), nullable=False, default=""),
+    Column("citeertitel", Text, nullable=False, default=""),
     Column("werkgebied", Text, nullable=False, default=""),
     Column("bwbId", String(64), nullable=False, default=""),
     Column("artikel", String(32), nullable=False, default=""),
     Column("lid", String(32), nullable=False, default=""),
     Column("status", String(24), nullable=False, default="in_review"),
     Column("elementen", _JSON, nullable=False, default=list),
+    # Het productiespoor: per agent-ronde welk model/agentversie de voorstellen maakte. Additief
+    # toegevoegd, dus `reconcile_schema` zet hem op bestaande tabellen bij (geen migratie).
+    Column("runs", _JSON, nullable=False, default=list),
     Column("created", _DT, nullable=False),
     Column("updated", _DT, nullable=False),
-    Index("ix_annotatie_docs_client_updated", "client_id", "updated"),
+    Index("ix_annotatie_docs_user_updated", "user_id", "updated"),
 )
 
 # Append-only audit trail: de onwijzigbare geschiedenis (event-log) náást de huidige documentstaat.
@@ -228,6 +192,36 @@ annotatie_audit = Table(
     Column("detail", _JSON, nullable=True),
     Column("tijdstip", _DT, nullable=False),
     Index("ix_annotatie_audit_doc_id", "document_slug", "id"),
+)
+
+
+# --- Gesprekken-domein (chat-werkruimte) --------------------------------------
+# Persistente chatgeschiedenis van de werkplek. Anders dan het annotatie-domein (client-gescopet,
+# gedeeld) zijn gesprekken **per gebruiker** gescopet via `user_id` — de identiteit die de BFF uit de
+# ingelogde sessie als vertrouwde `X-User-Id`-header meegeeft (nooit uit browser-input). Eén rij per
+# gesprek; de berichten staan als aparte, geordende rijen (append-only in de praktijk: de UI voegt toe).
+gesprekken = Table(
+    "gesprekken",
+    metadata,
+    Column("id", String(64), primary_key=True),
+    Column("user_id", String(64), nullable=False, default=""),
+    Column("titel", Text, nullable=False, default=""),
+    Column("created", _DT, nullable=False),
+    Column("updated", _DT, nullable=False),
+    Index("ix_gesprekken_user_updated", "user_id", "updated"),
+)
+
+# De berichten binnen een gesprek. `inhoud` (JSON) draagt de heterogene payload van één beurt:
+# {tekst, denk?, bronnen?, annotatie_slug?, annotatie_titel?, ontbrekend?}. De tijdlijn = ORDER BY id.
+gesprek_berichten = Table(
+    "gesprek_berichten",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("gesprek_id", String(64), nullable=False),
+    Column("rol", String(16), nullable=False, default="user"),
+    Column("inhoud", _JSON, nullable=False, default=dict),
+    Column("created", _DT, nullable=False),
+    Index("ix_gesprek_berichten_gesprek", "gesprek_id", "id"),
 )
 
 
@@ -270,90 +264,39 @@ async def dispose_engine() -> None:
 
 
 async def create_all() -> None:
-    """Maak de tabellen aan (tests + beproevingsfase; productie kan dit later via Alembic doen)."""
+    """Maak de tabellen aan (tests + beproevingsfase; productie kan dit later via Alembic doen).
+    Idempotent: alleen ONTBREKENDE tabellen worden aangemaakt."""
     async with get_engine().begin() as conn:
         await conn.run_sync(metadata.create_all)
 
 
+def _ontbrekende_kolommen(sync_conn, tabel: Table) -> list[Column]:
+    """Kolommen die in de definitie staan maar (nog) niet in de DB. Lege lijst als de tabel ontbreekt
+    (die maakt `create_all` compleet aan)."""
+    insp = sa_inspect(sync_conn)
+    if not insp.has_table(tabel.name):
+        return []
+    bestaand = {c["name"] for c in insp.get_columns(tabel.name)}
+    return [col for col in tabel.columns if col.name not in bestaand]
+
+
 async def reconcile_schema() -> None:
-    """Idempotente schema-bijwerking voor de werkgebied/bronnen-overgang.
-
-    `create_all` maakt alleen ONTBREKENDE tabellen; het migreert geen kolommen van een
-    bestaande tabel. De `projects`-tabel ging van scalar `bwbId/artikel/lid` naar één
-    `bronnen` JSON-kolom. Bij een bestaande tabel (zonder Alembic) brengen we het schema hier
-    in lijn: voeg `bronnen` toe en laat de legacy-kolommen vallen. Veilig, want er is geen
-    data om te bewaren; op een verse DB (kolom al aanwezig) is dit een no-op."""
+    """Additieve kolom-migratie: voeg kolommen toe die in de tabeldefinitie staan maar in de DB
+    ontbreken. `create_all` maakt alleen ontbrekende *tabellen*; zonder deze stap breekt een `SELECT`
+    over een nieuw gedefinieerde kolom op een bestaande productie-tabel. **Alleen toevoegen** — nooit
+    droppen of typewijzigen (dus dataverlies uitgesloten). Veilig op SQLite én Postgres; draait in de
+    lifespan vóór het serveren."""
     engine = get_engine()
-
-    def _kolommen(sync_conn):
-        insp = inspect(sync_conn)
-        if not insp.has_table("projects"):
-            return None
-        return {c["name"] for c in insp.get_columns("projects")}
-
+    preparer = engine.dialect.identifier_preparer
     async with engine.begin() as conn:
-        bestaande = await conn.run_sync(_kolommen)
-        if bestaande is None:
-            return  # tabel bestaat (nog) niet; create_all maakt 'm met het juiste schema
-        is_pg = engine.url.get_backend_name() == "postgresql"
-        if "bronnen" not in bestaande:
-            typ = "JSONB" if is_pg else "JSON"
-            default = "'[]'::jsonb" if is_pg else "'[]'"
-            await conn.exec_driver_sql(
-                f"ALTER TABLE projects ADD COLUMN bronnen {typ} NOT NULL DEFAULT {default}"
-            )
-        # Legacy scalar-kolommen opruimen (case-sensitief → quoten).
-        for legacy in ("bwbId", "artikel", "lid"):
-            if legacy in bestaande:
-                await conn.exec_driver_sql(f'ALTER TABLE projects DROP COLUMN "{legacy}"')
-        # RegelSpraak-vervolgfase: kolommen op een bestaande tabel idempotent toevoegen.
-        if "regelspraak" not in bestaande:
-            typ = "JSONB" if is_pg else "JSON"
-            await conn.exec_driver_sql(f"ALTER TABLE projects ADD COLUMN regelspraak {typ}")
-        if "regelspraak_review" not in bestaande:
-            await conn.exec_driver_sql("ALTER TABLE projects ADD COLUMN regelspraak_review BOOLEAN")
-        # Aangeleverde begrippenlijst: idempotent toevoegen; bestaande rijen = lege lijst.
-        if "begrippenlijst" not in bestaande:
-            typ = "JSONB" if is_pg else "JSON"
-            default = "'[]'::jsonb" if is_pg else "'[]'"
-            await conn.exec_driver_sql(
-                f"ALTER TABLE projects ADD COLUMN begrippenlijst {typ} NOT NULL DEFAULT {default}"
-            )
-        # Analyse-omvang ("volledig"/"act2"): idempotent toevoegen; bestaande rijen = volledig.
-        if "scope" not in bestaande:
-            await conn.exec_driver_sql(
-                "ALTER TABLE projects ADD COLUMN scope VARCHAR(16) NOT NULL DEFAULT 'volledig'"
-            )
-        # current_activiteit/rondes.activiteit verbreed (rs-codes). Alleen op Postgres relevant —
-        # SQLite handhaaft de VARCHAR-lengte niet. **Echt idempotent**: alleen ALTER-en als de kolom
-        # nog niet ≥16 is. Een onvoorwaardelijke ALTER TYPE botst met een view die van de kolom
-        # afhangt (bv. Grafana's `dashboard_jobs`) → "cannot alter type of a column used by a view"
-        # → startup-crash. Skippen zodra de breedte al klopt vermijdt die view-afhankelijkheid.
-        if is_pg:
-            async def _verbreed_indien_nodig(tabel: str, kolom: str) -> None:
-                res = await conn.exec_driver_sql(
-                    "SELECT character_maximum_length FROM information_schema.columns "
-                    f"WHERE table_name = '{tabel}' AND column_name = '{kolom}'"
+        for tabel in metadata.tables.values():
+            for col in await conn.run_sync(_ontbrekende_kolommen, tabel):
+                coltype = col.type.compile(dialect=engine.dialect)
+                ddl = (
+                    f"ALTER TABLE {preparer.format_table(tabel)} "
+                    f"ADD COLUMN {preparer.format_column(col)} {coltype}"
                 )
-                rij = res.first()
-                huidige = rij[0] if rij else None
-                if huidige is not None and huidige < 16:
-                    await conn.exec_driver_sql(
-                        f"ALTER TABLE {tabel} ALTER COLUMN {kolom} TYPE VARCHAR(16)"
-                    )
-
-            await _verbreed_indien_nodig("projects", "current_activiteit")
-            await _verbreed_indien_nodig("rondes", "activiteit")
-        # Hot-path indexen op een bestaande tabel: create_all maakt indexen alleen mee bij een
-        # verse tabel, dus voor een bestaande prod-DB hier idempotent toevoegen. IF NOT EXISTS
-        # werkt op zowel PostgreSQL als SQLite, dus ook veilig ná create_all in de tests.
-        await conn.exec_driver_sql(
-            "CREATE INDEX IF NOT EXISTS ix_projects_client_id_updated "
-            "ON projects (client_id, updated)"
-        )
-        await conn.exec_driver_sql(
-            "CREATE INDEX IF NOT EXISTS ix_projects_state ON projects (state)"
-        )
+                await conn.execute(text(ddl))
 
 
 def aware(dt: datetime | None) -> datetime | None:

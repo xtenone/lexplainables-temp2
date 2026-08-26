@@ -5,8 +5,6 @@
 import "server-only";
 import { apiBaseUrl, authHeader } from "./config";
 import { logger } from "./logger";
-import { pathSegment } from "./url";
-import type { Job, JobSummary, Rapport } from "./types";
 
 async function serverGet<T>(path: string): Promise<T> {
   const res = await fetch(`${apiBaseUrl()}${path}`, {
@@ -21,18 +19,6 @@ async function serverGet<T>(path: string): Promise<T> {
     throw err;
   }
   return (await res.json()) as T;
-}
-
-export function getProjectsServer(limit = 50, offset = 0): Promise<JobSummary[]> {
-  return serverGet<JobSummary[]>(`/v1/projects?limit=${limit}&offset=${offset}`);
-}
-
-export function getProjectServer(id: string): Promise<Job> {
-  return serverGet<Job>(`/v1/projects/${pathSegment(id)}`);
-}
-
-export function getRapportServer(id: string): Promise<Rapport> {
-  return serverGet<Rapport>(`/v1/projects/${pathSegment(id)}/rapport`);
 }
 
 // --- Auth (server→server; aangeroepen door auth.ts en de login/setup-pagina's) ---------------
@@ -96,7 +82,7 @@ export async function verifyCredentials(
 
 /** Actuele accountstatus voor de periodieke sessie-herverificatie (jwt-callback in auth.ts). */
 export type AccountStatus =
-  | { status: "actief"; role: "beheerder" | "analist"; email: string }
+  | { status: "actief"; role: "beheerder" | "analist"; email: string; sessionsValidFrom?: number }
   | { status: "ingetrokken" } // 401: account inactief of verwijderd → sessie invalideren
   | { status: "onbekend" }; // API tijdelijk onbereikbaar → sessie laten staan (maxAge begrenst)
 
@@ -109,8 +95,18 @@ export async function getAccountStatus(userid: string): Promise<AccountStatus> {
     });
     if (res.status === 401) return { status: "ingetrokken" };
     if (!res.ok) return { status: "onbekend" };
-    const me = (await res.json()) as { role: "beheerder" | "analist"; email: string };
-    return { status: "actief", role: me.role, email: me.email };
+    const me = (await res.json()) as {
+      role: "beheerder" | "analist";
+      email: string;
+      sessions_valid_from?: string | null;
+    };
+    const svf = me.sessions_valid_from ? Date.parse(me.sessions_valid_from) : NaN;
+    return {
+      status: "actief",
+      role: me.role,
+      email: me.email,
+      sessionsValidFrom: Number.isNaN(svf) ? undefined : svf,
+    };
   } catch {
     return { status: "onbekend" };
   }

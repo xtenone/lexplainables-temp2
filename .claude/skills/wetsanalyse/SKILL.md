@@ -3,21 +3,24 @@ name: wetsanalyse
 description: >-
   Voert Wetsanalyse uit op Nederlandse wet- en regelgeving volgens de methode
   Wetsanalyse (Ausems, Bulles & Lokin) en het Juridisch Analyseschema (JAS):
-  activiteit 2 (wetsformuleringen markeren en classificeren in JAS-klassen) en
-  activiteit 3 (begrippen en afleidingsregels vaststellen), met een traceerbaar
-  rapport.json-analyserapport (gepresenteerd via een HTML-viewer; Markdown als
+  activiteit 2 (wetsformuleringen markeren en classificeren in JAS-klassen), met een
+  traceerbaar rapport.json-analyserapport (gepresenteerd via een HTML-viewer; Markdown als
   export) als resultaat. Gebruik deze skill zodra de gebruiker een
   wetsartikel of regeling juridisch wil analyseren, structureren, ontleden of
   "wetsanalyse" wil doen — ook bij vragen als "classificeer dit artikel", "welke
-  rechtssubjecten/rechtsbetrekkingen/voorwaarden zitten hierin", "maak begrippen en
-  afleidingsregels bij artikel X", "ontleed deze bepaling juridisch", of wanneer een
+  rechtssubjecten/rechtsbetrekkingen/voorwaarden zitten hierin",
+  "ontleed deze bepaling juridisch", of wanneer een
   bepaling brongetrouw en uitlegbaar moet worden vastgelegd voor uitvoering
   (bijvoorbeeld bij de Belastingdienst). Haalt de wettekst zelf op via de
   wettenbank-MCP. Trigger ook bij twijfel: dit is de aangewezen werkwijze voor het
   gestructureerd duiden van de betekenis van wetgeving.
 ---
 
-# Wetsanalyse (activiteit 2 + 3)
+# Wetsanalyse (activiteit 2)
+
+> **Scope.** Deze skill dekt op dit moment **activiteit 2** (markeren + classificeren in
+> JAS-klassen). Activiteit 3 (begrippen + afleidingsregels) en de RegelSpraak-vervolgstap zijn
+> uit scope — die worden later op een agentische basis opnieuw opgebouwd.
 
 ## Wat dit is en waarom het zo werkt
 
@@ -28,25 +31,19 @@ zijn. Deze skill voert de analytische kern uit:
 - **Activiteit 2 — juridische structuur zichtbaar maken**: relevante wetsformuleringen
   *markeren* (2a) en elke markering een *klasse* uit het Juridisch Analyseschema (JAS)
   geven (2b).
-- **Activiteit 3 — betekenis vaststellen**: van de geclassificeerde formuleringen
-  *begrippen* maken (3a, met definitie, voorbeeld, kenmerken/relaties) en *afleidingsregels*
-  vastleggen (3b: beslis-, reken- en specialisatieregels en de voorwaarden daarbij).
 
 **De analyse-eenheid is het *werkgebied* (kennisdomein), niet één artikel.** Een werkgebied
 is een afbakening rond een hoofdvraag die zich over **meerdere bronnen** uitstrekt — leden,
 artikelen, hoofdstukken, en zelfs meerdere regelingen (bv. een wet + de gedelegeerde
 regeling). Eén *bron* is één `(bwbId, artikel, lid?)`-eenheid ("tekstdeel"). Activiteit 2
-doe je per bron (markeren/classificeren); activiteit 3 is **werkgebied-breed**: één gedeelde
-begrippenlijst + afleidingsregels over álle bronnen heen, met hergebruik en ontdubbeling
-(homoniemen splitsen, synoniemen samenvoegen). Een werkgebied met één bron is het triviale
-geval.
+doe je per bron (markeren/classificeren). Een werkgebied met één bron is het triviale geval.
 
 Het resultaat is één traceerbaar `rapport.json`-werkgebied-analyserapport, gepresenteerd via
 een HTML-viewer; Markdown is als export beschikbaar.
 
-Na activiteit 2 en na activiteit 3 pauzeert de skill voor een **review-checkpoint**: de
+Na activiteit 2 pauzeert de skill voor een **review-checkpoint**: de
 analist valideert de tussenresultaten in een lokale reviewpagina en geeft per onderdeel of
-in het algemeen feedback, die je verwerkt voordat je verdergaat (zie stap 2b, 3b en
+in het algemeen feedback, die je verwerkt voordat je verdergaat (zie stap 2b en
 `references/review-checkpoints.md`).
 
 **Dit is een hulpmiddel, geen vervanger van de analist.** De methode draait om het
@@ -63,10 +60,9 @@ aan de bron. Daarom:
 
 - **Werk alleen met de letterlijke, opgehaalde wettekst.** Verzin nooit tekst, leden of
   artikelnummers. Citeer formuleringen letterlijk.
-- **Houd alles herleidbaar.** Elke markering verwijst naar haar bron (`bron_id`) + lid; elk
-  begrip en elke afleidingsregel naar de vindplaats(en) over de bronnen heen
-  (`vindplaatsen: [{bron_id, lid}]`) en, waar beschikbaar, de `bronreferentie` (jci-link) uit
-  de MCP. Id's zijn **werkgebied-breed uniek** (`m1..`, `v1..`, `b1..`, `r1..`).
+- **Houd alles herleidbaar.** Elke markering verwijst naar haar bron (`bron_id`) + lid en,
+  waar beschikbaar, de `bronreferentie` (jci-link) uit de MCP. Id's zijn **werkgebied-breed
+  uniek** (`m1..` voor markeringen, `v1..` voor verwijzingen).
 - **Gebruik uitsluitend de dertien JAS-klassen** hieronder. Verzin geen eigen klassen.
 
 ## Stap 1 — Bepaal het werkgebied en haal de wettekst op
@@ -119,8 +115,7 @@ op als het de focus-bepaling betekenis geeft). Delegaties zijn *bounded*: identi
 betekenis verwerken, volledige sub-analyse signaleren als validatiepunt.
 
 `verwijzingen` is een **aparte as** náást de markeringen — uitgaande pointers, geen tweede
-registratie van JAS-klassen. Begrippen/regels die op een gevolgde verwijzing steunen (bv. een
-hergebruikte brondefinitie) wijzen daarnaar met `bron_verwijzing`.
+registratie van JAS-klassen.
 
 **Houd deze stap licht** (inventariseren + gericht ophalen, niet al classificeren). De
 volledige werkwijze, beleidstabel en grenzen staan in `references/verwijzingen-volgen.md`;
@@ -171,7 +166,7 @@ Vuistregels bij het classificeren:
   (amvb → ministeriële regeling). Noteer dat: de gedelegeerde regeling hoort tot het
   werkgebied en moet later apart geanalyseerd worden.
 - **Twijfel je tussen twee klassen?** Kies de best passende, noteer het alternatief in de
-  toelichting, en neem het op bij de validatiepunten (stap 4). Forceer niets.
+  toelichting, en neem het op bij de aandachtspunten (stap 4). Forceer niets.
 
 Vat daarna kort samen hoe de klassen *samenhangen* rond de centrale klassen
 (rechtsbetrekking en rechtsfeit): wie is rechthebbende, wie plichthebbende, welk
@@ -211,7 +206,7 @@ zijn relatief aan die analysemap.
    en op de **verstuurknop** te klikken (zonder feedback telt dat als akkoord). Ga niet zelf verder.
 4. Zodra de analist bevestigt dat die klaar is: lees `werk/activiteit-2/ronde-{N}/feedback.json`.
    - Bij `akkoord` **zonder** items en **zonder** algemene feedback: stop de server, de lus
-     is klaar — ga door naar activiteit 3.
+     is klaar — ga door naar het rapport (stap 4).
    - Anders: verwerk **elke** per-item-correctie en de algemene feedback (herclassificeren,
      toelichting bijstellen, markeringen toevoegen/verwijderen), stop de server, verhoog `N`
      en ga terug naar stap 1. Noteer per ronde wat je wijzigde voor de reviewlog.
@@ -221,89 +216,6 @@ zijn relatief aan die analysemap.
 Sla deze hele lus alleen over als `WETSANALYSE_NO_REVIEW=1` in de omgeving staat (alleen
 voor geautomatiseerde tests): schrijf dan één keer `ronde-1/analyse.json` en noteer in het
 rapport dat de reviews zijn overgeslagen.
-
-## Stap 3 — Activiteit 3: begrippen en afleidingsregels
-
-Lees `references/begrippen-en-afleidingsregels-opstellen.md` voordat je begrippen en regels opstelt; dat
-bevat de werkwijze en voorbeelden. In het kort:
-
-Activiteit 3 is **werkgebied-breed**: je bouwt één gedeelde begrippenlijst + afleidingsregels
-over **alle bronnen** heen. Cruciaal is **hergebruik en ontdubbeling**:
-
-- **Hergebruik:** één begrip geldt voor elke formulering met dezelfde betekenis. Komt het in
-  meerdere bronnen voor, dan som je alle vindplaatsen op (`vindplaatsen: [{bron_id, lid}, …]`).
-- **Synoniemen samenvoegen:** verschillende formuleringen met dezelfde betekenis → één begrip
-  met één **voorkeursterm** (`naam`) + de alternatieven in `synoniemen`.
-- **Homoniemen splitsen:** dezelfde formulering met een andere betekenis → **aparte** begrippen.
-  Leg de letterlijke `grondformulering` vast zodat de splitsing herleidbaar is (bv.
-  *bijdrage-inkomen* → *berekend bijdrage-inkomen*, *…na beoordeling op nihilstelling*).
-- **Begrip→begrip:** gebruik in een begripsomschrijving al eerder gedefinieerde begrippen en
-  noteer die in `verwijst_naar_begrippen`.
-
-**Bestaande begrippenlijst (optioneel).** Heeft de gebruiker een bestaande begrippenlijst
-aangeleverd (bestand of geplakte tekst), normaliseer die dan éérst naar
-`werk/begrippenlijst.json` (schema in `references/review-checkpoints.md`; alleen `naam` is
-verplicht, nummer id's als `ab1..`; ook bij CSV- of regeltekst-invoer maak jij daar dit
-JSON-formaat van). De lijst is **suggestief**: hergebruik waar de betekenis past, wijk
-gemotiveerd af waar de wettekst dat vraagt, en registreer per begrip de `herkomst`
-(`hergebruikt`/`aangepast`/`nieuw`). Brongetrouwheid gaat vóór de lijst.
-
-Werk in twee deelstappen — eerst álle begrippen, dan de regels mét die begrippen:
-
-**3a Begrippen.** Maak per uniek, betekenisdragend element (vooral rechtssubjecten,
-rechtsobjecten, rechtsbetrekkingen, rechtsfeiten, variabelen en parameters) een begrip met:
-een **voorkeursterm** (`naam`, volgens de naamgevings-vuistregels uit de referentie) +
-eventuele `synoniemen`, een **definitie** (hergebruik een *brondefinitie* letterlijk als die
-er is; anders formuleer je een werkdefinitie en zet je `is_interpretatie: true`), een kort
-**voorbeeld**, **`relaties`** (gestructureerd: relatie met `doel_begrip`, of kenmerk), de
-**`vindplaatsen`** over de bronnen én de **`markering_ids`** van de activiteit-2-markeringen
-waarop het berust (dekking: elke markering van een begrip-plichtige klasse landt in ≥1
-begrip). Steunt een begrip op een gevolgde verwijzing (bv. een hergebruikte brondefinitie),
-wijs daar dan naar met `bron_verwijzing`. Maak hier ook alvast een begrip voor elke uitkomst
-die een afleidingsregel gaat vaststellen (vaak een Variabele) — 3b heeft die nodig.
-
-**3b Afleidingsregels.** De begrippen uit 3a zijn de **bouwstenen** van elke regel. Leg per
-regel vast: een **naam** (actieve werkwoordsvorm: *bepalen …*, *vaststellen …*), het **type**
-(beslisregel → ja/nee of waar/onwaar; rekenregel → een berekend bedrag/getal;
-specialisatieregel → behoort tot doelgroep), de **`uitvoer`** (`{begrip_id, toelichting}` —
-verplicht: het begrip dat de regel vaststelt), de **`invoer`** (`[{begrip_id, toelichting}]`)
-en **`parameters`** (`[{begrip_id, waarde, eenheid, geldigheid, vindplaats, toelichting}]`),
-en de **`voorwaarden`** (`[{tekst, begrip_ids, verbinding}]`, verbinding = EN/OF t.o.v. de
-vorige). Verwijs naar de bron(nen) via `vindplaatsen` + `markering_ids` (de
-Afleidingsregel-markeringen). Houd parameters (vaste waarden) en variabelen (per geval
-verschillend) uit elkaar; afgeleide begrippen hergebruik je als invoer van vervolgregels
-(ketens). Ontbreekt een benodigd begrip, vul 3a aan. Je **annoteert** de regel hier; de
-uitvoerbare formulering komt in de vervolgstap `regelspraak` (één bron van waarheid).
-
-## Stap 3b — Review-checkpoint na activiteit 3
-
-Net als na activiteit 2: laat de begrippen en afleidingsregels door de analist valideren
-voordat je het eindrapport opmaakt — als dezelfde **iteratieve lus**, tot akkoord zonder
-opmerkingen (zie `references/review-checkpoints.md`). Met `N` = rondenummer:
-
-1. Schrijf `werk/activiteit-3/ronde-{N}/analyse.json`: het `werkgebied`-object, een lichte
-   `bronnen`-index (`{bron_id, label}` per bron, gekopieerd uit act-2, zodat `vindplaatsen`
-   leesbaar zijn), en de werkgebied-brede `begrippen` + `afleidingsregels` (met **stabiele
-   id's**) en concept-validatiepunten. Overschrijf eerdere rondes niet.
-1b. Voer de pre-check uit, mét de act-2-analyse (voor de dekkingscheck) en — indien
-   aangeleverd — de begrippenlijst (voor de herkomst-checks):
-   `python "<skill>/scripts/validate_analyse.py" --input werk/activiteit-3/ronde-{N}/analyse.json --activiteit 3 --act2 werk/activiteit-2/ronde-{M}/analyse.json [--begrippenlijst werk/begrippenlijst.json]`
-   (met `M` = de hoogste act-2-ronde)
-   - Exit 2 (fouten): herstel vóórdat je de server start.
-     Bij `WETSANALYSE_NO_REVIEW=1`: log de fouten maar blokkeer niet — ga door.
-   - Exit 1 (waarschuwingen): ga door; toon als context bij de review.
-   - Exit 0: ga direct door.
-2. Start de server met `--input werk/activiteit-3/ronde-{N}/analyse.json --activiteit 3
-   --feedback-out werk/activiteit-3/ronde-{N}/feedback.json --ronde {N}`; vanaf ronde 2 ook
-   `--vorige werk/activiteit-3/ronde-{N-1}`.
-3. Geef de URL, **pauzeer**, en wacht op bevestiging van de analist.
-4. Lees `werk/activiteit-3/ronde-{N}/feedback.json`. Bij `akkoord` zonder items en zonder
-   algemene feedback: stop de server, de lus is klaar. Anders: verwerk de feedback, stop de
-   server, verhoog `N` en herhaal vanaf stap 1. Noteer de wijzigingen per ronde voor de
-   reviewlog. Veiligheidscap: maximaal 6 rondes.
-
-Dezelfde `WETSANALYSE_NO_REVIEW=1`-uitzondering geldt (één keer `ronde-1/analyse.json`
-schrijven, lus overslaan).
 
 ## Stap 4 — Rapport opstellen
 
@@ -319,28 +231,23 @@ python "<skill>/scripts/build_rapport_json.py" \
   --out  <analysemap>/rapport.json
 ```
 
-Het script kiest per activiteit automatisch de hoogste ronde en combineert act-2 en act-3
-tot één `rapport.json`. De drie vrije tekstvelden (reviewlog act. 2, reviewlog act. 3,
-aandachtspunten) zijn nog leeg; het script meldt hoeveel er ontbreken. Het script bewaakt
-bovendien de referentiële integriteit: bij **dangling referenties** (markering-/begrip-/bron-id's
-die nergens bestaan) eindigt het met **exit 2** — herstel dan eerst de betreffende
-activiteit-ronde (het rapport is wél geschreven, ter inspectie). Heeft de hoogste ronde van een
-activiteit geen schoon `akkoord` in `feedback.json`, dan waarschuwt het script (niet-blokkerend):
-controleer of de review-lus echt is afgerond.
+Het script kiest automatisch de hoogste activiteit-2-ronde en bouwt daaruit één
+`rapport.json`. De twee vrije tekstvelden (reviewlog act. 2, aandachtspunten) zijn nog leeg;
+het script meldt hoeveel er ontbreken. Heeft de hoogste ronde geen schoon `akkoord` in
+`feedback.json`, dan waarschuwt het script (niet-blokkerend): controleer of de review-lus echt
+is afgerond.
 
 **Stap 4b — Genereer de vrije tekstvelden**
 
-Schrijf op basis van de feedback.json's en de validatiepunten in act-3:
+Schrijf op basis van de feedback.json's en de `twijfel`-velden in de markeringen:
 
 1. **Reviewlog activiteit 2** — wat is per ronde gewijzigd op grond van de feedback?
    Bij 1 ronde direct akkoord: `"1 ronde — direct akkoord, geen wijzigingen."`.
    Was de review overgeslagen via `WETSANALYSE_NO_REVIEW=1`: noteer dat expliciet.
-2. **Reviewlog activiteit 3** — idem voor activiteit 3.
-3. **Aandachtspunten voor multidisciplinaire validatie** — gestructureerde synthese
+2. **Aandachtspunten voor multidisciplinaire validatie** — gestructureerde synthese
    van de interpretatiekeuzes, open normen, openstaande delegaties, aannames en wat
-   buiten scope valt. Gebruik de `validatiepunten`-array uit act-3 en de `twijfel`-velden
-   in de markeringen, begrippen en afleidingsregels als bronmateriaal. Dit is geen bijzaak
-   — het is wat de analyse bruikbaar en eerlijk maakt als hulpmiddel.
+   buiten scope valt. Gebruik de `twijfel`-velden in de markeringen als bronmateriaal. Dit is
+   geen bijzaak — het is wat de analyse bruikbaar en eerlijk maakt als hulpmiddel.
 
 **Stap 4c — Voeg de vrije tekstvelden in**
 
@@ -349,7 +256,6 @@ python "<skill>/scripts/build_rapport_json.py" \
   --werk <werkmap> \
   --out  <analysemap>/rapport.json \
   --reviewlog-act2  "<tekst uit stap 4b>" \
-  --reviewlog-act3  "<tekst uit stap 4b>" \
   --aandachtspunten "<tekst uit stap 4b>"
 ```
 
@@ -363,7 +269,7 @@ python "<skill>/scripts/rapport_server.py" \
 Voeg `--no-browser` toe als `WETSANALYSE_NO_REVIEW=1` in de omgeving staat.
 
 Geef de analist de URL (`http://localhost:3119`) en **pauzeer**: vraag de analist het
-rapport te bekijken, eventueel de §4-velden bij te stellen en op **Opslaan** te klikken,
+rapport te bekijken, eventueel de §3-velden bij te stellen en op **Opslaan** te klikken,
 en de Markdown te downloaden via **Download Markdown**. Ga niet zelf door tot de analist
 bevestigt. De analist stopt de server zelf via Ctrl+C in de terminal.
 
@@ -371,21 +277,13 @@ Na bevestiging van de analist is het rapport gereed.
 
 ## Kwaliteitscheck voordat je oplevert
 
-- Is elke markering, elk begrip en elke regel herleidbaar naar artikel + lid (en
-  bronreferentie)?
+- Is elke markering herleidbaar naar artikel + lid (en bronreferentie)?
 - Zijn alle klassen uit het JAS, en geen verzonnen klassen?
-- Zijn brondefinities opgehaald en hergebruikt waar de bepaling naar gedefinieerde termen
-  verwijst?
+- Zijn brondefinities opgehaald waar de bepaling naar gedefinieerde termen verwijst?
 - Zijn de uitgaande verwijzingen geïnventariseerd, geclassificeerd naar functie en gevolgd
-  volgens beleid (diepte-cap + relevantie-gate)? Steunt elke hergebruikte brondefinitie via
-  `bron_verwijzing` op een opgehaalde verwijzing?
-- Landt elke begrip-plichtige markering uit activiteit 2 via `markering_ids` in een begrip
-  (of afleidingsregel), en verwijst elke regel via `uitvoer`/`invoer`/`parameters` naar
-  bestaande begrippen (geen losse, ongedefinieerde variabelen)?
-- Is bij een aangeleverde begrippenlijst per begrip de `herkomst` geregistreerd
-  (hergebruikt/aangepast/nieuw, met motivatie bij aangepast)?
+  volgens beleid (diepte-cap + relevantie-gate)?
 - Zijn interpretatiekeuzes en twijfel expliciet benoemd in plaats van weggepoetst?
-- Zijn beide iteratieve review-checkpoints doorlopen tot de analist akkoord was zonder
+- Is het iteratieve review-checkpoint doorlopen tot de analist akkoord was zonder
   opmerkingen (of bewust overgeslagen via `WETSANALYSE_NO_REVIEW`), en is de feedback per
   ronde verwerkt en in de reviewlog vastgelegd?
 - Klopt de letterlijke wettekst met de bron (geen parafrase als citaat)?
@@ -393,7 +291,7 @@ Na bevestiging van de analist is het rapport gereed.
 ## Diagnose bij falen
 
 Dit gaat **niet** over gewone review-feedback: feedback die niet meteen "akkoord" is, is het
-normale proces — verwerk die in de volgende ronde (stap 2b/3b). Maar gaat het om
+normale proces — verwerk die in de volgende ronde (stap 2b). Maar gaat het om
 *onbetrouwbaarheid of storing* — verzonnen wettekst, een niet-bestaande JAS-klasse, een
 overgeslagen reviewstop, een MCP die niets teruggeeft, of een lus die niet convergeert —
 verdenk dan niet het model maar de harness eromheen. Loop de vier hendels langs: Context

@@ -1,4 +1,4 @@
-import { proxy } from "../../../../_lib/proxy";
+import { proxy } from "@/app/api/_lib/proxy";
 import { pathSegment } from "@/lib/url";
 
 export const dynamic = "force-dynamic";

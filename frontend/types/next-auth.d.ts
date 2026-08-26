@@ -19,5 +19,9 @@ declare module "next-auth/jwt" {
     userid?: string;
     role?: Role;
     rememberMe?: boolean;
+    /** Laatste herverificatie tegen de API (ms); begrenst het herverificatie-interval. */
+    verifiedAt?: number;
+    /** Inlogmoment (ms): sessie-revocatie verwerpt tokens ouder dan de account-epoch. */
+    loginAt?: number;
   }
 }

@@ -1,5 +1,5 @@
-import { proxy, readBody } from "../../_lib/proxy";
-import { geenSessie, sessionUserId } from "../../_lib/session";
+import { proxy, readBody } from "@/app/api/_lib/proxy";
+import { geenSessie, sessionUserId } from "@/app/api/_lib/session";
 
 export const dynamic = "force-dynamic";
 

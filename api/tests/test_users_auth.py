@@ -297,9 +297,7 @@ async def client(monkeypatch):
         WETSANALYSE_AUTH_REQUIRED="0",
     )
     from app import db, ratelimit
-    from app.deps import get_store
 
-    get_store.cache_clear()
     ratelimit.reset()
     db.init_engine("sqlite+aiosqlite://")
     await db.create_all()
@@ -308,7 +306,6 @@ async def client(monkeypatch):
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
-    get_store.cache_clear()
     await db.dispose_engine()
 
 
@@ -418,3 +415,95 @@ async def test_2fa_http_via_header(client):
     totp_code = _totp_now(begin.json()["otpauth_uri"])
     dis = await client.post("/v1/auth/2fa/disable", json={"totp": totp_code}, headers=hdr)
     assert dis.status_code == 204
+
+
+async def test_gevoelige_endpoints_rate_limited(monkeypatch):
+    """De geauthenticeerde 2FA/wachtwoord-endpoints delen de brute-force-rem (`sensitive_allowed`):
+    na de limiet volgt 429 — ook op mislukte pogingen, zodat een gekaapte sessie geen TOTP/wachtwoord
+    kan brute-forcen. Een andere userid heeft zijn eigen bucket."""
+    _fresh_settings(
+        monkeypatch,
+        WETSANALYSE_AUTH_REQUIRED="0",
+        WETSANALYSE_RATE_LIMIT_MAX="2",
+        WETSANALYSE_RATE_LIMIT_WINDOW="60",
+    )
+    from app import db, ratelimit
+
+    ratelimit.reset()
+    db.init_engine("sqlite+aiosqlite://")
+    await db.create_all()
+
+    from app.main import app
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        await ac.post(
+            "/v1/auth/setup", json={"userid": "baas", "email": "b@example.com", "password": "wachtwoord1"}
+        )
+        hdr = {"X-User-Id": "baas"}
+        payload = {"current": "fout", "new": "nieuwwachtwoord"}  # geldig contract, fout huidig ww → 400
+
+        # 2 pogingen toegestaan (400 = fout wachtwoord), de 3e wordt door de rem geblokkeerd (429).
+        assert (await ac.post("/v1/auth/change-password", json=payload, headers=hdr)).status_code == 400
+        assert (await ac.post("/v1/auth/change-password", json=payload, headers=hdr)).status_code == 400
+        geblokkeerd = await ac.post("/v1/auth/change-password", json=payload, headers=hdr)
+        assert geblokkeerd.status_code == 429 and geblokkeerd.headers.get("Retry-After")
+
+        # De rem is per-userid: een andere X-User-Id wordt niet meteen geblokkeerd (eigen bucket).
+        ander = await ac.post("/v1/auth/change-password", json=payload, headers={"X-User-Id": "ander"})
+        assert ander.status_code != 429
+
+    await db.dispose_engine()
+
+
+# --- sessie-revocatie bij wachtwoordwijziging (Finding 1) ----------------------
+
+async def test_reconcile_schema_voegt_kolom_toe(monkeypatch, db):
+    """reconcile_schema voegt een in de definitie aanwezige, in de DB ontbrekende kolom additief toe
+    (create_all dekt alleen ontbrekende tabellen) en is idempotent."""
+    from sqlalchemy import inspect as sa_inspect
+
+    from app import db as _db
+
+    def _kolommen(sync_conn) -> set[str]:
+        return {c["name"] for c in sa_inspect(sync_conn).get_columns("users")}
+
+    async with _db.get_engine().begin() as conn:
+        # Simuleer een 'oude' DB zonder de kolom.
+        await conn.exec_driver_sql("ALTER TABLE users DROP COLUMN sessions_valid_from")
+        assert "sessions_valid_from" not in await conn.run_sync(_kolommen)
+
+    await _db.reconcile_schema()
+    async with _db.get_engine().begin() as conn:
+        assert "sessions_valid_from" in await conn.run_sync(_kolommen)
+
+    # Idempotent: nog een keer draaien mag niet falen.
+    await _db.reconcile_schema()
+
+
+async def test_wachtwoordwijziging_bumpt_sessie_epoch(monkeypatch, db):
+    """change_own_password en reset_password zetten sessions_valid_from; een ongewijzigd account houdt
+    None (geen revocatie van bestaande sessies tot de eerste wijziging)."""
+    _fresh_settings(monkeypatch)
+    from app import users
+
+    await users.bootstrap_admin("baas", "a@example.com", "wachtwoord1")
+    assert (await users.get_user("baas")).sessions_valid_from is None
+
+    await users.change_own_password("baas", "wachtwoord1", "nieuwwachtwoord")
+    na_wijziging = (await users.get_user("baas")).sessions_valid_from
+    assert na_wijziging is not None
+
+    # Een admin-reset bumpt de epoch opnieuw (revoke overal).
+    _, _temp = await users.reset_password("baas")
+    assert (await users.get_user("baas")).sessions_valid_from >= na_wijziging
+
+
+async def test_me_geeft_sessions_valid_from(client):
+    await client.post(
+        "/v1/auth/setup", json={"userid": "baas", "email": "b@example.com", "password": "wachtwoord1"}
+    )
+    hdr = {"X-User-Id": "baas"}
+    assert (await client.get("/v1/auth/me", headers=hdr)).json()["sessions_valid_from"] is None
+    await client.post(
+        "/v1/auth/change-password", json={"current": "wachtwoord1", "new": "nieuwwachtwoord"}, headers=hdr
+    )
+    assert (await client.get("/v1/auth/me", headers=hdr)).json()["sessions_valid_from"] is not None

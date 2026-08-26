@@ -1,453 +1,6 @@
-// Domeintypes — handmatig afgeleid van het API-contract (api/app/contracts.py).
+// Domeintypes — handmatig afgeleid van het API-contract (api/app/*.py).
 // Dit bestand is de bron-van-waarheid voor de frontend; zie README (gen:types) voor
 // een optioneel hulpmiddel om ze tegen /openapi.json te controleren.
-
-export type JobState =
-  | "queued"
-  | "act2-runt"
-  | "wacht-op-review-act2"
-  | "act3-runt"
-  | "wacht-op-review-act3"
-  | "bouwt"
-  | "klaar"
-  | "fout"
-  // RegelSpraak-vervolgfase (on-demand op een afgeronde analyse)
-  | "rs-gegevens-runt"
-  | "wacht-op-review-rs-gegevens"
-  | "rs-regels-runt"
-  | "wacht-op-review-rs-regels"
-  | "rs-bouwt"
-  | "rs-klaar";
-
-export type Activiteit = "2" | "3" | "rs-gegevens" | "rs-regels";
-
-export type FoutKlasse = "mcp" | "llm" | "validatie" | "intern" | "quota";
-
-// --- Requests ---------------------------------------------------------------
-
-/** Eén bron-keuze (wet+artikel+lid) bij het aanmaken van een werkgebied-analyse. */
-export interface BronInput {
-  bwbId?: string | null;
-  artikel: string;
-  lid?: string | null;
-}
-
-/** Eén begrip uit een aangeleverde (bestaande) begrippenlijst — suggestieve act-3-invoer. */
-export interface BegripInvoer {
-  id?: string; // bij ontbreken nummert de API door: ab1..abN
-  naam: string;
-  synoniemen?: string[];
-  definitie?: string;
-  klasse?: string;
-  bron?: string;
-  toelichting?: string;
-}
-
-export interface StartRequest {
-  bronnen: BronInput[];
-  naam?: string;
-  omschrijving?: string;
-  analysefocus?: string | null; // hoofdvraag
-  // Bestaande begrippenlijst (optioneel, suggestief): act 3 hergebruikt waar de betekenis past
-  // en registreert per begrip de herkomst (hergebruikt/aangepast/nieuw).
-  begrippenlijst?: BegripInvoer[] | null;
-  review: boolean;
-  model_profile?: string | null;
-}
-
-/** Optionele body bij het starten van de RegelSpraak-fase (review=null erft Job.review). */
-export interface RegelspraakStart {
-  review?: boolean | null;
-}
-
-export interface Feedback {
-  // "akkoord-afronden" = akkoord op activiteit 2 én daar afronden (geen activiteit 3);
-  // alleen geldig op activiteit "2" en zonder opmerkingen.
-  status: "akkoord" | "wijzigingen" | "akkoord-afronden";
-  activiteit: Activiteit;
-  items: Record<string, string>;
-  algemeen: string;
-}
-
-// Analyse-omvang: "act2" = bewust afgerond zonder activiteit 3 (kan later alsnog).
-export type Scope = "volledig" | "act2";
-
-// --- Responses --------------------------------------------------------------
-
-export interface CreateAccepted {
-  id: string;
-  naam: string;
-  state: JobState;
-}
-
-export interface FeedbackAccepted {
-  id: string;
-  state: JobState;
-  ronde: number;
-}
-
-export interface JobSummary {
-  id: string;
-  naam: string;
-  state: JobState;
-  bronnen: BronInput[];
-  updated: string;
-  // Verrijking voor de eerste (SSR-)render van het dashboard; daarna live via de aggregate-SSE.
-  current_fase: string | null;
-  model_profile: string;
-  scope: Scope;
-  tokens_in: number;
-  tokens_out: number;
-}
-
-export interface JobFout {
-  stap: string;
-  ronde: number | null;
-  klasse: FoutKlasse;
-  bericht: string;
-}
-
-export interface RondeProvenance {
-  activiteit: Activiteit;
-  ronde: number;
-  model: string;
-  provider: string;
-  output_strategie: string;
-  referentie_hash: string;
-  prompt_hash: string;
-  mcp_bwbid: string;
-  mcp_versiedatum: string;
-  mcp_bronreferentie: string;
-  tokens_in: number;
-  tokens_out: number;
-  tijdstip: string;
-}
-
-export interface Job {
-  id: string;
-  state: JobState;
-  naam: string;
-  omschrijving: string;
-  bronnen: BronInput[];
-  review: boolean;
-  model_profile: string;
-  analysefocus: string;
-  // Aangeleverde bestaande begrippenlijst (suggestief; zie StartRequest.begrippenlijst).
-  begrippenlijst: BegripInvoer[];
-  client_id: string;
-  regelspraak_review?: boolean | null;
-  scope: Scope;
-  current_activiteit: Activiteit | null;
-  current_ronde: number;
-  waarschuwingen: string[];
-  error: JobFout | null;
-  provenance: RondeProvenance[];
-  created: string;
-  updated: string;
-}
-
-// --- Analyse-artefacten (per ronde) -----------------------------------------
-
-/** Het werkgebied (kennisdomein) — de afbakening waarbinnen de analyse plaatsvindt. */
-export interface Werkgebied {
-  naam: string;
-  hoofdvraag: string;
-  omschrijving: string;
-  scoping: string;
-  analysefocus?: string;
-}
-
-/** Absolute, cross-bron vindplaats. */
-export interface Vindplaats {
-  bron_id: string;
-  lid: string;
-}
-
-/** Lichte bron-index (bron_id → leesbaar label) die activiteit 3 meedraagt. */
-export interface BronRef {
-  bron_id: string;
-  label: string;
-  bwbId: string;
-  artikel: string;
-  lid: string | null;
-}
-
-export interface Lid {
-  lid: string;
-  tekst: string;
-  bronreferentie: string;
-}
-
-export interface Markering {
-  id: string;
-  bron_id: string;
-  formulering: string;
-  klasse: string;
-  vindplaats: string; // lid-relatief binnen de bron
-  toelichting: string;
-  twijfel: string;
-}
-
-/** Gestructureerd kenmerk/relatie van een begrip. */
-export interface BegripRelatie {
-  soort: string; // relatie | kenmerk
-  beschrijving: string;
-  doel_begrip?: string | null; // begrip-id bij soort=relatie
-}
-
-/** Herkomst t.o.v. een aangeleverde begrippenlijst (suggestief hergebruik). */
-export interface BegripHerkomst {
-  status: string; // hergebruikt | aangepast | nieuw
-  aangeleverd_id: string;
-  motivatie: string;
-}
-
-export interface Begrip {
-  id: string;
-  naam: string; // voorkeursterm
-  synoniemen: string[];
-  klasse: string;
-  definitie: string;
-  is_interpretatie?: boolean; // true = eigen werkdefinitie i.p.v. letterlijke brondefinitie
-  grondformulering: string;
-  voorbeeld: string;
-  kenmerken: string;
-  relaties?: BegripRelatie[];
-  vindplaatsen: Vindplaats[];
-  markering_ids?: string[]; // act-2-markeringen waarop het begrip berust
-  verwijst_naar_begrippen: string[];
-  bron_verwijzing?: string;
-  herkomst?: BegripHerkomst | null;
-  twijfel: string;
-}
-
-export interface VerwijzingDoel {
-  label: string;
-  target: string;
-  bwbId: string;
-}
-
-export interface Verwijzing {
-  id: string;
-  bron_id: string;
-  bron_lid: string;
-  soort: string; // intref | extref | natuurlijk
-  functie: string; // definitie | schakel | delegatie | intra-artikel | informatief
-  doel: VerwijzingDoel;
-  status: string; // opgehaald | gevolgd | gesignaleerd | buiten-scope-diepte
-  betekenis: string;
-  volgen?: boolean;
-}
-
-/** Wat de regel afleidt — een begrip (de begrippen zijn de bouwstenen van regels). */
-export interface RegelUitvoer {
-  begrip_id: string;
-  toelichting: string;
-}
-
-export interface RegelInvoer {
-  begrip_id: string;
-  toelichting: string;
-}
-
-export interface RegelParameter {
-  begrip_id: string;
-  waarde: string; // leeg = staat in een (nog niet geanalyseerde) delegatie
-  eenheid: string;
-  geldigheid: string;
-  vindplaats: Vindplaats;
-  toelichting: string;
-}
-
-export interface RegelVoorwaarde {
-  tekst: string;
-  begrip_ids: string[];
-  verbinding: string; // EN | OF | "" (koppeling met de vórige voorwaarde)
-}
-
-export interface Afleidingsregel {
-  id: string;
-  naam: string;
-  type: string;
-  uitvoer: RegelUitvoer;
-  invoer: RegelInvoer[];
-  parameters: RegelParameter[];
-  voorwaarden: RegelVoorwaarde[];
-  toelichting: string;
-  vindplaatsen: Vindplaats[];
-  markering_ids?: string[]; // Afleidingsregel-markering(en) uit act 2
-  twijfel: string;
-}
-
-/** Eén bron in het werkgebied: een (bwbId, artikel, lid?)-eenheid met haar act-2-uitkomst. */
-export interface Bron {
-  bron_id: string;
-  label: string;
-  wet: string;
-  bwbId: string;
-  artikel: string;
-  lid: string | null;
-  versiedatum: string;
-  bronreferentie: string;
-  type: string;
-  pad: string;
-  reikwijdte: string;
-  geraadpleegde: string;
-  leden: Lid[];
-  markeringen: Markering[];
-  verwijzingen: Verwijzing[];
-  samenhang: string;
-}
-
-export interface Analyse2 {
-  werkgebied: Werkgebied;
-  analysefocus: string;
-  bronnen: Bron[];
-}
-
-export interface Analyse3 {
-  werkgebied: Werkgebied;
-  bronnen: BronRef[];
-  begrippen: Begrip[];
-  afleidingsregels: Afleidingsregel[];
-  validatiepunten: string[];
-}
-
-// --- Rapport ----------------------------------------------------------------
-
-export interface ReviewRonde {
-  ronde: number;
-  items: Record<string, string>;
-  algemeen: string;
-  // Feedback-status van de ronde ("akkoord" | "wijzigingen" | "akkoord-afronden");
-  // ontbreekt bij een ronde zonder feedback.
-  status?: string;
-}
-
-export interface ReviewActiviteit {
-  samenvatting: string;
-  rondes: ReviewRonde[];
-}
-
-export interface Reviewlog {
-  activiteit2?: ReviewActiviteit;
-  activiteit3?: ReviewActiviteit;
-}
-
-export interface Rapport {
-  werkgebied: Werkgebied;
-  bronnen: Bron[];
-  begrippen: Begrip[];
-  afleidingsregels: Afleidingsregel[];
-  validatiepunten: string[];
-  reviewlog: Reviewlog;
-  aandachtspunten: string;
-}
-
-// --- RegelSpraak-model (GegevensSpraak + regels) ----------------------------
-
-/** Herkomst van een declaratie/regel terug naar de wetsanalyse (begrip/regel + vindplaats). */
-export interface RegelspraakHerkomst {
-  begrip_ids?: string[];
-  regel_id?: string;
-  bron_id?: string;
-  vindplaatsen?: Vindplaats[];
-}
-
-export interface RsAttribuut {
-  naam: string;
-  lidwoord?: string;
-  datatype: string;
-  eenheid?: string;
-}
-
-export interface RsKenmerk {
-  naam: string;
-  soort?: string; // bijvoeglijk | bezittelijk | overig
-}
-
-export interface RsObjecttype {
-  id: string;
-  naam: string;
-  lidwoord?: string;
-  meervoud?: string;
-  bezield?: boolean;
-  attributen?: RsAttribuut[];
-  kenmerken?: RsKenmerk[];
-  regelspraak_tekst?: string;
-  herkomst?: RegelspraakHerkomst;
-  twijfel?: string;
-}
-
-export interface RsRol {
-  naam: string;
-  lidwoord?: string;
-  objecttype?: string;
-  multipliciteit?: string; // een | meerdere
-}
-
-export interface RsFeittype {
-  id: string;
-  naam: string;
-  wederkerig?: boolean;
-  rollen?: RsRol[];
-  relatiebeschrijving?: string;
-  regelspraak_tekst?: string;
-  herkomst?: RegelspraakHerkomst;
-}
-
-export interface RsParameter {
-  id: string;
-  naam: string;
-  lidwoord?: string;
-  datatype: string;
-  eenheid?: string;
-  regelspraak_tekst?: string;
-  herkomst?: RegelspraakHerkomst;
-}
-
-export interface RsDomein {
-  naam: string;
-  regelspraak_tekst?: string;
-  herkomst?: RegelspraakHerkomst;
-}
-
-export interface RsEenheidssysteem {
-  naam: string;
-  regelspraak_tekst?: string;
-}
-
-export interface GegevensSpraak {
-  eenheidssystemen?: RsEenheidssysteem[];
-  domeinen?: RsDomein[];
-  objecttypen?: RsObjecttype[];
-  feittypen?: RsFeittype[];
-  parameters?: RsParameter[];
-  dimensies?: unknown[];
-  tijdlijnen?: unknown[];
-  dagsoorten?: unknown[];
-}
-
-export interface RsRegel {
-  id: string;
-  // naam/soort/regelspraak_tekst komen van het LLM en zijn API-zijdig niet hard gevalideerd
-  // (regels is een ongetypeerde list); spiegel dat zwakke contract met optionele velden.
-  naam?: string;
-  soort?: string;
-  regelspraak_tekst?: string;
-  herkomst?: RegelspraakHerkomst;
-  twijfel?: string;
-}
-
-export interface RegelspraakModel {
-  werkgebied: Werkgebied;
-  gegevensspraak: GegevensSpraak;
-  regels: RsRegel[];
-  reviewlog_gegevensspraak: string;
-  reviewlog_regels: string;
-  validatiepunten: string[];
-  reviewlog?: unknown;
-}
 
 // --- Catalogus (niet-admin): keuzelijsten -----------------------------------
 
@@ -456,54 +9,7 @@ export interface ProfileChoice {
   is_default: boolean;
 }
 
-export interface WetChoice {
-  bwbId: string;
-  naam: string;
-}
-
-// Wetsstructuur + artikelinfo voor het analyseformulier (artikel-autocomplete, lid-keuze).
-// Gespiegeld van WetStructuurOut/ArtikelInfoOut in api/app/routers/catalog.py.
-export interface ArtikelChoice {
-  artikel: string;
-  pad: string;
-}
-
-export interface WetStructuur {
-  bwbId: string;
-  citeertitel: string;
-  versiedatum: string;
-  artikelen: ArtikelChoice[];
-}
-
-export interface ArtikelInfo {
-  bwbId: string;
-  artikel: string;
-  citeertitel: string;
-  opschrift: string;
-  pad: string;
-  leden: string[];
-  leden_teksten?: { lid: string; tekst: string }[];
-  snippet: string;
-}
-
-// --- Admin: wet-catalogus ---------------------------------------------------
-
-export interface WetIn {
-  naam: string;
-}
-
-export interface WetOut {
-  bwbId: string;
-  naam: string;
-  updated_by: string;
-  updated: string;
-}
-
-export interface WetResolveResult {
-  naam: string;
-}
-
-// --- Admin: LLM-modelprofielen + verbruik -----------------------------------
+// --- Admin: LLM-modelprofielen ----------------------------------------------
 
 export interface LlmProfileIn {
   provider?: string;
@@ -515,14 +21,6 @@ export interface LlmProfileIn {
   /** Write-only: leeg laten = bestaande key ongewijzigd. */
   api_key?: string;
   is_default?: boolean;
-}
-
-export interface UsageRow {
-  sleutel: string;
-  tokens_in: number;
-  tokens_out: number;
-  rondes: number;
-  analyses: number;
 }
 
 export interface LlmProfileOut {
@@ -537,7 +35,6 @@ export interface LlmProfileOut {
   api_key_set: boolean;
   updated_by: string;
   updated: string;
-  verbruik: UsageRow | null;
 }
 
 export interface TestResult {
@@ -546,43 +43,6 @@ export interface TestResult {
   tokens_in: number;
   tokens_out: number;
   detail: string;
-}
-
-export interface UsageReport {
-  group_by: string;
-  rows: UsageRow[];
-  totaal: { tokens_in: number; tokens_out: number; rondes: number; analyses: number };
-}
-
-// --- SSE --------------------------------------------------------------------
-
-export interface SSEUpdate {
-  state: JobState;
-  current_activiteit: Activiteit | null;
-  current_ronde: number;
-  current_fase: string | null;
-}
-
-/**
- * Eén project-momentopname uit de geaggregeerde dashboard-SSE (`/api/projects/events`).
- * Spiegelt `_dashboard_payload` in api/app/routers/projects.py.
- */
-export interface DashboardUpdate {
-  id: string;
-  naam: string;
-  bronnen: BronInput[];
-  state: JobState;
-  scope: Scope;
-  current_activiteit: Activiteit | null;
-  current_ronde: number;
-  current_fase: string | null;
-  current_fase_sinds: string | null;
-  created: string;
-  updated: string;
-  model_profile: string;
-  tokens_in: number;
-  tokens_out: number;
-  error: { stap: string; klasse: FoutKlasse; bericht: string } | null;
 }
 
 // --- Auth: accounts + rollen ------------------------------------------------
@@ -648,36 +108,6 @@ export interface LoginVerifyResult {
   role: Role | "";
 }
 
-// --- runtime-instellingen + LLM-call-capture --------------------------------
-
-export interface AppSettings {
-  capture_llm_calls: boolean;
-}
-
-/** Partiële update van de runtime-instellingen (alleen meegestuurde velden wijzigen). */
-export interface SettingsUpdate {
-  capture_llm_calls?: boolean;
-}
-
-export interface LlmCall {
-  id: number;
-  project_slug: string;
-  activiteit: string;
-  ronde: number;
-  poging: number;
-  fase: string;
-  model: string;
-  provider: string;
-  system_prompt: string;
-  user_prompt: string;
-  response_text: string;
-  tokens_in: number;
-  tokens_out: number;
-  ok: boolean;
-  error: string | null;
-  tijdstip: string;
-}
-
 // --- API-fout doorgegeven door de BFF ---------------------------------------
 
 export interface ApiError {
@@ -690,7 +120,7 @@ export interface ApiError {
 
 export type Lifecycle =
   | "voorgesteld" | "critic_checked" | "human_approved" | "edited" | "rejected" | "published" | "reused";
-export type BeslissingType = "approve" | "edit" | "reject" | "comment";
+export type BeslissingType = "approve" | "edit" | "reject" | "comment" | "heropen";
 export type ReviewReason =
   | "verkeerde_klasse" | "bron_gemist" | "tekst" | "interpretatie" | "onvoldoende_context" | "anders";
 export type Aandacht = "groen" | "geel" | "rood";
@@ -710,6 +140,54 @@ export interface Beslissing {
   wijziging: Record<string, unknown>;
 }
 
+/** Eén Critic-oordeel binnen de herzieningslus, met de instructie die eruit volgde. */
+export interface CriticRonde {
+  ronde: number;
+  aandacht?: Aandacht | null;
+  motivatie: string;
+  actie: string;              // behoud | vervang | verwijder
+  /** Is de instructie ook uitgevoerd? De correctie gebeurt in code (graph-qa's patcher), dus
+   *  "de Critic vroeg erom" en "het is gebeurd" zijn twee verschillende feiten. */
+  toegepast?: boolean;
+  voorstel_klasse: string;
+  voorstel_tekst: string;
+  tijd: string;
+}
+
+/** Critic-oordeel op een element dat de JURIST maakte. Advies; wordt nooit toegepast. */
+export interface CriticSuggestie {
+  aandacht?: Aandacht | null;
+  motivatie: string;
+  voorstel_klasse: string;
+  voorstel_tekst: string;
+  status: string;             // open | geaccepteerd | afgewezen
+  tijd: string;
+}
+
+/** De herkomst van één agent-ronde: wélk model de voorstellen maakte.
+ *  Komt als `run`-SSE-event uit graph-qa en gaat mee in de PUT naar de api, die het op het
+ *  document én op elk element vastlegt. Zonder dit is achteraf niet te zeggen waar een markering
+ *  vandaan komt — precies wat de export en de latere graaf-promotie nodig hebben. */
+export interface AgentRun {
+  ronde: number;
+  model: string;
+  provider: string;
+  agent_versie: string;
+  critic_rondes: number;
+  stop_reden: string;
+  tijd: string;
+}
+
+/** Waar een fragment stond toen het werd gemaakt: exacte offsets + quote-met-context als vangnet. */
+export interface Anker {
+  lid: string;
+  start: number;
+  eind: number;
+  voor: string;
+  na: string;
+  bron_hash: string;
+}
+
 export interface AnnotatieElement {
   id: string;
   klasse: string;
@@ -717,25 +195,37 @@ export interface AnnotatieElement {
   lid: string;
   toelichting: string;
   vindplaats: string;
-  span?: number[] | null;
+  /** Wie het element AANMAAKTE (agent | mens) — verandert nooit. */
   herkomst: string;
+  /** Wie het daarna inhoudelijk aanpaste ("" | agent | mens). */
+  gewijzigd_door: string;
   lifecycle: Lifecycle;
   alternatieven: Alternatief[];
   aandacht?: Aandacht | null;
   critic?: string;
+  critic_rondes: CriticRonde[];
+  critic_suggestie?: CriticSuggestie | null;
+  anker?: Anker | null;
   diff: Record<string, { voor: unknown; na: unknown }>;
   beslissingen: Beslissing[];
+  /** null = markering van de jurist, of een agent-ronde van vóór de registratie. */
+  geproduceerd_door?: AgentRun | null;
 }
 
 export interface AnnotatieDocument {
   slug: string;
+  user_id: string;
   client_id: string;
+  /** Naam van de regeling zoals hij in beeld komt; los van `werkgebied` (het kennisdomein). */
+  citeertitel: string;
   werkgebied: string;
   bwbId: string;
   artikel: string;
   lid: string;
   status: DocumentStatus;
   elementen: AnnotatieElement[];
+  /** Het productiespoor: elke agent-ronde die aan dit document werkte. */
+  runs: AgentRun[];
   created?: string | null;
   updated?: string | null;
 }
@@ -749,14 +239,23 @@ export interface AuditRecord {
   tijdstip?: string | null;
 }
 
+/** Eén regel in het annotatie-overzicht: naam, voortgang en de JAS-verdeling voor de kleurstrip,
+ *  zodat de lijst zonder tweede call kan tonen wat er nog te beoordelen is. */
 export interface DocumentSamenvatting {
   slug: string;
   bwbId: string;
   artikel: string;
   lid: string;
+  /** Weergavenaam; de server valt terug op werkgebied en dan bwbId. */
+  citeertitel: string;
   werkgebied: string;
   status: DocumentStatus;
   aantal_elementen: number;
+  te_beoordelen: number;
+  per_aandacht: Record<string, number>;
+  per_klasse: Record<string, number>;
+  /** Leeg = geen agent-ronde geregistreerd (of alleen eigen werk). */
+  laatste_model: string;
   updated?: string | null;
 }
 
@@ -764,6 +263,7 @@ export interface DocumentCreate {
   bwbId: string;
   artikel: string;
   lid?: string | null;
+  citeertitel?: string;
   werkgebied?: string;
 }
 
@@ -772,6 +272,10 @@ export interface Wijziging {
   tekst?: string | null;
   toelichting?: string | null;
   lid?: string | null;
+  // Hoort bij `tekst`: kort de jurist een markering in of breidt hij hem uit, dan schuift de plek
+  // mee. Verandert de tekst zonder anker, dan wist de server het oude — een anker dat over het oude
+  // fragment gaat zou de markering na herladen naar een ander voorkomen laten springen.
+  anker?: Anker | null;
 }
 
 export interface BeslissingInvoer {
@@ -794,10 +298,65 @@ export interface AgentDoel {
   leden_teksten?: { lid: string; tekst: string }[];
 }
 
+/** De bepaling die geannoteerd moet worden, meegestuurd bij het starten van een run.
+ *
+ *  Weet de werkplek hem al (een gekozen kandidaat, een open document), dan slaat de agent de
+ *  supervisor én de ophaal-agent over. Het echte winstpunt is niet de besparing maar de zekerheid:
+ *  de agent kan dan niet meer bij een ándere bepaling uitkomen dan de jurist aanwees.
+ *  Spiegelt `AgentDoel` in `tools/graph-qa/agent/models.py`.
+ */
+export interface AgentDoelInvoer {
+  bwbId: string;
+  artikel?: string;
+  lid?: string;
+  nummer?: string;
+  citeertitel?: string;
+}
+
+/** Een bepaling die de agent vond bij een ONDERWERP-vraag (uit het `kandidaten`-SSE-event).
+ *
+ *  De agent kiest er zelf geen: welke bepaling de werkvoorraad in gaat, bepaalt de jurist.
+ */
+export interface AgentKandidaat {
+  bwbId: string;
+  artikel: string;
+  lid?: string;
+  citeertitel?: string;
+  fragment?: string;
+}
+
+/** Context bij een adviesvraag of een annotatie: waar gaat het over. */
+export interface AgentContext {
+  slug?: string;
+  bwbId?: string;
+  artikel?: string;
+  lid?: string;
+  element_id?: string;
+  klasse?: string;
+  fragment?: string;
+  corpus?: string;
+  bestaande_elementen?: { id: string; klasse: string; tekst: string; lid: string; herkomst: string }[];
+}
+
 /** Een bron onder een agent-antwoord (uit het `sources`-SSE-event). */
 export interface Bron {
   label: string;
   uri: string;
+}
+
+/** De uitkomst van de brongetrouwheidstoets op één antwoord (graph-qa `grounding`-event).
+ *
+ *  `niveau` is de waarde om te tonen, niet `grounded`: **onbepaald** betekent dat het antwoord geen
+ *  enkele vindplaats of citaat noemde en er dus niets te controleren viel. Dat als "gecontroleerd"
+ *  presenteren zou schijnzekerheid zijn — precies wat dit platform wil vermijden. */
+export interface AgentGrounding {
+  niveau: "gegrond" | "onbepaald" | "ongegrond";
+  grounded: boolean;
+  cited: number;
+  /** Verwijzingen die niet in de graafresultaten voorkwamen. */
+  unsupported: string[];
+  /** Als citaat gepresenteerde tekst die niet letterlijk in de opgehaalde tekst staat. */
+  niet_letterlijk: string[];
 }
 
 /** Artikeltekst uit de graaf (weergave == annotatie-corpus). */
@@ -811,20 +370,156 @@ export interface GraafArtikel {
 
 /** Eén voorgesteld element uit de graph-qa annotatie-SSE (nog niet gepersisteerd). */
 export interface VoorstelElement {
+  /** Stabiel id van de agent. Hierop matcht de server bij een volgende ronde, zodat beslissingen en
+   *  levenscyclus behouden blijven. Ontbreekt het, dan valt de server terug op de tekst. */
+  id?: string;
   klasse: string;
   tekst: string;
   lid: string;
   toelichting: string;
   vindplaats: string;
-  span?: number[] | null;
   alternatieven: Alternatief[];
   grounded: boolean;
   aandacht?: Aandacht;   // Critic-oordeel (groen|geel|rood); afwezig = geen Critic-pas
   critic?: string;       // korte Critic-motivatie
+  /** Het heen-en-weer met de Critic, één regel per ronde. De api merget ze op rondenummer. */
+  critic_rondes?: CriticRonde[];
 }
 
 /** Een door de Critic vermoed ontbrekend JAS-element (suggestief; geen span/bron). */
 export interface OntbrekendItem {
   klasse: string;
   reden: string;
+  /** Het letterlijke fragment dat gemarkeerd zou moeten worden. Ontbreekt als de Critic het element
+   *  alleen impliciet in de tekst ziet — dan is het niet toe te voegen (elk element moet letterlijk
+   *  in de wettekst staan) en zegt de UI dat ook. */
+  tekst?: string;
+}
+
+/** Eén agent-beurt als server-object (graph-qa `/v1/runs`).
+ *
+ *  De run leeft bij de agent, niet in het tabblad: wegklikken of herladen koppelt alleen de kijker
+ *  los. `vraag` reist mee omdat een tabblad dat halverwege aanhaakt anders tokens uit het niets
+ *  krijgt, en `volgende_seq`/`weggevallen` zeggen waar de eventlog staat zodat aanhaken op het
+ *  juiste punt begint. */
+export interface RunStart {
+  run_id: string;
+  conversation_id: string;
+  vraag: string;
+  status: "loopt" | "klaar" | "gestopt" | "mislukt";
+  volgende_seq: number;
+  weggevallen: number;
+}
+
+// --- Gesprekken (chatgeschiedenis) — afgeleid van api/app/gesprek_contracts.py ---
+
+export type Rol = "user" | "assistant";
+
+/** Eén beurt in een gesprek. Assistent-berichten dragen optioneel denkproces/bronnen, of een
+ *  verwijzing naar een annotatie-document (`annotatie_slug` + de Critic-`ontbrekend`-suggesties).
+ *
+ *  `annotatie_titel` is het leesbare label van dat document op het moment van de beurt. Het bericht
+ *  beschrijft zichzelf dus: wordt het document later verwijderd, dan blijft er in de thread een
+ *  leesbare kaart staan in plaats van een naamloze verwijzing. Berichten van vóór dit veld leveren
+ *  `""` — dat is een lege terugval, geen fout. */
+export interface Bericht {
+  id?: number;
+  rol: Rol;
+  tekst: string;
+  denk: string;
+  bronnen: Bron[];
+  annotatie_slug: string;
+  annotatie_titel: string;
+  ontbrekend: OntbrekendItem[];
+  /** Van welke agent-run deze beurt de uitkomst is; de api gebruikt het als idempotentiesleutel,
+   *  zodat twee meekijkende tabbladen niet elk hun eigen kopie wegschrijven. */
+  run_id: string;
+  created?: string;
+}
+
+/** Eén chat-gesprek met zijn berichten (volledig geladen). */
+export interface Gesprek {
+  id: string;
+  user_id: string;
+  titel: string;
+  berichten: Bericht[];
+  created?: string;
+  updated?: string;
+}
+
+/** Lichte lijst-weergave voor de sidebar (chatgeschiedenis). */
+export interface GesprekSamenvatting {
+  id: string;
+  titel: string;
+  aantal_berichten: number;
+  updated?: string;
+}
+
+/** Eén toe te voegen bericht (append). */
+export interface BerichtInvoer {
+  rol: Rol;
+  tekst?: string;
+  denk?: string;
+  bronnen?: Bron[];
+  annotatie_slug?: string;
+  annotatie_titel?: string;
+  ontbrekend?: OntbrekendItem[];
+  run_id?: string;
+}
+
+// --- Berichtensysteem --------------------------------------------------------
+//
+// LET OP — twee soorten "bericht" in deze codebase, met eigen API-domeinen:
+//   • `Bericht` / `BerichtInvoer` hierboven = een **chatbeurt** in de werkplek
+//     (`/v1/gesprekken/{id}/berichten`).
+//   • `BerichtOut` en de rest hieronder = een **release note / aankondiging** die een beheerder
+//     publiceert en analisten lezen (`/v1/berichten`).
+// De namen komen uit de API; ze verwijzen naar niets gemeenschappelijks.
+
+export type BerichtType = "info" | "update" | "waarschuwing" | "kritiek";
+
+/** Gepubliceerd bericht met leesstatus (voor analisten). */
+export interface BerichtOut {
+  id: number;
+  titel: string;
+  inhoud: string;
+  type: BerichtType;
+  versie: string | null;
+  gepubliceerd: boolean;
+  gepubliceerd_op: string | null;
+  gelezen: boolean;
+  created: string;
+  updated: string;
+}
+
+/** Bericht zonder leesstatus (voor admin-beheerlijst). */
+export type AdminBerichtOut = Omit<BerichtOut, "gelezen"> & { aangemaakt_door: string };
+
+export interface OngelezenAantalOut {
+  aantal: number;
+}
+
+export interface BerichtenPaginaOut {
+  items: BerichtOut[];
+  totaal: number;
+  pagina: number;
+  per_pagina: number;
+}
+
+export interface AdminBerichtenPaginaOut {
+  items: AdminBerichtOut[];
+  totaal: number;
+  pagina: number;
+  per_pagina: number;
+}
+
+export interface BerichtAanmakenIn {
+  titel: string;
+  inhoud: string;
+  type: BerichtType;
+  versie?: string | null;
+}
+
+export interface BerichtPublicatieIn {
+  gepubliceerd: boolean;
 }

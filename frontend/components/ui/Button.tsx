@@ -12,9 +12,11 @@ const variants: Record<Variant, string> = {
 };
 
 // Min. hoogte 48px voor primaire/secundaire knoppen (md); sm is compact voor inline-acties.
+// Compact met een muis, ruim op touch: de 48px-eis uit de Rijkshuisstijl gaat over
+// aanraakbediening. Met een fijne pointer oogt dat log, terwijl 40px daar ruim volstaat.
 const sizes: Record<Size, string> = {
-  sm: "min-h-[36px] px-3 py-1.5 text-sm",
-  md: "min-h-[48px] px-5 py-2 text-sm",
+  sm: "min-h-[32px] coarse:min-h-[44px] px-3 py-1.5 text-sm",
+  md: "min-h-[40px] coarse:min-h-[48px] px-4 py-2 text-sm",
 };
 
 const base =

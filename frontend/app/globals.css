@@ -8,6 +8,7 @@
      componenten; alleen de waarden zijn naar de Rijkshuisstijl gezet. */
   --paper: 255 255 255; /* #FFFFFF — pagina-achtergrond */
   --surface: 245 246 248; /* #F5F6F8 — cards/secties (lichtgrijs) */
+  --surface-2: 237 240 244; /* #EDF0F4 — gelaagde vlakken (genest paneel in een kaart) */
   --ink: 26 26 26; /* #1A1A1A — broodtekst (≥ 4,5:1 op wit) */
   --lint: 21 66 115; /* #154273 — lintblauw: koppen + primaire merkkleur */
   --muted: 74 90 110; /* #4A5A6E — secundaire tekst */
@@ -23,6 +24,23 @@
   --waarschuwing: 225 112 0; /* #E17000 */
   --fout: 213 43 30; /* #D52B1E */
   --info: 0 123 199; /* #007BC7 */
+
+  /* Aandacht-tinten voor de annotatie-review (🟢🟡🔴), afgeleid van de functionele kleuren
+     (succes/gold/fout). Zachte achtergrond + rand + toegankelijke tekst-tint per niveau; zo draagt
+     het niveau de review-kaart zónder rauwe Tailwind-kleuren buiten de huisstijl. */
+  --aandacht-groen-bg: 233 243 225; /* zacht groen */
+  --aandacht-groen-rand: 188 217 168;
+  --aandacht-groen-tekst: 44 102 8; /* #2C6608 */
+  --aandacht-geel-bg: 251 239 226; /* zacht oker */
+  --aandacht-geel-rand: 231 201 168;
+  --aandacht-geel-tekst: 142 70 0; /* #8E4600 (= gold) */
+  --aandacht-rood-bg: 251 231 229; /* zacht rood */
+  --aandacht-rood-rand: 240 192 188;
+  --aandacht-rood-tekst: 176 38 26; /* #B0261A */
+
+  /* Elevation (modern jasje): fijne, lintblauw-getinte schaduwen i.p.v. overal een 1px-rand. */
+  --schaduw-zacht: 0 1px 2px rgb(21 66 115 / 0.06), 0 1px 3px rgb(21 66 115 / 0.05);
+  --schaduw-kaart: 0 4px 14px rgb(21 66 115 / 0.08), 0 1px 3px rgb(21 66 115 / 0.06);
 }
 
 * {
@@ -32,28 +50,19 @@
 html {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  /* Responsieve typografie volgens de Rijkshuisstijl: 100% desktop, 90% tablet,
-     80% mobiel. Eén hefboom: schaalt alle rem-gebaseerde tekst en spacing mee. */
+  /* Eén tekstschaal op elk scherm.
+     Eerder verkleinde deze 100% → 90% (tablet) → 80% (mobiel). Dat werkte tegen de controls in: die
+     staan op vaste pixelhoogtes en schalen dus níét mee, waardoor op mobiel ~11px tekst in een 48px
+     knop belandde. Bovendien is kleinere tekst op een klein scherm precies verkeerd om. De controls
+     passen zich nu aan het invoerapparaat aan (de `coarse`-variant in tailwind.config.ts) in plaats
+     van de tekst aan de schermbreedte. */
   font-size: 100%;
 }
 
-@media (max-width: 1023px) {
-  html {
-    font-size: 90%;
-  }
-}
-
-@media (max-width: 639px) {
-  html {
-    font-size: 80%;
-  }
-}
-
-/* iOS/Safari zoomt bij focus in op invoervelden met een lettergrootte < 16px. Omdat de veldgroottes
-   hier rem-gebaseerd zijn en op mobiel meeschalen (80%), komen ze onder die drempel. Op touch-
-   apparaten forceren we daarom 16px op tekstvelden. `!important` is nodig omdat Tailwinds
-   text-sm/-base utility-classes (specificiteit 0,1,0) anders van een kale element-selector winnen.
-   Desktop (fijne pointer, geen focus-zoom) blijft ongemoeid. */
+/* iOS/Safari zoomt bij focus in op invoervelden met een lettergrootte < 16px. `text-sm` (14px) zit
+   daaronder, dus op touch-apparaten forceren we 16px op tekstvelden. `!important` is nodig omdat
+   Tailwinds text-sm/-base utility-classes (specificiteit 0,1,0) anders van een kale element-selector
+   winnen. Desktop (fijne pointer, geen focus-zoom) blijft ongemoeid. */
 @media (pointer: coarse) {
   input:not([type="checkbox"]):not([type="radio"]),
   textarea,
@@ -82,6 +91,26 @@ a {
 
 ::selection {
   background: rgb(var(--lint) / 0.16);
+}
+
+/* Eén focusweergave voor de hele app. NL Design System volgt voor 2.4.13 het AAA-niveau: de
+   focusindicator moet dik genoeg en contrastrijk genoeg zijn om op elke achtergrond op te vallen —
+   ook op de JAS-klassekleuren, die van lichtgrijs tot dieprood lopen. Vandaar de dubbele ring: een
+   witte binnenrand tegen donkere vlakken, lintblauw eromheen tegen lichte.
+   Gebruik: `className="focus-ring"` in plaats van een eigen focus-visible:outline per component. */
+.focus-ring:focus-visible {
+  outline: 2px solid rgb(var(--lint));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgb(var(--paper));
+}
+
+/* Scroll-chaining afvangen. Bereikt een paneel zijn einde, dan geeft de browser de scroll door aan
+   het document eronder: op mobiel levert dat rubber-banding (iOS) of pull-to-refresh (Android) op,
+   en dan schuiven de testomgeving-strook en de topbar alsnog weg terwijl de app-schil eronder juist
+   niet hoort te bewegen. `contain` houdt de scroll binnen het paneel waar hij begon. */
+.overflow-y-auto,
+.overflow-auto {
+  overscroll-behavior: contain;
 }
 
 /* Dunne, smaakvolle scrollbar. */

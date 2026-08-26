@@ -1,31 +1,37 @@
-# Portainer-stack voor de Wetsanalyse API, achter Nginx Proxy Manager — spiegelt de MCP-stack.
+# Portainer-stack voor de Wetsanalyse API, achter Nginx Proxy Manager.
 #
 # De image komt van GHCR (zie .github/workflows/api-docker-publish.yml).
-# De container publiceert GÉÉN host-poort: NPM bereikt 'm via het gedeelde Docker-netwerk op
-# hostnaam `wetsanalyse-api`, poort 3000. De API praat intern met de MCP op `wettenbank-mcp:3000`.
 #
-# In NPM → Proxy Hosts → Add: Domain `wetsanalyse-api.ipalm.nl`, Scheme `http`,
-# Forward Hostname `wetsanalyse-api`, Forward Port `3000`, SSL (Let's Encrypt) aan.
+# Bereikbaarheid: nginx-proxy-manager draait op een ANDERE host en deelt dus geen docker-netwerk met
+# deze host. Proxyen op containernaam kan daarom niet — de API publiceert een hostpoort
+# (${HOST_PORT}, default 8081) en NPM forwardt daarheen.
+#
+# In NPM → Proxy Hosts → Add: Domain `api.wetsanalyse.example` (jouw domein), Scheme `http`,
+# Forward Hostname `<docker-lxc-ip>`, Forward Port `${HOST_PORT}`, SSL (Let's Encrypt) aan.
+# Alleen nodig als je de API van buiten wilt bereiken (bv. voor de admin-MCP); de frontend praat
+# server→server via het interne netwerk en heeft deze host niet nodig.
 #
 # Stack-omgeving (in Portainer, of door CI via stack-update meegegeven):
 #   LLM_PROVIDER/LLM_MODEL/LLM_API_BASE/LLM_API_VERSION — niet-geheime LLM-config.
-#   PROXY_NETWORK           — naam van het bestaande NPM-netwerk (default homeinfra_internal).
+#   WA_NETWORK              — gedeeld netwerk met postgres/graph-qa/frontend (default
+#                             wetsanalyse_internal; aangemaakt door deploy/postgres/).
+#   HOST_PORT               — hostpoort voor NPM (default 8081). Laat weg uit de `ports` als de
+#                             API niet publiek hoeft te zijn.
+#   OBS_NETWORK             — netwerk van de observability-stack (default observability_default).
 #   SECRETS_DIR             — host-pad naar de secrets-map (default /opt/secrets/wetsanalyse-api;
-#                             op Synology: /volume1/docker/secrets/wetsanalyse-api).
+#                             op een NAS bijvoorbeeld /volume1/docker/secrets/wetsanalyse-api).
 #
 # Secrets leven als bestanden op de host in SECRETS_DIR en worden via *_FILE-variabelen
 # doorgegeven (nooit als plain env var in de container of Portainer-UI):
-#   llm_api_key, wettenbank_token, api_tokens, database_url,
+#   llm_api_key, api_tokens, database_url,
 #   postgres_user, postgres_password,
 #   admin_tokens (bearer voor /v1/admin/*), llm_config_secret (Fernet-key voor API-key-opslag).
 # Zie api/CLAUDE.md §"Secrets op de host" voor provisioning. De `database_url`-secret heeft de
 # vorm postgresql+asyncpg://<user>:<pass>@postgres:5432/wetsanalyse en gebruikt dezelfde
 # credentials als postgres_user/postgres_password.
 
-# Horizontaal schaalbaar: het concurrency-model is een atomaire state-CAS (geen in-process lock),
-# dus `deploy.replicas > 1` is veilig. Elke replica/worker krijgt een eigen owner-id; een lease +
-# reaper ruimt jobs van een gecrashte replica op. Stel evt. WETSANALYSE_LEASE_S /
-# WETSANALYSE_REAPER_INTERVAL_S in.
+# Horizontaal schaalbaar: de request-afhandeling is stateless (de opslag is de gedeelde
+# PostgreSQL), dus `deploy.replicas > 1` en `--workers > 1` zijn veilig.
 services:
   wetsanalyse-api:
     # CI deployt op digest (WETSANALYSE_API_IMAGE=…@sha256:…) zodat exact de gebouwde/gescande image
@@ -33,14 +39,12 @@ services:
     image: ${WETSANALYSE_API_IMAGE:-ghcr.io/palmw01/wetsanalyse-api:latest}
     container_name: wetsanalyse-api
     restart: unless-stopped
-    expose:
-      - "3000"
+    ports:
+      - "${HOST_PORT:-8081}:3000"
     environment:
       WETSANALYSE_API_TOKENS_FILE: /run/secrets/api_tokens
       WETSANALYSE_AUTH_REQUIRED: "1"
       WETSANALYSE_ADMIN_TOKENS_FILE: /run/secrets/admin_tokens
-      WETTENBANK_MCP_URL: "http://wettenbank-mcp:3000/mcp"
-      WETTENBANK_TOKEN_FILE: /run/secrets/wettenbank_token
       LLM_PROVIDER: ${LLM_PROVIDER:-azure_ai}
       LLM_MODEL: ${LLM_MODEL:?zet LLM_MODEL in de stack-omgeving}
       LLM_API_BASE: ${LLM_API_BASE:-}
@@ -65,10 +69,11 @@ services:
     volumes:
       - ${SECRETS_DIR:-/opt/secrets/wetsanalyse-api}:/run/secrets:ro
     networks:
-      - proxy
+      - wetsanalyse
+      - observability
     # Postgres draait als APARTE stack (deploy/postgres/), zodat een app-redeploy de DB nooit
     # recreate. Geen cross-stack `depends_on` mogelijk → de API verbindt met bounded retry op
-    # `postgres:5432` (zie app/main.py `_init_db_met_retry`); beide stacks delen homeinfra_internal.
+    # `postgres:5432` (zie app/main.py `_init_db_met_retry`) over het gedeelde netwerk.
     # Resource-limieten: begrenzen een ontspoorde worker zodat één container de host niet leegtrekt.
     mem_limit: 1g
     pids_limit: 256
@@ -84,6 +89,11 @@ services:
       start_period: 15s
 
 networks:
-  proxy:
+  # Aangemaakt door de postgres-stack (deploy/postgres/) — die moet dus eerst draaien.
+  wetsanalyse:
     external: true
-    name: ${PROXY_NETWORK:-homeinfra_internal}
+    name: ${WA_NETWORK:-wetsanalyse_internal}
+  # Netwerk van de observability-stack, voor OTLP naar de collector.
+  observability:
+    external: true
+    name: ${OBS_NETWORK:-observability_default}

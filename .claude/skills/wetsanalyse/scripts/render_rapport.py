@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 """Rapportgenerator voor de wetsanalyse-skill.
 
-Rendert de deterministische delen van het eindrapport (secties 0-3 en het
+Rendert de deterministische delen van het eindrapport (secties 0-2 en het
 reviewlog-skelet) rechtstreeks uit de gevalideerde `analyse.json`-bestanden van
-de laatste reviewronde. Zo hoeft de skill de letterlijke wettekst, markeringen,
-begrippen en afleidingsregels niet zelf over te typen — dat scheelt tokens en
-garandeert dat sectie 1-3 brongetrouw met de bron overeenkomt.
+de laatste reviewronde. Zo hoeft de skill de letterlijke wettekst en markeringen
+niet zelf over te typen — dat scheelt tokens en garandeert dat sectie 1-2
+brongetrouw met de bron overeenkomt.
 
 Wat dit script NIET doet (dat blijft mensen-/skillwerk, want het is synthese):
-- de §4-aandachtspunten voor multidisciplinaire validatie (de 5 categorieën);
+- de §3-aandachtspunten voor multidisciplinaire validatie (de 5 categorieën);
 - de prozasamenvatting "wat is per ronde gewijzigd" in de reviewlog.
-Het script levert daarvoor een skelet met het ruwe materiaal (validatiepunten,
-twijfelvelden, feedback per ronde) onder een `_TODO_`-markering, zodat de skill
-het gericht afmaakt.
+Het script levert daarvoor een skelet met het ruwe materiaal (twijfelvelden,
+feedback per ronde) onder een `_TODO_`-markering, zodat de skill het gericht afmaakt.
 
 Geen dependencies buiten de standaardbibliotheek.
 
@@ -21,8 +20,8 @@ Gebruik:
         --werk <pad/naar/analyse/werk> \
         --out  <pad/naar/analyserapport.md>
 
-`--werk` is de werkmap met `activiteit-2/ronde-*/` en `activiteit-3/ronde-*/`.
-Het script kiest per activiteit automatisch de hoogste ronde.
+`--werk` is de werkmap met `activiteit-2/ronde-*/`. Het script kiest automatisch
+de hoogste ronde.
 """
 
 import argparse
@@ -130,91 +129,6 @@ def vindplaats_text(vps, bron_label: dict) -> str:
     return "; ".join(d for d in delen if d)
 
 
-# --- act-3-weergave: begrippen zijn de bouwstenen van regels (id → naam) ---------
-
-def begrip_naam_map(begrippen) -> dict:
-    return {b.get("id"): (b.get("naam") or b.get("id") or "")
-            for b in (begrippen or []) if b.get("id")}
-
-
-def begrip_ref(bid, namen: dict) -> str:
-    if not bid:
-        return ""
-    naam = namen.get(bid)
-    return f"{naam} ({bid})" if naam and naam != bid else str(bid)
-
-
-def definitie_text(b: dict) -> str:
-    d = b.get("definitie") or ""
-    return d + (" [interpretatie]" if d and b.get("is_interpretatie") else "")
-
-
-def relaties_text(relaties, namen: dict) -> str:
-    delen = []
-    for r in (relaties or []):
-        if not isinstance(r, dict):
-            continue
-        doel = f" → {begrip_ref(r['doel_begrip'], namen)}" if r.get("doel_begrip") else ""
-        soort = f"{r['soort']}: " if r.get("soort") else ""
-        delen.append(f"{soort}{r.get('beschrijving', '')}{doel}")
-    return "; ".join(d for d in delen if d)
-
-
-def herkomst_text(h) -> str:
-    if not isinstance(h, dict) or not h.get("status"):
-        return ""
-    t = f"{h['status']} ({h['aangeleverd_id']})" if h.get("aangeleverd_id") else h["status"]
-    if h.get("motivatie"):
-        t += f" — {h['motivatie']}"
-    return t
-
-
-def uitvoer_text(uitvoer, namen: dict) -> str:
-    if not isinstance(uitvoer, dict) or not uitvoer.get("begrip_id"):
-        return ""
-    t = begrip_ref(uitvoer["begrip_id"], namen)
-    return t + (f" — {uitvoer['toelichting']}" if uitvoer.get("toelichting") else "")
-
-
-def invoer_text(invoer, namen: dict) -> str:
-    delen = []
-    for i in (invoer or []):
-        if not isinstance(i, dict):
-            continue
-        delen.append(begrip_ref(i.get("begrip_id"), namen)
-                     + (f" — {i['toelichting']}" if i.get("toelichting") else ""))
-    return "; ".join(d for d in delen if d)
-
-
-def parameters_text(params, namen: dict) -> str:
-    delen = []
-    for p in (params or []):
-        if not isinstance(p, dict):
-            continue
-        stuk = [begrip_ref(p.get("begrip_id"), namen)]
-        if p.get("waarde"):
-            stuk.append(f"= {p['waarde']}" + (f" {p['eenheid']}" if p.get("eenheid") else ""))
-        else:
-            stuk.append("(waarde in delegatie)")
-        if p.get("geldigheid"):
-            stuk.append(f"[{p['geldigheid']}]")
-        if p.get("toelichting"):
-            stuk.append(f"— {p['toelichting']}")
-        delen.append(" ".join(s for s in stuk if s))
-    return "; ".join(delen)
-
-
-def voorwaarden_text(vws, namen: dict) -> str:
-    delen = []
-    for i, v in enumerate(vws or []):
-        if not isinstance(v, dict):
-            continue
-        prefix = f"{v['verbinding']} " if i > 0 and v.get("verbinding") else ""
-        ids = ", ".join(begrip_ref(x, namen) for x in (v.get("begrip_ids") or []))
-        delen.append(prefix + (v.get("tekst") or "") + (f" [{ids}]" if ids else ""))
-    return " · ".join(delen)
-
-
 def titel(a2: dict) -> str:
     wg = a2.get("werkgebied") or {}
     bronnen = a2.get("bronnen") or []
@@ -282,53 +196,6 @@ def sectie_bronnen(a2: dict) -> list[str]:
     return regels
 
 
-def sectie_3(a3: dict) -> list[str]:
-    bron_label = {b.get("bron_id"): (b.get("label") or bron_titel(b)) for b in (a3.get("bronnen") or [])}
-    namen = begrip_naam_map(a3.get("begrippen"))
-    regels = [
-        "## 3. Activiteit 3 — Betekenis (gedeeld over het werkgebied)",
-        "",
-        "### 3a — Begrippen",
-        "",
-        "| Begripsnaam | Synoniemen | Klasse | Definitie | Grondformulering | Voorbeeld | "
-        "Kenmerken / relaties | Verwijst naar | Herkomst | Vindplaats | Twijfel/aanname |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
-    ]
-    for b in sorted(a3.get("begrippen", []),
-                    key=lambda b: jas_sorteersleutel(b.get("klasse", ""))):
-        kenmerken = "; ".join(x for x in [b.get("kenmerken") or "",
-                                          relaties_text(b.get("relaties"), namen)] if x)
-        verwijst = ", ".join(begrip_ref(x, namen)
-                             for x in (b.get("verwijst_naar_begrippen") or []))
-        regels.append(
-            f"| {cel(b.get('naam'))} | {cel(', '.join(b.get('synoniemen') or []))} | "
-            f"{cel(b.get('klasse'))} | {cel(definitie_text(b))} | {cel(b.get('grondformulering'))} | "
-            f"{cel(b.get('voorbeeld'))} | {cel(kenmerken)} | {cel(verwijst)} | "
-            f"{cel(herkomst_text(b.get('herkomst')))} | "
-            f"{cel(vindplaats_text(b.get('vindplaatsen'), bron_label))} | {cel(b.get('twijfel'))} |"
-        )
-    regels += ["", "### 3b — Afleidingsregels", ""]
-    for r in a3.get("afleidingsregels", []):
-        regels += [
-            f"#### {r.get('naam', TODO)} — {r.get('type', TODO)}",
-            "",
-            f"- **Uitvoer:** {uitvoer_text(r.get('uitvoer'), namen) or TODO}",
-            f"- **Invoer:** {invoer_text(r.get('invoer'), namen) or TODO}",
-            f"- **Parameters:** {parameters_text(r.get('parameters'), namen) or TODO}",
-            f"- **Voorwaarden:** {voorwaarden_text(r.get('voorwaarden'), namen) or TODO}",
-        ]
-        if r.get("toelichting"):
-            regels.append(f"- **Toelichting:** {r['toelichting']}")
-        if r.get("markering_ids"):
-            regels.append(f"- **Markeringen:** {', '.join(r['markering_ids'])}")
-        regels += [
-            f"- **Vindplaats / bron:** {vindplaats_text(r.get('vindplaatsen'), bron_label) or TODO}",
-            f"- **Twijfel/aanname:** {r.get('twijfel', TODO)}",
-            "",
-        ]
-    return regels
-
-
 def reviewlog_regel(naam: str, rondes: list[tuple[int, dict | None]]) -> list[str]:
     if not rondes:
         return [f"- **{naam}:** {TODO} (geen rondes gevonden)"]
@@ -363,27 +230,16 @@ def reviewlog_regel(naam: str, rondes: list[tuple[int, dict | None]]) -> list[st
     return out
 
 
-def sectie_4(a3: dict, rondes2, rondes3) -> list[str]:
-    regels = ["## 4. Reviewlog en aandachtspunten voor validatie", "", "### Reviewlog", ""]
+def sectie_3(rondes2) -> list[str]:
+    regels = ["## 3. Reviewlog en aandachtspunten voor validatie", "", "### Reviewlog", ""]
     regels += reviewlog_regel("Activiteit 2", rondes2)
-    regels += reviewlog_regel("Activiteit 3", rondes3)
     regels += [
         "",
         "### Aandachtspunten voor multidisciplinaire validatie",
         "",
         f"> {TODO} — De skill vult dit gestructureerd in (interpretatiekeuzes / open normen /",
         "> openstaande delegaties / aannames / buiten scope), op basis van de twijfelvelden",
-        "> hieronder en de validatiepunten uit activiteit 3. Verwijder dit blok na invullen.",
-        "",
-        "**Ruw materiaal — validatiepunten (activiteit 3):**",
-        "",
-    ]
-    vp = a3.get("validatiepunten", TODO) or TODO
-    if isinstance(vp, list):
-        regels += [f"- {item}" for item in vp]
-    else:
-        regels.append(vp)
-    regels += [
+        "> in de markeringen. Verwijder dit blok na invullen.",
         "",
     ]
     return regels
@@ -393,47 +249,40 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--werk", required=True, type=Path,
-                    help="werkmap met activiteit-2/ en activiteit-3/")
+                    help="werkmap met activiteit-2/")
     ap.add_argument("--out", required=True, type=Path, help="pad naar het rapport (.md)")
     args = ap.parse_args()
 
     dir2 = args.werk / "activiteit-2"
-    dir3 = args.werk / "activiteit-3"
 
     ronde2 = laatste_ronde(dir2)
-    ronde3 = laatste_ronde(dir3)
     if ronde2 is None:
         sys.exit(f"FOUT: geen ronde gevonden in {dir2}")
-    if ronde3 is None:
-        sys.exit(f"FOUT: geen ronde gevonden in {dir3}")
 
     a2 = laad_json(ronde2 / "analyse.json")
-    a3 = laad_json(ronde3 / "analyse.json")
     rondes2 = verzamel_rondes(dir2)
-    rondes3 = verzamel_rondes(dir3)
 
     regels: list[str] = [
         titel(a2),
         "",
-        "> Analyse volgens de methode Wetsanalyse (Ausems, Bulles & Lokin), activiteit 2 + 3.",
+        "> Analyse volgens de methode Wetsanalyse (Ausems, Bulles & Lokin), activiteit 2.",
         "> Dit is een **concept-analyse als hulpmiddel**: bedoeld voor multidisciplinaire validatie",
         "> (jurist, informatieanalist, ICT). Interpretatiekeuzes zijn als zodanig gemarkeerd.",
         "",
     ]
     regels += sectie_0(a2)
     regels += sectie_bronnen(a2)
-    regels += sectie_3(a3)
-    regels += sectie_4(a3, rondes2, rondes3)
+    regels += sectie_3(rondes2)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text("\n".join(regels) + "\n", encoding="utf-8")
 
     aantal_todo = ("\n".join(regels)).count(TODO)
     print(f"Rapport geschreven naar {args.out}")
-    print(f"Bron: activiteit-2 {ronde2.name}, activiteit-3 {ronde3.name}")
+    print(f"Bron: activiteit-2 {ronde2.name}")
     if aantal_todo:
         print(f"Let op: {aantal_todo}× {TODO} — vul deze handmatig/in de skill aan "
-              "(sectie 0-metadata en de §4-aandachtspunten).")
+              "(sectie 0-metadata en de §3-aandachtspunten).")
 
 
 if __name__ == "__main__":

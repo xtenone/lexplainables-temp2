@@ -1,4 +1,5 @@
 import { proxy } from "@/app/api/_lib/proxy";
+import { geenSessie, sessionUserId } from "@/app/api/_lib/session";
 import { pathSegment } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
@@ -6,6 +7,10 @@ export const dynamic = "force-dynamic";
 type Params = { params: Promise<{ slug: string }> };
 
 export async function GET(_req: Request, { params }: Params) {
+  const userid = await sessionUserId();
+  if (!userid) return geenSessie();
   const { slug } = await params;
-  return proxy(`/v1/annotatie/documenten/${pathSegment(slug)}/audit`);
+  return proxy(`/v1/annotatie/documenten/${pathSegment(slug)}/audit`, {
+    headers: { "X-User-Id": userid },
+  });
 }

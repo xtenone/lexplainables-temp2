@@ -1,4 +1,4 @@
-"""Per-client bearer-tokens — erft het patroon van de MCP (tools/wettenbank-mcp/src/auth.ts).
+"""Per-client bearer-tokens — erft het bearer-token-patroon van de projectbrede MCP-servers.
 
 Constant-tijd-vergelijking, fail-closed start (geen tokens ⇒ alles 401), tokens nooit loggen.
 Elke geslaagde auth levert een client_id op die in de audit (job.json) belandt.

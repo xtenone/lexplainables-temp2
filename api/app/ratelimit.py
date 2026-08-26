@@ -96,6 +96,17 @@ def login_allowed(userid: str) -> bool:
     return per_userid and globaal
 
 
+def sensitive_allowed(userid: str) -> bool:
+    """Brute-force-rem op de gevoelige, geauthenticeerde self-service-endpoints (2FA aan/uit,
+    wachtwoord wijzigen) — gelijkgetrokken met `/verify`. Zonder deze rem zou een gekaapte sessie
+    onbeperkt TOTP-codes of het huidige wachtwoord kunnen raden. Per-userid; hergebruikt de
+    muterende-rate-knoppen (`WETSANALYSE_RATE_LIMIT_MAX`/`_WINDOW`); 0 = uit. In-process (per replica)."""
+    s = get_settings()
+    if s.rate_limit_max <= 0:
+        return True
+    return _allow(f"sensitive:{userid.strip().lower()}", s.rate_limit_max, s.rate_limit_window_s)
+
+
 def rate_limited_admin_test(admin_id: str = Depends(require_admin)) -> str:
     """Als require_admin, maar met een krappe rate limit op de verbindingstest (betaalde LLM-call)."""
     s = get_settings()

@@ -174,6 +174,7 @@ class LiteLLMClient:
         )
 
 
+
 def build_llm_client(config: LlmConfig):
     """Factory — nu LiteLLM; uitbreidbaar naar andere adapters zonder de caller te raken."""
     return LiteLLMClient(config)

@@ -64,6 +64,7 @@ def _row_to_user(row) -> User:
         totp_secret_enc=m["totp_secret_enc"],
         totp_enabled=m["totp_enabled"],
         active=m["active"],
+        sessions_valid_from=db.aware(m["sessions_valid_from"]),
         created=db.aware(m["created"]),
         updated=db.aware(m["updated"]),
     )
@@ -379,19 +380,21 @@ async def patch_user(userid: str, *, role: str | None = None, active: bool | Non
 
 
 async def reset_password(userid: str) -> tuple[User, str]:
-    """Zet een nieuw tijdelijk wachtwoord (eenmalig teruggegeven)."""
+    """Zet een nieuw tijdelijk wachtwoord (eenmalig teruggegeven) en revoke alle sessies."""
     user = await _require_user(userid)
     tijdelijk = genereer_wachtwoord()
-    await _update(user.userid, password_hash=hash_password(tijdelijk))
+    await _update(user.userid, password_hash=hash_password(tijdelijk), sessions_valid_from=_utcnow())
     return user, tijdelijk
 
 
 async def change_own_password(userid: str, current: str, nieuw: str) -> None:
-    """Self-service wachtwoordwijziging: verifieer het huidige wachtwoord en zet een nieuw."""
+    """Self-service wachtwoordwijziging: verifieer het huidige wachtwoord en zet een nieuw. Bumpt de
+    sessie-epoch zodat bestaande sessies op andere apparaten vervallen (het acterende apparaat logt
+    zelf opnieuw in)."""
     user = await _require_user(userid)
     if not user.active or not verify_password(current, user.password_hash):
         raise UserError("Huidig wachtwoord onjuist.")
-    await _update(user.userid, password_hash=hash_password(nieuw))
+    await _update(user.userid, password_hash=hash_password(nieuw), sessions_valid_from=_utcnow())
 
 
 async def delete_user(userid: str) -> None:

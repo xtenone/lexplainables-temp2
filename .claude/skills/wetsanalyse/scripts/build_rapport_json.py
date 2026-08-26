@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 """Bouw rapport.json uit de gevalideerde analyse-tussenresultaten.
 
-Leest de hoogste ronde van activiteit-2 en activiteit-3 uit de werkmap en
-combineert die tot één werkgebied-rapport.json — de primaire bron voor de
-HTML-viewer en de Markdown-download.
+Leest de hoogste ronde van activiteit 2 uit de werkmap en zet die om naar één
+werkgebied-rapport.json — de primaire bron voor de HTML-viewer en de
+Markdown-download.
 
 De analyse-eenheid is het **werkgebied** (kennisdomein) met meerdere **bronnen**:
-activiteit 2 levert per bron markeringen/verwijzingen (`bronnen[]`), activiteit 3
-is werkgebied-breed (gedeelde `begrippen`/`afleidingsregels`).
+activiteit 2 levert per bron markeringen/verwijzingen (`bronnen[]`).
 
-De drie vrije-tekstvelden (reviewlog act. 2, reviewlog act. 3, aandachtspunten)
-kunnen direct als vlag worden meegegeven zodat de skill ze in één aanroep invult.
-Ontbreken ze, dan blijven ze leeg als startpunt dat de analist later bijwerkt.
+De twee vrije-tekstvelden (reviewlog act. 2, aandachtspunten) kunnen direct als
+vlag worden meegegeven zodat de skill ze in één aanroep invult. Ontbreken ze, dan
+blijven ze leeg als startpunt dat de analist later bijwerkt.
 
 Geen dependencies buiten de standaardbibliotheek.
 
@@ -20,7 +19,6 @@ Gebruik:
         --werk <pad/naar/analyse/werk> \\
         --out  <pad/naar/rapport.json> \\
         [--reviewlog-act2  "tekst..."] \\
-        [--reviewlog-act3  "tekst..."] \\
         [--aandachtspunten "tekst..."]
 """
 
@@ -114,38 +112,32 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     ap.add_argument("--werk", required=True, type=Path,
-                    help="werkmap met activiteit-2/ en activiteit-3/")
+                    help="werkmap met activiteit-2/")
     ap.add_argument("--out", required=True, type=Path,
                     help="pad naar het te schrijven rapport.json")
     ap.add_argument("--reviewlog-act2", default="",
                     help="prozasamenvatting reviewlog activiteit 2")
-    ap.add_argument("--reviewlog-act3", default="",
-                    help="prozasamenvatting reviewlog activiteit 3")
     ap.add_argument("--aandachtspunten", default="",
                     help="gestructureerde aandachtspunten voor multidisciplinaire validatie")
     args = ap.parse_args()
 
     dir2 = args.werk / "activiteit-2"
-    dir3 = args.werk / "activiteit-3"
 
     ronde2 = laatste_ronde(dir2)
-    ronde3 = laatste_ronde(dir3)
     if ronde2 is None:
         sys.exit(f"FOUT: geen ronde gevonden in {dir2}")
-    if ronde3 is None:
-        sys.exit(f"FOUT: geen ronde gevonden in {dir3}")
 
     a2 = laad_json(ronde2 / "analyse.json")
-    a3 = laad_json(ronde3 / "analyse.json")
     rondes2 = verzamel_rondes(dir2)
-    rondes3 = verzamel_rondes(dir3)
 
     bronnen = a2.get("bronnen", [])
     werkgebied = dict(a2.get("werkgebied") or {})
-    # analysefocus voedt §0; act-3 mag een eigen werkgebied dragen, act-2 is leidend.
+    # analysefocus voedt §0.
     werkgebied.setdefault("analysefocus", a2.get("analysefocus", ""))
 
-    # Bouw werkgebied-rapport.json — bronnen[] (act-2) + gedeelde begrippen/regels (act-3).
+    # Bouw werkgebied-rapport.json — bronnen[] (act-2). Begrippen/afleidingsregels zijn uit
+    # scope (worden later op een agentische basis herbouwd); de sleutels blijven leeg voor
+    # viewer-compatibiliteit.
     rapport = {
         # §0 werkgebied-metadata
         "werkgebied": werkgebied,
@@ -153,20 +145,16 @@ def main() -> None:
         # §1/§2 bronnen: per bron wettekst, markeringen, uitgaande verwijzingen, samenhang
         "bronnen": bronnen,
 
-        # §3 gedeelde begrippen + regels (werkgebied-breed, uit act-3)
-        "begrippen":        a3.get("begrippen", []),
-        "afleidingsregels": a3.get("afleidingsregels", []),
-        "validatiepunten":  a3.get("validatiepunten", []),
+        # §3 (vestigiaal, leeg — buiten scope)
+        "begrippen":        [],
+        "afleidingsregels": [],
+        "validatiepunten":  [],
 
-        # §4 reviewlog + aandachtspunten (vrije tekstvelden + ruwe context)
+        # §3 reviewlog + aandachtspunten (vrije tekstvelden + ruwe context)
         "reviewlog": {
             "activiteit2": {
                 "samenvatting": args.reviewlog_act2.strip(),
                 "rondes": bouw_reviewlog_rondes(rondes2),
-            },
-            "activiteit3": {
-                "samenvatting": args.reviewlog_act3.strip(),
-                "rondes": bouw_reviewlog_rondes(rondes3),
             },
         },
         "aandachtspunten": args.aandachtspunten.strip(),
@@ -178,95 +166,20 @@ def main() -> None:
 
     leeg = sum([
         1 if not rapport["reviewlog"]["activiteit2"]["samenvatting"] else 0,
-        1 if not rapport["reviewlog"]["activiteit3"]["samenvatting"] else 0,
         1 if not rapport["aandachtspunten"] else 0,
     ])
     print(f"rapport.json geschreven naar {args.out}")
-    print(f"Bron: activiteit-2 {ronde2.name}, activiteit-3 {ronde3.name} "
-          f"({len(bronnen)} bron(nen))")
+    print(f"Bron: activiteit-2 {ronde2.name} ({len(bronnen)} bron(nen))")
     if leeg:
         print(f"Let op: {leeg} vrij tekstveld(en) nog leeg "
-              "(--reviewlog-act2, --reviewlog-act3, --aandachtspunten).")
-
-    # Referentiële integriteit over de bronnen heen. Hier (na het mergen) is het volledige
-    # beeld bekend; validate_analyse.py kan dit per los bestand niet over de activiteiten heen
-    # checken. Vier controles:
-    #   1. bron_verwijzing op een begrip/regel → een bestaande verwijzing-id in één van de bronnen;
-    #   2. elke vindplaatsen.bron_id → een bestaande bron;
-    #   3. elke markering_ids-verwijzing → een bestaande act-2-markering;
-    #   4. elke begrip-id in de regelvelden (uitvoer/invoer/parameters/voorwaarden) en in
-    #      verwijst_naar_begrippen/relaties → een bestaand begrip.
-    bron_ids = {b.get("bron_id") for b in bronnen if b.get("bron_id")}
-    verwijzing_ids = {
-        v.get("id")
-        for b in bronnen
-        for v in (b.get("verwijzingen") or [])
-        if v.get("id")
-    }
-    markering_ids = {
-        m.get("id")
-        for b in bronnen
-        for m in (b.get("markeringen") or [])
-        if m.get("id")
-    }
-    begrip_ids = {b.get("id") for b in rapport["begrippen"] if b.get("id")}
-    problemen: list[str] = []
-
-    def check_begrip_ref(enkelvoud: str, iid: str, veld: str, ref) -> None:
-        if ref and ref not in begrip_ids:
-            problemen.append(f"{enkelvoud} '{iid}' → onbekend begrip-id '{ref}' in {veld}")
-
-    for groep, enkelvoud in (("begrippen", "begrip"), ("afleidingsregels", "afleidingsregel")):
-        for item in rapport[groep]:
-            iid = item.get("id", "?")
-            bv = item.get("bron_verwijzing")
-            if bv and bv not in verwijzing_ids:
-                problemen.append(f"{enkelvoud} '{iid}' → onbekende bron_verwijzing '{bv}'")
-            for vp in (item.get("vindplaatsen") or []):
-                bid = vp.get("bron_id")
-                if bid and bid not in bron_ids:
-                    problemen.append(f"{enkelvoud} '{iid}' → onbekende vindplaats-bron_id '{bid}'")
-            for mid in (item.get("markering_ids") or []):
-                if mid and mid not in markering_ids:
-                    problemen.append(f"{enkelvoud} '{iid}' → onbekende markering '{mid}'")
-
-    for b in rapport["begrippen"]:
-        iid = b.get("id", "?")
-        for ref in (b.get("verwijst_naar_begrippen") or []):
-            check_begrip_ref("begrip", iid, "verwijst_naar_begrippen", ref)
-        for rel in (b.get("relaties") or []):
-            if isinstance(rel, dict):
-                check_begrip_ref("begrip", iid, "relaties.doel_begrip", rel.get("doel_begrip"))
-
-    for r in rapport["afleidingsregels"]:
-        iid = r.get("id", "?")
-        uitvoer = r.get("uitvoer") or {}
-        if isinstance(uitvoer, dict):
-            check_begrip_ref("afleidingsregel", iid, "uitvoer", uitvoer.get("begrip_id"))
-        for veld in ("invoer", "parameters"):
-            for item in (r.get(veld) or []):
-                if isinstance(item, dict):
-                    check_begrip_ref("afleidingsregel", iid, veld, item.get("begrip_id"))
-        for vw in (r.get("voorwaarden") or []):
-            if isinstance(vw, dict):
-                for ref in (vw.get("begrip_ids") or []):
-                    check_begrip_ref("afleidingsregel", iid, "voorwaarden", ref)
+              "(--reviewlog-act2, --aandachtspunten).")
 
     # Een rapport hoort op een schoon afgeronde review-lus te steunen: waarschuw als de
     # hoogste ronde geen akkoord-zonder-opmerkingen draagt (niet-blokkerend; de analist kan
     # bewust een tussenstand exporteren, maar hoort dat te weten).
-    for act, rondes in (("2", rondes2), ("3", rondes3)):
-        if not schoon_akkoord(rondes):
-            print(f"Let op: de hoogste ronde van activiteit {act} heeft geen schoon "
-                  "'akkoord' in feedback.json — is de review-lus wel afgerond?")
-
-    if problemen:
-        print("FOUT: dangling referenties (controleer act-2/act-3):", file=sys.stderr)
-        for p in problemen:
-            print(f"  - {p}", file=sys.stderr)
-        # Blokkerend (exit 2): een rapport met onherleidbare referenties mag niet stil als
-        # eindresultaat door. Het bestand is wél geschreven, zodat de analist kan inspecteren.
-        sys.exit(2)
+    if not schoon_akkoord(rondes2):
+        print("Let op: de hoogste ronde van activiteit 2 heeft geen schoon "
+              "'akkoord' in feedback.json — is de review-lus wel afgerond?")
 
 
 if __name__ == "__main__":

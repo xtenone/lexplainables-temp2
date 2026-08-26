@@ -18,7 +18,7 @@ export const DISCLAIMER_PAD = "/disclaimer";
 /** Moet dit pad achter het disclaimer-akkoord staan?
  *
  *  Twee vrijstellingen, allebei noodzakelijk:
- *  - `/api/**` — de BFF-routes en vooral de SSE-streams (`/api/projects/events`). Een redirect naar
+ *  - `/api/**` — de BFF-routes en vooral de SSE-stream (`/api/annotatie/run/[id]/events`). Een redirect naar
  *    een HTML-pagina breekt daar de stream met een parsefout in plaats van een nette 401/403.
  *  - `/disclaimer` zelf — anders stuurt de gate de pagina naar zichzelf door (redirect-lus). */
 export function vereistAkkoord(path: string): boolean {

@@ -48,6 +48,20 @@ async def test_verify_accepteert_geldig_en_werkt_last_used_bij(db):
     assert (await api_tokens.list_tokens())[0]["last_used"] is not None
 
 
+async def test_verify_blijft_geldig_als_last_used_write_faalt(db, monkeypatch):
+    """De `last_used`-bijwerking is best-effort en ontkoppeld van de auth-beslissing: faalt de write,
+    dan blijft een geldig token toch geaccepteerd (geen 401 door een metadata-hapering)."""
+    from app import api_tokens
+
+    _, plaintext = await api_tokens.create("x")
+
+    async def kapotte_touch(_token_id):
+        raise RuntimeError("DB-hapering tijdens metadata-write")
+
+    monkeypatch.setattr(api_tokens, "_touch_last_used", kapotte_touch)
+    assert await api_tokens.verify(plaintext) == "apitoken:x"
+
+
 async def test_verify_weigert_onbekend_leeg_en_ingetrokken(db):
     from app import api_tokens
 
@@ -78,10 +92,8 @@ async def admin_client(monkeypatch):
 
     from app import db, ratelimit
     from app.config import get_settings
-    from app.deps import get_store
 
     get_settings.cache_clear()
-    get_store.cache_clear()
     ratelimit.reset()
     db.init_engine("sqlite+aiosqlite://")
     await db.create_all()
@@ -90,7 +102,6 @@ async def admin_client(monkeypatch):
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
-    get_store.cache_clear()
     await db.dispose_engine()
 
 

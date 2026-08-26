@@ -63,6 +63,12 @@ export function LoginClient() {
       // niet meer tot een handmatige refresh. Een window.location-navigatie doorloopt de
       // redirect zoals een normale paginalaad (en dat is precies wat een refresh ook doet).
       window.location.href = veiligPad(params.get("callbackUrl"), window.location.origin);
+    } catch {
+      // Een uitzondering, geen antwoord: API onbereikbaar, DNS-fout, verbinding weggevallen. Zonder
+      // deze tak sprong de knop terug van "Bezig met inloggen…" naar "Inloggen" en leek er niets
+      // gebeurd — precies het moment waarop niemand aan de infrastructuur denkt en dus zijn
+      // wachtwoord opnieuw gaat typen.
+      setFout("Inloggen lukt nu niet — de dienst is niet bereikbaar. Probeer het zo opnieuw.");
     } finally {
       setBezig(false);
     }

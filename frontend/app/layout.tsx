@@ -1,10 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import Image from "next/image";
-import Link from "next/link";
 import { auth } from "@/auth";
 import { Providers } from "@/components/Providers";
-import { SiteFooter } from "@/components/SiteFooter";
-import { SiteNav } from "@/components/SiteNav";
 import { sans, mono } from "./fonts";
 import "./globals.css";
 
@@ -30,71 +26,40 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#154273",
+  // Laat het schermtoetsenbord de layout-viewport verkleinen in plaats van eroverheen te schuiven.
+  // De werkplek is een niet-scrollende schil van 100dvh met de invoerbalk onderaan gepind; zonder
+  // dit kan het toetsenbord die balk afdekken. Chrome/Android honoreert dit; iOS Safari (nog) niet —
+  // dáár is het niet met een regel CSS op te lossen en moet iemand met een toestel kijken.
+  interactiveWidget: "resizes-content",
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+/** De layout is bewust kaal: er is geen globale chrome meer. Elk scherm draagt zijn eigen kader —
+ *  ingelogd is dat de app-schil (`/workbench`, `/instellingen`), uitgelogd de gecentreerde kaart van
+ *  `AuthFrame`. De oude logobalk + navigatiebalk + footer zijn weg: die navigatie wees naar plekken
+ *  die inmiddels ín de schil zitten, en de kop verborg zichzelf toch al op de app-paden.
+ *
+ *  `modal` is het parallelle slot dat de intercepting routes vullen (app/@modal/**); dat staat
+ *  buiten `{children}`, want een dialog hoort over de hele app heen te liggen. */
+export default async function RootLayout({
+  children,
+  modal,
+}: {
+  children: React.ReactNode;
+  modal: React.ReactNode;
+}) {
   const session = await auth();
   return (
     <html lang="nl" className={`${sans.variable} ${mono.variable}`}>
-      <body className="min-h-screen">
+      {/* `min-h-[100dvh]` en niet alleen `min-h-screen`: `100vh` is op mobiel de viewport ZONDER
+          adresbalk, dus zolang die balk in beeld staat is de body hoger dan wat je ziet en kan het
+          document zelf scrollen. Dan schuiven de testomgeving-strook en de topbar mee weg terwijl de
+          app-schil eronder juist niet-scrollend bedoeld is. `100dvh` volgt de zichtbare hoogte, dus
+          er blijft niets over om te scrollen. `min-h-screen` blijft ervóór staan als terugval voor
+          browsers zonder dvh. */}
+      <body className="min-h-screen min-h-[100dvh]">
         <Providers session={session}>
-        <header className="relative z-30">
-          {/* PoC-strip: alleen zichtbaar na inloggen. Linkt naar de volledige tekst;
-              kleuren via de waarschuwing-tokens (zie components/ui/Melding.tsx), geen losse hex. */}
-          {session && (
-            <Link
-              href="/disclaimer"
-              className="block bg-waarschuwing/10 py-1.5 text-ink transition-colors hover:bg-waarschuwing/20 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-lint"
-            >
-              <span className="mx-auto block max-w-6xl px-6 text-center text-xs">
-                <span className="font-semibold">Testomgeving — proof of concept.</span>{" "}
-                Analyses kunnen verloren gaan.{" "}
-                <span className="underline">Lees de voorwaarden</span>
-              </span>
-            </Link>
-          )}
-          {/* Logobalk (Rijkshuisstijl): het LINT staat altijd op de horizontale middenas,
-              bovenaan op een witte achtergrond, met het woordmerk rechts ernaast; géén andere
-              elementen in de balk. Lintbreedte 50px desktop, schaalt naar 45/40px (tablet/mobiel)
-              via de root-font-size (100/90/80). Het lint zit op 25/275 van de logobreedte, dus
-              we verschuiven het logo links 1,5625rem (= halve lintbreedte) ná left-1/2, zodat het
-              lintmidden samenvalt met het balkmidden. De max-breedte voorkomt overflow op smalle
-              schermen. Verticale marge = 0,5 lintbreedte (1,5625rem). */}
-          <div className="border-b border-line bg-paper">
-            <div className="mx-auto max-w-6xl px-6">
-              <Link
-                href="/"
-                aria-label="Belastingdienst, naar startpagina"
-                className="relative left-1/2 block w-fit max-w-[calc(50%+1.5625rem)] -translate-x-[1.5625rem] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lint"
-              >
-                <Image
-                  src="/belastingdienst-logo.svg"
-                  alt="Belastingdienst"
-                  width={275}
-                  height={125}
-                  priority
-                  unoptimized
-                  className="block h-auto w-[17.1875rem] max-w-full"
-                />
-              </Link>
-            </div>
-          </div>
-          {/* Navigatiebalk — onder de logobalk (Rijkshuisstijl: geen navigatie in/boven het lint).
-              De applicatienaam "Wetsanalyse" hoort hier, niet in de logobalk. */}
-          <div className="relative border-b border-line bg-paper">
-            <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6">
-              <Link
-                href="/"
-                className="shrink-0 py-3 text-sm font-semibold text-lint focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lint"
-              >
-                Wetsanalyse
-              </Link>
-              <SiteNav />
-            </div>
-          </div>
-        </header>
-        <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
-        <SiteFooter />
+          {children}
+          {modal}
         </Providers>
       </body>
     </html>

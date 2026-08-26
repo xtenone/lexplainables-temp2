@@ -6,12 +6,12 @@ describe("vereistAkkoord", () => {
     expect(vereistAkkoord("/")).toBe(true);
   });
 
-  it("gate't ook een deeplink naar een project", () => {
-    expect(vereistAkkoord("/projecten/bwbr1-art9")).toBe(true);
+  it("gate't ook een deeplink naar de werkruimte", () => {
+    expect(vereistAkkoord("/workbench")).toBe(true);
   });
 
-  it("laat de BFF-routes met rust (anders breken de SSE-streams)", () => {
-    expect(vereistAkkoord("/api/projects/events")).toBe(false);
+  it("laat de BFF-routes met rust (anders breekt de SSE-stream)", () => {
+    expect(vereistAkkoord("/api/annotatie/run/r1/events")).toBe(false);
   });
 
   it("laat de disclaimer zelf met rust (anders een redirect-lus)", () => {

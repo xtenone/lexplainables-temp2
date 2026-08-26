@@ -1,8 +1,8 @@
-"""Wetsanalyse API — headless orchestratie van de JAS-wetsanalyse.
+"""Wetsanalyse API — headless backend voor de werkplek.
 
-De engine bezit de review-lus en de state; het LLM doet per stap één begrensde taak.
-De bestaande skill-artefacten (analyses/<id>/werk/.../ronde-N/) zijn de jobstore, zodat
-API en lokale Claude Code-skill interoperabel blijven.
+Bedient het JAS-annotatiedomein, de chatgeschiedenis, login/gebruikersbeheer en het
+LLM-modelprofielbeheer. De agent die de annotaties voorstelt is een aparte dienst
+(tools/graph-qa/); deze API bewaart de review-state en het auditspoor.
 """
 
 __version__ = "0.1.0"

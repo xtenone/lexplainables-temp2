@@ -235,60 +235,6 @@ function sorteerOpKlasse(items) {
   return (items || []).slice().sort((a, b) => jasVolgorde(a.klasse) - jasVolgorde(b.klasse));
 }
 
-// --- act-3-helpers: begrippen zijn de bouwstenen van regels (id → naam-weergave) ---
-const BEGRIP_NAAM = {};
-(D.begrippen || []).forEach(b => { if (b && b.id) BEGRIP_NAAM[b.id] = b.naam || b.id; });
-
-function bref(id) {
-  if (!id) return "";
-  const n = BEGRIP_NAAM[id];
-  return n && n !== id ? `${n} (${id})` : id;
-}
-
-function invoerText(invoer) {
-  return (invoer || [])
-    .map(i => bref(i.begrip_id) + (i.toelichting ? ` — ${i.toelichting}` : ""))
-    .join("; ");
-}
-
-function parametersText(params) {
-  return (params || []).map(p => {
-    const delen = [bref(p.begrip_id)];
-    if (p.waarde) delen.push(`= ${p.waarde}${p.eenheid ? " " + p.eenheid : ""}`);
-    else delen.push("(waarde in delegatie)");
-    if (p.geldigheid) delen.push(`[${p.geldigheid}]`);
-    if (p.toelichting) delen.push(`— ${p.toelichting}`);
-    return delen.join(" ");
-  }).join("; ");
-}
-
-function voorwaardenText(vws) {
-  return (vws || []).map((v, i) => {
-    const prefix = i > 0 && v.verbinding ? `${v.verbinding} ` : "";
-    const ids = (v.begrip_ids || []).map(bref).join(", ");
-    return prefix + (v.tekst || "") + (ids ? ` [${ids}]` : "");
-  }).join(" · ");
-}
-
-function uitvoerText(uitvoer) {
-  if (!uitvoer || !uitvoer.begrip_id) return "";
-  return bref(uitvoer.begrip_id) + (uitvoer.toelichting ? ` — ${uitvoer.toelichting}` : "");
-}
-
-function relatiesText(relaties) {
-  return (relaties || []).map(r => {
-    const doel = r.doel_begrip ? ` → ${bref(r.doel_begrip)}` : "";
-    return `${r.soort ? r.soort + ": " : ""}${r.beschrijving || ""}${doel}`;
-  }).join("; ");
-}
-
-function herkomstText(h) {
-  if (!h || !h.status) return "";
-  let t = h.aangeleverd_id ? `${h.status} (${h.aangeleverd_id})` : h.status;
-  if (h.motivatie) t += ` — ${h.motivatie}`;
-  return t;
-}
-
 // --- Header ------------------------------------------------------------------
 
 function renderHeader() {
@@ -406,84 +352,12 @@ function renderBronnen() {
   return BRONNEN.map((b, i) => renderBron(b, i + 1)).join("");
 }
 
-// --- §3 Begrippen + Afleidingsregels -----------------------------------------
+// --- §3 Reviewlog + Aandachtspunten (bewerkbaar) -----------------------------
 
 function renderSectie3() {
-  const begrippen = sorteerOpKlasse(D.begrippen);
-  const regels = D.afleidingsregels || [];
-  const vp = Array.isArray(D.validatiepunten)
-    ? D.validatiepunten
-    : (D.validatiepunten ? [D.validatiepunten] : []);
-
-  const bItems = begrippen.map(b => `
-    <div class="item">
-      <div class="top">
-        <span class="id">#${esc(b.id)}</span>
-        <span class="chip" data-klasse="${esc(b.klasse)}">${esc(b.klasse)}</span>
-        ${b.herkomst && b.herkomst.status ? `<span class="chip">${esc(b.herkomst.status)}</span>` : ""}
-        <strong>${esc(b.naam)}</strong>
-      </div>
-      <div class="grid">
-        ${(b.synoniemen && b.synoniemen.length) ? `<span class="lbl">Synoniemen</span><span>${esc(b.synoniemen.join(", "))}</span>` : ""}
-        ${b.definitie ? `<span class="lbl">Definitie</span><span>${esc(b.definitie + (b.is_interpretatie ? " [interpretatie]" : ""))}</span>` : ""}
-        ${b.grondformulering ? `<span class="lbl">Grondformulering</span><span>${esc(b.grondformulering)}</span>` : ""}
-        ${b.voorbeeld ? `<span class="lbl">Voorbeeld</span><span>${esc(b.voorbeeld)}</span>` : ""}
-        ${b.kenmerken ? `<span class="lbl">Kenmerken</span><span>${esc(b.kenmerken)}</span>` : ""}
-        ${relatiesText(b.relaties) ? `<span class="lbl">Relaties</span><span>${esc(relatiesText(b.relaties))}</span>` : ""}
-        ${(b.verwijst_naar_begrippen && b.verwijst_naar_begrippen.length) ? `<span class="lbl">Verwijst naar</span><span>${esc(b.verwijst_naar_begrippen.map(bref).join(", "))}</span>` : ""}
-        ${b.bron_verwijzing ? `<span class="lbl">Bron-verwijzing</span><span>${esc(b.bron_verwijzing)}</span>` : ""}
-        ${(b.markering_ids && b.markering_ids.length) ? `<span class="lbl">Markeringen</span><span>${esc(b.markering_ids.join(", "))}</span>` : ""}
-        ${herkomstText(b.herkomst) ? `<span class="lbl">Herkomst</span><span>${esc(herkomstText(b.herkomst))}</span>` : ""}
-        ${vindplaatsText(b.vindplaatsen) ? `<span class="lbl">Vindplaats</span><span>${esc(vindplaatsText(b.vindplaatsen))}</span>` : ""}
-        ${b.twijfel ? `<span class="lbl">Twijfel/aanname</span><span>${esc(b.twijfel)}</span>` : ""}
-      </div>
-    </div>`).join("");
-
-  const rItems = regels.map(r => `
-    <div class="item">
-      <div class="top">
-        <span class="id">#${esc(r.id)}</span>
-        <span class="chip">${esc(r.type || "afleidingsregel")}</span>
-        <strong>${esc(r.naam)}</strong>
-      </div>
-      <div class="grid">
-        ${uitvoerText(r.uitvoer) ? `<span class="lbl">Uitvoer</span><span>${esc(uitvoerText(r.uitvoer))}</span>` : ""}
-        ${invoerText(r.invoer) ? `<span class="lbl">Invoer</span><span>${esc(invoerText(r.invoer))}</span>` : ""}
-        ${parametersText(r.parameters) ? `<span class="lbl">Parameters</span><span>${esc(parametersText(r.parameters))}</span>` : ""}
-        ${voorwaardenText(r.voorwaarden) ? `<span class="lbl">Voorwaarden</span><span>${esc(voorwaardenText(r.voorwaarden))}</span>` : ""}
-        ${r.toelichting ? `<span class="lbl">Toelichting</span><span>${esc(r.toelichting)}</span>` : ""}
-        ${(r.markering_ids && r.markering_ids.length) ? `<span class="lbl">Markeringen</span><span>${esc(r.markering_ids.join(", "))}</span>` : ""}
-        ${vindplaatsText(r.vindplaatsen) ? `<span class="lbl">Vindplaats</span><span>${esc(vindplaatsText(r.vindplaatsen))}</span>` : ""}
-        ${r.twijfel ? `<span class="lbl">Twijfel/aanname</span><span>${esc(r.twijfel)}</span>` : ""}
-      </div>
-    </div>`).join("");
-
-  const vpHtml = vp.length
-    ? `<h3>Validatiepunten (context voor §4)</h3>
-       <ul class="vp-lijst">${vp.map(v => `<li>${esc(v)}</li>`).join("")}</ul>`
-    : "";
-
-  return `<div class="panel">
-    <h2>3. Activiteit 3 — Betekenis (gedeeld over het werkgebied)</h2>
-    <div style="font-family:var(--sans);font-size:11px;font-weight:600;text-transform:uppercase;
-      letter-spacing:0.08em;color:var(--muted);margin-bottom:10px">
-      Begrippen (${begrippen.length})
-    </div>
-    ${bItems}
-    <h3>Afleidingsregels (${regels.length})</h3>
-    ${rItems}
-    ${vpHtml}
-  </div>`;
-}
-
-// --- §4 Reviewlog + Aandachtspunten (bewerkbaar) -----------------------------
-
-function renderSectie4() {
   const rl = D.reviewlog || {};
   const act2 = (rl.activiteit2 || {});
-  const act3 = (rl.activiteit3 || {});
   const rondes2 = act2.rondes || [];
-  const rondes3 = act3.rondes || [];
 
   function rondeContext(rondes) {
     if (!rondes.length) return "";
@@ -501,22 +375,16 @@ function renderSectie4() {
   }
 
   return `<div class="panel">
-    <h2>4. Reviewlog en aandachtspunten voor validatie</h2>
+    <h2>3. Reviewlog en aandachtspunten voor validatie</h2>
 
     <h3>Reviewlog — activiteit 2</h3>
     ${rondeContext(rondes2)}
     <span class="bewerkbaar-label">Samenvatting (bewerkbaar)</span>
     <textarea id="ta-act2" placeholder="Beschrijf per ronde wat er op basis van de feedback is gewijzigd. Bij 1 ronde direct akkoord: '1 ronde — direct akkoord, geen wijzigingen.'">${esc(act2.samenvatting || "")}</textarea>
 
-    <h3>Reviewlog — activiteit 3</h3>
-    ${rondeContext(rondes3)}
-    <span class="bewerkbaar-label">Samenvatting (bewerkbaar)</span>
-    <textarea id="ta-act3" placeholder="Beschrijf per ronde wat er op basis van de feedback is gewijzigd.">${esc(act3.samenvatting || "")}</textarea>
-
     <h3>Aandachtspunten voor multidisciplinaire validatie</h3>
     <p style="color:var(--muted);font-size:13px;margin:0 0 4px">
-      Interpretatiekeuzes / open normen / openstaande delegaties / aannames / buiten scope.
-      De validatiepunten in §3 zijn de ruwe bron; dit veld bevat de gestructureerde synthese.</p>
+      Interpretatiekeuzes / open normen / openstaande delegaties / aannames / buiten scope.</p>
     <span class="bewerkbaar-label">Aandachtspunten (bewerkbaar)</span>
     <textarea id="ta-aandacht" style="min-height:200px" placeholder="Geef hier de gestructureerde aandachtspunten voor multidisciplinaire validatie.">${esc(D.aandachtspunten || "")}</textarea>
   </div>`;
@@ -529,10 +397,9 @@ function render() {
   document.getElementById("main").innerHTML =
     renderSectie0() +
     renderBronnen() +
-    renderSectie3() +
-    renderSectie4();
+    renderSectie3();
   restoreDraft();
-  ["ta-act2", "ta-act3", "ta-aandacht"].forEach(id => {
+  ["ta-act2", "ta-aandacht"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener("input", saveDraft);
   });
@@ -543,7 +410,6 @@ function render() {
 function collectVelden() {
   return {
     reviewlog_act2:  (document.getElementById("ta-act2")     || {}).value || "",
-    reviewlog_act3:  (document.getElementById("ta-act3")     || {}).value || "",
     aandachtspunten: (document.getElementById("ta-aandacht") || {}).value || "",
   };
 }
@@ -557,8 +423,6 @@ function restoreDraft() {
     const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
     if (d.reviewlog_act2  !== undefined && document.getElementById("ta-act2"))
       document.getElementById("ta-act2").value = d.reviewlog_act2;
-    if (d.reviewlog_act3  !== undefined && document.getElementById("ta-act3"))
-      document.getElementById("ta-act3").value = d.reviewlog_act3;
     if (d.aandachtspunten !== undefined && document.getElementById("ta-aandacht"))
       document.getElementById("ta-aandacht").value = d.aandachtspunten;
   } catch (e) {}

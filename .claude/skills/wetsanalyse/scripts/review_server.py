@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Review-server voor de wetsanalyse-skill (human-in-the-loop checkpoint).
 
-Serveert een lokale reviewpagina met het tussenresultaat van activiteit 2 of 3.
+Serveert een lokale reviewpagina met het tussenresultaat van activiteit 2.
 De analist geeft per item én in het algemeen desgewenst feedback en klikt op de
 verstuurknop (zonder feedback telt dat als akkoord); de feedback wordt naar een
 JSON-bestand geschreven dat de skill daarna inleest en verwerkt.
@@ -11,7 +11,7 @@ Geen dependencies buiten de standaardbibliotheek.
 Gebruik:
     python review_server.py \
         --input <tussenresultaat.json> \
-        --activiteit 2|3 \
+        --activiteit 2 \
         --feedback-out <pad/feedback-activiteit-2.json> \
         [--port 3118]
 
@@ -155,9 +155,9 @@ def _kill_port(port: int) -> None:
 def main():
     parser = argparse.ArgumentParser(description="Wetsanalyse review-server")
     parser.add_argument("--input", type=Path, required=True,
-                        help="Pad naar tussenresultaat-JSON (activiteit 2 of 3)")
-    parser.add_argument("--activiteit", choices=["2", "3"], required=True,
-                        help="Welke activiteit wordt gereviewd")
+                        help="Pad naar tussenresultaat-JSON (activiteit 2)")
+    parser.add_argument("--activiteit", choices=["2"], default="2",
+                        help="Welke activiteit wordt gereviewd (alleen activiteit 2)")
     parser.add_argument("--feedback-out", type=Path, required=True,
                         help="Pad waar de feedback-JSON wordt weggeschreven")
     parser.add_argument("--ronde", type=int, default=1,

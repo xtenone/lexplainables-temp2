@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
-import { Card, Section } from "@/components/ui/Card";
-import { Field, Input } from "@/components/ui/Field";
+import { Input } from "@/components/ui/Field";
 import { Melding } from "@/components/ui/Melding";
+import { SettingGroup, SettingList, SettingRow } from "@/components/ui/SettingRow";
 import { changePassword, isApiError } from "@/lib/api";
 
 export function PasswordPanel() {
@@ -34,59 +35,73 @@ export function PasswordPanel() {
       setNieuw("");
       setHerhaling("");
       setKlaar(true);
+      // Een wachtwoordwijziging revoket alle sessies (ook op andere apparaten). Log dit apparaat
+      // meteen uit en terug naar /login, zodat het een vers token haalt i.p.v. zo dadelijk zelf uit
+      // te vliegen bij de herverificatie.
+      await signOut({ callbackUrl: "/login" });
     } catch (e) {
       setFout(isApiError(e) ? e.detail : (e as Error).message);
-    } finally {
       setBezig(false);
     }
   }
 
   return (
-    <Section title="Wachtwoord wijzigen" subtitle="Self-service">
-      <Card className="p-4">
-        {fout && (
-          <Melding type="fout" className="mb-3">
-            {fout}
-          </Melding>
-        )}
-        {klaar && (
-          <Melding type="bevestiging" className="mb-3">
-            Je wachtwoord is gewijzigd.
-          </Melding>
-        )}
-        <form onSubmit={onSubmit} className="max-w-sm space-y-4">
-          <Field label="Huidig wachtwoord" required>
+    <SettingGroup
+      titel="Wachtwoord"
+      omschrijving="Na het wijzigen word je opnieuw ingelogd; ook andere apparaten verliezen hun sessie."
+    >
+      {fout && (
+        <Melding type="fout" className="mb-3">
+          {fout}
+        </Melding>
+      )}
+      {klaar && (
+        <Melding type="bevestiging" className="mb-3">
+          Je wachtwoord is gewijzigd.
+        </Melding>
+      )}
+      <form onSubmit={onSubmit}>
+        <SettingList>
+          <SettingRow label="Huidig wachtwoord" htmlFor="pw-huidig">
             <Input
+              id="pw-huidig"
               type="password"
               autoComplete="current-password"
               required
+              className="sm:w-64"
               value={huidig}
               onChange={(e) => setHuidig(e.target.value)}
             />
-          </Field>
-          <Field label="Nieuw wachtwoord" hint="minimaal 8 tekens" required>
+          </SettingRow>
+          <SettingRow label="Nieuw wachtwoord" omschrijving="Minimaal 8 tekens." htmlFor="pw-nieuw">
             <Input
+              id="pw-nieuw"
               type="password"
               autoComplete="new-password"
               required
+              className="sm:w-64"
               value={nieuw}
               onChange={(e) => setNieuw(e.target.value)}
             />
-          </Field>
-          <Field label="Nieuw wachtwoord herhalen" required>
+          </SettingRow>
+          <SettingRow label="Herhaal nieuw wachtwoord" htmlFor="pw-herhaal">
             <Input
+              id="pw-herhaal"
               type="password"
               autoComplete="new-password"
               required
+              className="sm:w-64"
               value={herhaling}
               onChange={(e) => setHerhaling(e.target.value)}
             />
-          </Field>
-          <Button type="submit" disabled={bezig} className="w-full sm:w-auto">
+          </SettingRow>
+        </SettingList>
+        <div className="mt-4 flex sm:justify-end">
+          <Button type="submit" size="sm" disabled={bezig} className="w-full sm:w-auto">
             {bezig ? "Bezig…" : "Wachtwoord wijzigen"}
           </Button>
-        </form>
-      </Card>
-    </Section>
+        </div>
+      </form>
+    </SettingGroup>
   );
 }

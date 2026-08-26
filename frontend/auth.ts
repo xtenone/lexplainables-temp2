@@ -8,6 +8,7 @@ import { encode } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 import { authConfig, SESSIE_KORT, SESSIE_LANG, type Role } from "./auth.config";
 import { getAccountStatus, verifyCredentials } from "@/lib/server";
+import { sessieGerevoceerd } from "@/lib/sessie";
 import { getLoginTicketCookie, getTrustedDeviceCookie } from "@/lib/authCookies";
 
 // Hoe lang een JWT op de laatste verificatie mag teren voordat we de accountstatus opnieuw
@@ -38,6 +39,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.email = user.email;
         token.rememberMe = (user as { rememberMe?: boolean }).rememberMe === true;
         token.verifiedAt = Date.now();
+        token.loginAt = Date.now(); // inlogmoment: voor sessie-revocatie bij wachtwoordwijziging
         return token;
       }
       const verifiedAt = typeof token.verifiedAt === "number" ? token.verifiedAt : 0;
@@ -45,6 +47,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const status = await getAccountStatus(String(token.userid));
       if (status.status === "ingetrokken") return null; // sessie invalideren
       if (status.status === "actief") {
+        // Credential-wijziging (wachtwoord) ná het inloggen → dit token is gerevoceerd.
+        if (sessieGerevoceerd(token.loginAt, status.sessionsValidFrom)) return null;
         token.role = status.role; // rolwijziging (bv. degradatie) meteen doorvoeren
         token.email = status.email;
         token.verifiedAt = Date.now();

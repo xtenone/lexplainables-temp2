@@ -18,11 +18,15 @@ POST /v1/auth/2fa/disable         — schakel 2FA uit — X-User-Id
 
 from __future__ import annotations
 
+from datetime import datetime
+from time import monotonic
+
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel, Field
 
 from .. import ratelimit, users
 from ..auth import require_client
+from ..config import get_settings
 from ..secrets_crypto import SecretsCryptoError, crypto_beschikbaar
 
 router = APIRouter(prefix="/auth", tags=["auth"], dependencies=[Depends(require_client)])
@@ -71,6 +75,8 @@ class MeOut(BaseModel):
     email: str
     role: str
     totp_enabled: bool
+    # Sessie-epoch voor revocatie: de BFF verwerpt JWT's die vóór deze tijd zijn uitgegeven.
+    sessions_valid_from: datetime | None = None
 
 
 class TotpBeginOut(BaseModel):
@@ -93,10 +99,65 @@ class PasswordChangeIn(BaseModel):
 # --- helpers -------------------------------------------------------------------
 
 async def huidige_userid(x_user_id: str | None = Header(default=None)) -> str:
-    """De ingelogde gebruiker, door de BFF uit de sessie in `X-User-Id` gezet."""
+    """De ingelogde gebruiker, door de BFF uit de sessie in `X-User-Id` gezet.
+
+    Let op: dit vertrouwt de header. Gebruik `actieve_userid` voor endpoints met gebruikersdata —
+    die controleert óók of het account nog bestaat en actief is.
+    """
     if not x_user_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geen gebruikerscontext.")
     return x_user_id
+
+
+# Korte cache op de actief-status, zodat de check niet elke request een DB-hit kost. De grens is
+# bewust kort: deactiveren moet snel doorwerken. De frontend herverifieert zelf elke ~5 minuten;
+# deze laag zit daar ruim onder.
+_ACTIEF_TTL_S = 30.0
+_actief_cache: dict[str, tuple[float, bool]] = {}
+
+
+def vergeet_actief(userid: str) -> None:
+    """Cache-invalidatie na een statuswijziging (deactiveren, verwijderen, rolwijziging)."""
+    _actief_cache.pop(userid, None)
+
+
+async def actieve_userid(userid: str = Depends(huidige_userid)) -> str:
+    """De ingelogde gebruiker, mits het account nog bestaat en actief is.
+
+    Zonder deze check houdt een gedeactiveerde gebruiker toegang tot zijn documenten en gesprekken
+    zolang de BFF de header blijft sturen — de api had daar geen eigen slot op, terwijl `/v1/auth/me`
+    en het admin-pad dat wél hebben.
+    """
+    nu = monotonic()
+    gecached = _actief_cache.get(userid)
+    if gecached is not None and nu - gecached[0] < _ACTIEF_TTL_S:
+        if not gecached[1]:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Account niet (meer) actief.")
+        return userid
+
+    user = await users.get_user(userid)
+    actief = user is not None and user.active
+    _actief_cache[userid] = (nu, actief)
+    if not actief:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Account niet (meer) actief.")
+    return userid
+
+
+async def huidige_beheerder(userid: str = Depends(huidige_userid)) -> str:
+    """De ingelogde gebruiker, mits het een bestaand, actief beheerdersaccount is.
+
+    Defense-in-depth naast de admin-bearer: `require_admin` levert een los token-label, geen
+    `users.userid`, dus die laag alleen bewijst niet dat de meegestuurde `X-User-Id` ook echt een
+    beheerder is. Nodig voor endpoints die per-beheerder state bijhouden (bv. `feedback_gezien_op`).
+
+    Bewust op `huidige_userid` en niet op `actieve_userid`: elke afwijzing is hier **403**, of het
+    account nu ontbreekt, inactief is of geen beheerder — een 401 op "bestaat niet" tegenover 403 op
+    "geen beheerder" zou dit endpoint tot user-enumeratie-orakel maken.
+    """
+    user = await users.get_user(userid)
+    if user is None or not user.active or user.role != "beheerder":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Geen beheerder.")
+    return userid
 
 
 # --- registratie + login -------------------------------------------------------
@@ -155,11 +216,26 @@ async def me(userid: str = Depends(huidige_userid)):
     user = await users.get_user(userid)
     if user is None or not user.active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Account niet (meer) actief.")
-    return MeOut(userid=user.userid, email=user.email, role=user.role, totp_enabled=user.totp_enabled)
+    return MeOut(
+        userid=user.userid, email=user.email, role=user.role, totp_enabled=user.totp_enabled,
+        sessions_valid_from=user.sessions_valid_from,
+    )
+
+
+def _rem_gevoelig(userid: str) -> None:
+    """429 als de userid te veel gevoelige pogingen doet (wachtwoord/2FA); gelijk aan `/verify`."""
+    if not ratelimit.sensitive_allowed(userid):
+        s = get_settings()
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Te veel pogingen; probeer later opnieuw.",
+            headers={"Retry-After": str(int(s.rate_limit_window_s))},
+        )
 
 
 @router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
 async def change_password(body: PasswordChangeIn, userid: str = Depends(huidige_userid)):
+    _rem_gevoelig(userid)
     try:
         await users.change_own_password(userid, body.current, body.new)
     except users.UserError as e:
@@ -182,6 +258,7 @@ async def tfa_begin(userid: str = Depends(huidige_userid)):
 
 @router.post("/2fa/activate", status_code=status.HTTP_204_NO_CONTENT)
 async def tfa_activate(body: TotpActivateIn, userid: str = Depends(huidige_userid)):
+    _rem_gevoelig(userid)
     try:
         await users.activate_2fa(userid, body.totp)
     except users.UserError as e:
@@ -190,6 +267,7 @@ async def tfa_activate(body: TotpActivateIn, userid: str = Depends(huidige_useri
 
 @router.post("/2fa/disable", status_code=status.HTTP_204_NO_CONTENT)
 async def tfa_disable(body: TotpDisableIn, userid: str = Depends(huidige_userid)):
+    _rem_gevoelig(userid)
     try:
         await users.disable_2fa(userid, body.totp)
     except users.UserError as e:

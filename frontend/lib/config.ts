@@ -54,7 +54,7 @@ export function adminAuthHeader(): Record<string, string> {
 
 // --- graph-qa (annotatie-agent) ---------------------------------------------
 // De workbench streamt annotatie-voorstellen rechtstreeks van graph-qa (SSE), náást de api voor
-// state. graph-qa draait intern (homeinfra_internal) en is token-gated (QA_API_TOKEN).
+// state. graph-qa draait intern op het gedeelde docker-netwerk en is token-gated (QA_API_TOKEN).
 
 let cachedGraphQaToken: string | null = null;
 

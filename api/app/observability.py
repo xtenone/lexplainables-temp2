@@ -3,7 +3,7 @@
 Twee lagen, allebei fail-open (mogen de app nooit killen):
 
 1. **Gestructureerde logging** — één JSON-regel per gebeurtenis naar stdout, gespiegeld aan de
-   MCP-logger (`tools/wettenbank-mcp/src/logger.ts`): velden `ts` (UTC-ISO), `niveau`, `categorie`
+   projectbrede JSON-logger: velden `ts` (UTC-ISO), `niveau`, `categorie`
    (`functioneel|audit|security`), `bericht`, plus vrije velden en — indien een OTel-span actief is —
    `trace_id`/`span_id`. Geheime velden worden geredacteerd (defence-in-depth). Werkt **zonder**
    dat `opentelemetry` geïnstalleerd is.

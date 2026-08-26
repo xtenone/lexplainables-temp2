@@ -19,7 +19,13 @@ export async function GET(req: Request) {
     `${graphQaBaseUrl()}/v1/artikel?bwb_id=${encodeURIComponent(bwbId)}&artikel=${encodeURIComponent(artikel)}` +
     (lid ? `&lid=${encodeURIComponent(lid)}` : "");
   try {
-    const upstream = await fetch(url, { headers: { ...graphQaAuthHeader() }, cache: "no-store" });
+    // Eigen timeout: deze route loopt buiten `proxy()` om, en de graaf kan traag zijn zonder te
+    // weigeren. Zonder dit blijft het artefact in "Openen…" staan.
+    const upstream = await fetch(url, {
+      headers: { ...graphQaAuthHeader() },
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
     const text = await upstream.text();
     return new Response(text || null, {
       status: upstream.status,

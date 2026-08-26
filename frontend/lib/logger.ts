@@ -1,5 +1,5 @@
 // Server-side gestructureerde JSON-logging voor de BFF, gespiegeld aan de MCP-logger
-// (tools/wettenbank-mcp/src/logger.ts): één regel JSON per gebeurtenis naar stdout, met
+// (projectbrede JSON-logvorm): één regel JSON per gebeurtenis naar stdout, met
 // `ts/niveau/categorie/bericht/…velden`, secret-redactie en — indien een OTel-span actief is —
 // `trace_id`/`span_id`. NOOIT importeren vanuit een Client Component (dit is server-only).
 //

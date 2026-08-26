@@ -1,4 +1,4 @@
-import { proxy } from "../../../../_lib/proxy";
+import { proxy } from "@/app/api/_lib/proxy";
 import { pathSegment } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
@@ -10,5 +10,7 @@ export async function POST(_req: Request, { params }: Params) {
   return proxy(`/v1/admin/profiles/${pathSegment(name)}/test`, {
     method: "POST",
     admin: true,
+    // Deze route doet een échte modelaanroep; de standaardtimeout van 30 s is daarvoor te krap.
+    timeoutMs: 120_000,
   });
 }

@@ -1,63 +1,21 @@
 # Wetsanalyse-frontend
 
-Next.js (App Router) + TypeScript-frontend voor de [Wetsanalyse-API](../api). Ontsluit de hele
-JAS-workflow in de browser: analyse aanmaken, live voortgang, de human-in-the-loop review-lus en
-het eindrapport — inclusief de **cross-referenties** (een Verwijzingen-sectie in het rapport, per
-functie met status en `wetten.overheid.nl`-links, en per-verwijzing scope-feedback in de
-activiteit-2 review). Bij het activiteit-2-checkpoint kan de analist ook **"Akkoord — afronden
-zonder act. 3"** kiezen (`scope: "act2"`): de analyse gaat direct naar het rapport zonder
-begrippen; op zo'n rapport verschijnt later de knop **"Activiteit 3 uitvoeren"** om act 3 alsnog
-te draaien.
+Next.js (App Router) + TypeScript-frontend. De app **is de werkplek**: een chat-achtige werkruimte
+tegen de graph-qa-agent (login/beheer lopen via de [Wetsanalyse-API](../api)). De home leidt door naar
+`/workbench`.
 
-Op een afgeronde analyse kun je met **"Naar RegelSpraak"** de formaliseringsfase starten: dezelfde
-twee-checkpoint review-lus (GegevensSpraak-objectmodel en RegelSpraak-regels), waarna een eigen
-**RegelSpraak-weergave** het model toont (met herkomst per declaratie/regel) en een `.rs`/`.md`-download
-biedt.
-
-Daarnaast is er **de werkplek** (`/workbench`, de *Assistent-pagina*): één gespreksvenster met **twee
-werkwijzen** — **vragen** aan de Juridische Assistent (brongetrouwe Q&A over de kennisgraaf) en
+**De werkplek** (`/workbench`, de *Lex-pagina*): één gespreksvenster met **twee
+werkwijzen** — **vragen** aan **Lex** (de assistent voor wetsanalyse; brongetrouwe Q&A over de
+kennisgraaf) en
 **JAS-annotatie** (de agent stelt JAS-elementen voor → de jurist reviewt per element:
 approve/edit/reject/comment). Die pagina praat live met de graph-qa-agent (SSE) en bewaart de
-review-state via de API.
+review-state via de API. De home (`/`) leidt hierheen door.
 
-Het geaggregeerde live-overzicht van álle analyses (per analyse de engine-stap tot op
-**functieniveau**, met verstreken tijd, token-verbruik en foutstatus) is **verhuisd naar Grafana**
-— het dashboard *"Wetsanalyse — systeemtopologie"* (`deploy/observability/`), gevoed door een
-read-only view op de jobstore. De aggregate-SSE-route (`/api/projects/events`) blijft bestaan en
-houdt de **home-projectenlijst** live.
-
-De home-projectenlijst heeft een client-side **zoek-/filter-/sorteerbalk** (status, vrije
-tekst op naam/BWB-id/artikel, wet) met **paginering**, bovenop de live SSE-lijst.
-
-Daarnaast een **`/beheer`-scherm** voor het LLM-beheer: de modelprofielen die de analyses aansturen
-(toevoegen/bewerken/verwijderen, default kiezen, verbinding testen), een **wet-catalogus** (BWB-id +
-naam, met "Naam ophalen" via de MCP) en een overzicht van het token-verbruik. Bij **Nieuwe analyse**
-kies je zowel het modelprofiel als de wet uit een dropdown die live wordt opgehaald, zodat
-wijzigingen in de draaiende app direct meekomen; na de wet-keuze wordt **artikel** een combobox
-met autocomplete op de echte wetsstructuur en **lid** een keuzelijst met de echte leden (plus een
-bevestigingsregel met opschrift en tekstsnippet). De dropdowns zijn een gemak: is de catalogus
-leeg of faalt de structuur-lookup, dan val je terug op vrije invoer. Optioneel plak of upload je
-een **bestaande begrippenlijst** (JSON, CSV met kopregel, of `naam; definitie`-regels) als
-suggestieve invoer voor activiteit 3 — de analyse registreert dan per begrip de herkomst
-(hergebruikt/aangepast/nieuw). De JSON-vorm (alleen `naam` verplicht; een kale array mag ook):
-
-```json
-{
-  "begrippen": [
-    {
-      "naam": "belastingplichtige",
-      "synoniemen": ["plichtige"],
-      "definitie": "degene die op grond van de wet gehouden is aangifte te doen",
-      "klasse": "Rechtssubject",
-      "bron": "Begrippenkader Heffing, versie 2025"
-    },
-    { "naam": "bijdrage-inkomen" }
-  ]
-}
-```
-
-Het beheer loopt via aparte `/api/admin/*`-routes met een
-**apart admin-token** (zie hieronder).
+**Het instellingenvenster** (`/instellingen/*`) opent als dialoog over de werkplek heen en draagt
+account (wachtwoord, 2FA) plus — voor beheerders — het beheer: de modelprofielen die de agent
+aansturen (toevoegen/bewerken/verwijderen, default kiezen, verbinding testen), **gebruikers** en
+**API-tokens**. Het beheer loopt via aparte `/api/admin/*`-routes met een **apart admin-token**
+(zie hieronder). `/beheer` en `/account` blijven als redirect bestaan.
 
 ## Architectuur — BFF met server-side token
 
@@ -81,7 +39,7 @@ alternatief voor Rijksoverheid Sans, met responsive typografie (100/90/80% op de
 Alle design tokens staan centraal — CSS-variabelen in `app/globals.css` → Tailwind in
 `tailwind.config.ts` — en de primitives in `components/ui/` (48px-knoppen/velden, platte cards,
 `Vormelement`-signatuur). De **JAS-klassekleuren** (`lib/jas.ts`) zijn de exacte labelkleuren uit
-de officiële JAS-tabel `docs/wa-table.png`; de job-state-kleuren staan in `lib/states.ts`.
+de officiële JAS-tabel `docs/wetsanalyse/wa-table.png`.
 
 > Kleur en typografie lopen via de tokens — geen losse hex-waarden in componenten. Het officiële
 > logo-asset (`public/belastingdienst-logo.svg`) blijft ongewijzigd.
@@ -101,7 +59,7 @@ npm run dev                     # http://localhost:3000
 `.env.local`:
 
 ```
-API_BASE_URL=http://localhost:3000      # of https://wetsanalyse-api.ipalm.nl
+API_BASE_URL=http://localhost:3000      # of https://api.wetsanalyse.example
 API_TOKEN=<alleen-de-tokenwaarde>       # het deel NA de ":" uit de API-tokenlijst
 ADMIN_API_TOKEN=<alleen-de-tokenwaarde> # idem, maar uit de ADMIN-tokenlijst (voor /beheer)
 AUTH_SECRET=<openssl rand -base64 32>   # ondertekent de login-sessiecookie (Auth.js)
@@ -139,15 +97,15 @@ AUTH_SECRET=<openssl rand -base64 32>   # ondertekent de login-sessiecookie (Aut
 | `ADMIN_API_TOKEN`      | —                             | Admin-bearer voor `/beheer` → `/v1/admin/*` (server-side).     |
 | `ADMIN_API_TOKEN_FILE` | —                             | Pad naar secret-bestand met het admin-token (heeft voorrang).  |
 | `AUTH_SECRET`          | —                             | Ondertekent de Auth.js-sessiecookie/JWT. Verplicht voor login. |
-| `AUTH_URL`             | —                             | Publieke origin (bv. `https://wetsanalyse.ipalm.nl`). **Verplicht achter een reverse proxy** — anders redirecten login/logout naar het interne `0.0.0.0:3000`. |
+| `AUTH_URL`             | —                             | Publieke origin (bv. `https://wetsanalyse.example`). **Verplicht achter een reverse proxy** — anders redirecten login/logout naar het interne `0.0.0.0:3000`. |
 | `GRAPH_QA_URL`         | `http://graph-qa:8080`        | Server-side adres van de graph-qa-agent (werkplek). |
 | `GRAPH_QA_TOKEN`       | —                             | Bearer voor graph-qa (alleen nodig als die achter een token staat). Server-side. |
 | `GRAPH_QA_TOKEN_FILE`  | —                             | Pad naar secret-bestand met het graph-qa-token (heeft voorrang). |
 
 De **werkplek** (`/workbench`) praat met de graph-qa-agent via `GRAPH_QA_URL` (server-side, default
 intern `http://graph-qa:8080`) en optioneel `GRAPH_QA_TOKEN`/`GRAPH_QA_TOKEN_FILE`. De BFF-routes
-`app/api/annotatie/agent` (SSE naar `POST /v1/chat`) en `app/api/annotatie/artikel` (`GET /v1/artikel`)
-houden dat token server-side.
+`app/api/annotatie/run/**` (starten, meekijken via SSE, stoppen) en `app/api/annotatie/artikel`
+(`GET /v1/artikel`) houden dat token server-side.
 
 ## Observability
 
@@ -160,29 +118,35 @@ in `deploy/observability/`, die frontend-stdout-logs via Alloy naar Loki shipt).
 ## Docker / deployment
 
 Multi-stage `Dockerfile` (standalone, non-root) + `docker-compose.yml` voor de Portainer-stack
-achter Nginx Proxy Manager, identiek aan de API/MCP-stijl. CI:
-`.github/workflows/frontend-docker-publish.yml` (test → build → GHCR → Trivy → Portainer-redeploy).
+achter Nginx Proxy Manager, identiek aan de API-stijl. CI:
+`.github/workflows/frontend-docker-publish.yml` (test → build → GHCR → Trivy). De workflow
+publiceert alleen het image; de stack-update is een aparte stap.
+
+De stack joint op `wetsanalyse_internal` (van `deploy/postgres/`) en `observability_default`, en
+**publiceert een hostpoort** (`HOST_PORT`, default 8080): NPM draait op een andere host en deelt geen
+docker-netwerk, dus proxyen op containernaam kan niet.
 
 Eénmalig op de host (in `SECRETS_DIR`, gedeeld met de API-stack), alle mode 644:
 `frontend_api_token` met een tokenwaarde uit de API-tokenlijst, `frontend_admin_token` met een
-tokenwaarde uit de **admin**-tokenlijst (voor `/beheer`), en `frontend_auth_secret` voor de
+tokenwaarde uit de **admin**-tokenlijst (voor de beheertab), en `frontend_auth_secret` voor de
 login-sessie (`openssl rand -base64 32`). De container-entrypoint laadt dat laatste bestand in
 `AUTH_SECRET` (`AUTH_SECRET_FILE=/run/secrets/frontend_auth_secret`), zodat het — net als de andere
 tokens — een bestand blijft en niet als plain env in Portainer staat. 2FA hergebruikt de
 API-secret `llm_config_secret` (geen extra frontend-bestand). Zet daarnaast de stack-env
-**`AUTH_URL`** op de publieke origin (bv. `https://wetsanalyse.ipalm.nl`) — verplicht achter NPM,
+**`AUTH_URL`** op de publieke origin (bv. `https://wetsanalyse.example`) — verplicht achter NPM,
 anders redirecten login/logout naar het interne `0.0.0.0:3000`. In NPM een Proxy Host
-`wetsanalyse.ipalm.nl` → `wetsanalyse-frontend:3000`, met **proxy buffering uit** voor SSE (zie de
+`wetsanalyse.example` → `<docker-host-ip>:${HOST_PORT}`, met **proxy buffering uit** voor SSE (zie de
 commentaarregels in `docker-compose.yml`).
 
 > **Toegang.** De hele webapp zit achter een login met **userid + wachtwoord** (Auth.js);
-> niet-ingelogde bezoekers landen op `/login`. `/beheer` (LLM-beheer + gebruikersbeheer) is
+> niet-ingelogde bezoekers landen op `/login`. De beheertabs (LLM-beheer + gebruikersbeheer) zijn
 > bovendien rol-afgeschermd tot **beheerders**. Een losse NPM Access List is dus niet meer nodig;
 > de eerste beheerder maak je eenmalig via `/setup`.
 
 ## Types up-to-date houden (optioneel)
 
-`lib/types.ts` is met de hand afgeleid van `api/app/contracts.py` en is de bron-van-waarheid. Wil
+`lib/types.ts` is met de hand afgeleid van `api/app/annotatie_contracts.py` (+ `gesprek_contracts.py`)
+en is de bron-van-waarheid. Wil
 je tegen het live OpenAPI-schema controleren:
 
 ```bash

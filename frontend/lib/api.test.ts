@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { annoteerAgentStream, isApiError, parseError } from "./api";
+import { isApiError, parseError, startRun, volgRun } from "./api";
+import type { AgentGrounding } from "./types";
 
 describe("parseError", () => {
   it("haalt een string-detail uit de JSON-body", async () => {
@@ -50,7 +51,7 @@ function sseResponse(frames: string[]): Response {
   return new Response(stream, { status: 200, headers: { "Content-Type": "text/event-stream" } });
 }
 
-describe("annoteerAgentStream", () => {
+describe("verwerkSseStroom — via volgRun", () => {
   afterEach(() => vi.restoreAllMocks());
 
   it("splitst token/sources/doel/element-frames (incl. \\r\\n) naar de juiste handlers", async () => {
@@ -74,7 +75,7 @@ describe("annoteerAgentStream", () => {
     const elementen: unknown[] = [];
     let ontbrekend: unknown[] = [];
     let bronnen: unknown[] = [];
-    await annoteerAgentStream("annoteer artikel 9 lid 1 IW", {
+    await volgRun("run-1", {
       onStatus: (m) => (denk += `[${m}]`),
       onReason: (t) => (denk += t),
       onToken: (t) => (tekst += t),
@@ -90,6 +91,186 @@ describe("annoteerAgentStream", () => {
     expect(doel).toEqual({ bwbId: "BWBR0004770", artikel: "9", lid: "1" });
     expect(elementen).toEqual([element]);
     expect(ontbrekend).toEqual([{ klasse: "Rechtsfeit", reden: "handeling" }]);
+  });
+
+  it("geeft een waarschuwing door zonder de beurt te laten mislukken", async () => {
+    // De api laat een markering die zijn schema niet haalt vallen in plaats van de hele ronde te
+    // weigeren. Dat maakt een luide fout stil, dus meldt de agent het — maar het is geen `error`:
+    // de rest staat er wél en de stream loopt gewoon door tot `done`.
+    const frames = [
+      `data: ${JSON.stringify({ type: "waarschuwing", message: "2 markeringen niet opgeslagen." })}\r\n\r\n`,
+      `data: ${JSON.stringify({ type: "token", content: "Klaar." })}\r\n\r\n`,
+      `data: ${JSON.stringify({ type: "done" })}\r\n\r\n`,
+    ];
+    vi.stubGlobal("fetch", vi.fn(async () => sseResponse(frames)));
+
+    let waarschuwing = "";
+    let tekst = "";
+    await volgRun("run-1", {
+      onWaarschuwing: (m) => (waarschuwing = m),
+      onToken: (t) => (tekst += t),
+    });
+
+    expect(waarschuwing).toBe("2 markeringen niet opgeslagen.");
+    expect(tekst).toBe("Klaar.");
+  });
+});
+
+describe("een stroom die breekt of stilvalt", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+  });
+
+  it("merkt een fout van de agent zélf als definitief", async () => {
+    // Zowel dit als "de BFF kan graph-qa niet bereiken" is een 502; alleen `agentFout` scheidt ze,
+    // en dáár hangt aan of opnieuw aanhaken zin heeft.
+    const frames = [
+      `data: ${JSON.stringify({ type: "token", content: "Halve " })}\r\n\r\n`,
+      `data: ${JSON.stringify({ type: "error", message: "Agent mislukt." })}\r\n\r\n`,
+    ];
+    vi.stubGlobal("fetch", vi.fn(async () => sseResponse(frames)));
+
+    await expect(volgRun("run-1", {})).rejects.toMatchObject({
+      status: 502,
+      detail: "Agent mislukt.",
+      agentFout: true,
+    });
+  });
+
+  it("meldt een levensteken bij het eerste event", async () => {
+    // Hierop haalt de werkplek de "verbinding weg"-melding weg. Zonder dit zou een geslaagd
+    // heraanhaken pas aan het eind van de beurt zichtbaar zijn.
+    const frames = [
+      `data: ${JSON.stringify({ type: "status", message: "Bezig" })}\r\n\r\n`,
+      `data: ${JSON.stringify({ type: "token", content: "Ja." })}\r\n\r\n`,
+    ];
+    vi.stubGlobal("fetch", vi.fn(async () => sseResponse(frames)));
+
+    let levenstekens = 0;
+    await volgRun("run-1", { onLeeft: () => levenstekens++ });
+    expect(levenstekens).toBe(2);
+  });
+
+  it("verwerpt een stroom die stilvalt in plaats van eeuwig te wachten", async () => {
+    // Een halfopen socket levert nooit een fout en nooit `done`: de werkplek bleef "bezig" tonen
+    // zonder ooit het herstelpad te raken. De heartbeat van de agent (~15 s) hoort de bewaking
+    // telkens te resetten; blijft ook die weg, dan is de verbinding weg.
+    vi.useFakeTimers();
+    const stil = new ReadableStream<Uint8Array>({ start() {} }); // levert niets, sluit nooit
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(stil, { status: 200 })),
+    );
+
+    const belofte = volgRun("run-1", {});
+    const uitkomst = expect(belofte).rejects.toMatchObject({ status: 0 });
+    await vi.advanceTimersByTimeAsync(45_000);
+    await uitkomst;
+  });
+});
+
+describe("volgRun — aanhaken bij een lopende beurt", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("meldt het volgnummer terug, zodat aanhaken na een onderbreking op het juiste punt begint", async () => {
+    const frames = [
+      `data: ${JSON.stringify({ type: "token", content: "een ", seq: 4 })}\r\n\r\n`,
+      `data: ${JSON.stringify({ type: "token", content: "antwoord", seq: 5 })}\r\n\r\n`,
+      `data: ${JSON.stringify({ type: "done", seq: 6 })}\r\n\r\n`,
+    ];
+    const nep = vi.fn(async (_url: string | URL) => sseResponse(frames));
+    vi.stubGlobal("fetch", nep);
+
+    let tekst = "";
+    const seqs: number[] = [];
+    await volgRun("run-1", { onToken: (t) => (tekst += t), onSeq: (n) => seqs.push(n) }, 4);
+
+    expect(tekst).toBe("een antwoord");
+    expect(seqs).toEqual([4, 5, 6]);
+    // De cursor gaat mee in de URL: je vraagt precies wat je miste, niet de hele beurt opnieuw.
+    expect(String(nep.mock.calls[0]?.[0])).toContain("vanaf=4");
+  });
+
+  it("benoemt een gat in plaats van stilzwijgend een verminkte tekst te leveren", async () => {
+    const frames = [
+      `data: ${JSON.stringify({ type: "gat", weggevallen: 12 })}\r\n\r\n`,
+      `data: ${JSON.stringify({ type: "token", content: "de rest", seq: 12 })}\r\n\r\n`,
+    ];
+    vi.stubGlobal("fetch", vi.fn(async () => sseResponse(frames)));
+
+    let gat = 0;
+    let tekst = "";
+    await volgRun("run-1", { onGat: (n) => (gat = n), onToken: (t) => (tekst += t) });
+
+    expect(gat).toBe(12);
+    expect(tekst).toBe("de rest");
+  });
+});
+
+describe("grounding-event", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("levert het niveau door, zodat 'niets te controleren' niet als 'gecontroleerd' leest", async () => {
+    const frames = [
+      `data: ${JSON.stringify({ type: "token", content: "Een antwoord." })}\r\n\r\n`,
+      `data: ${JSON.stringify({
+        type: "grounding", grounded: true, cited: 0, unsupported: [],
+        niet_letterlijk: [], niveau: "onbepaald",
+      })}\r\n\r\n`,
+    ];
+    vi.stubGlobal("fetch", vi.fn(async () => sseResponse(frames)));
+
+    const gevangen: AgentGrounding[] = [];
+    await volgRun("run-1", { onGrounding: (x) => gevangen.push(x) });
+
+    expect(gevangen[0]).toEqual({
+      niveau: "onbepaald", grounded: true, cited: 0, unsupported: [], niet_letterlijk: [],
+    });
+  });
+
+  it("valt terug op grounded als een oudere agent nog geen niveau stuurt", async () => {
+    const frames = [
+      `data: ${JSON.stringify({ type: "grounding", grounded: false, cited: 2, unsupported: ["BWBR9999999"] })}\r\n\r\n`,
+    ];
+    vi.stubGlobal("fetch", vi.fn(async () => sseResponse(frames)));
+
+    const gevangen: AgentGrounding[] = [];
+    await volgRun("run-1", { onGrounding: (x) => gevangen.push(x) });
+
+    expect(gevangen[0]?.niveau).toBe("ongegrond");
+    expect(gevangen[0]?.niet_letterlijk).toEqual([]);
+  });
+});
+
+describe("startRun — er loopt er al een", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("gooit bij 409, mét het id van de lopende run erbij", async () => {
+    // Twee gelijktijdige beurten op één gesprek zouden door elkaar heen in het agent-geheugen
+    // schrijven (thread_id == conversation_id) — vandaar dat de server weigert en verwijst.
+    //
+    // Gooien en niet stilzwijgend de bestaande run teruggeven: deze vráág is niet aangenomen. Gaf
+    // `startRun` hier gewoon de lopende run terug, dan verscheen het antwoord op de vórige vraag
+    // onder de nieuwe, en ging de nieuwe stilzwijgend verloren. De aanroeper kan met `loopendeRun`
+    // alsnog aanhaken — maar dan wél wetend dat er iets anders speelt.
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(
+      JSON.stringify({ detail: { reden: "run_loopt_al", run_id: "run-bestaand" } }),
+      { status: 409, headers: { "Content-Type": "application/json" } },
+    )));
+
+    await expect(startRun("nog een vraag", "gesprek-1")).rejects.toMatchObject({
+      status: 409,
+      loopendeRun: "run-bestaand",
+    });
+  });
+
+  it("laat een echte fout wél een fout zijn", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(
+      JSON.stringify({ detail: "Agent onbereikbaar" }),
+      { status: 502, headers: { "Content-Type": "application/json" } },
+    )));
+    await expect(startRun("vraag", "gesprek-1")).rejects.toMatchObject({ status: 502 });
   });
 });
 

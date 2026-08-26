@@ -3,7 +3,7 @@
 import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 
-// Maakt de Auth.js-sessie beschikbaar aan Client Components (SiteNav, account-UI) via useSession.
+// Maakt de Auth.js-sessie beschikbaar aan Client Components (sidebar, account-UI) via useSession.
 export function Providers({
   session,
   children,

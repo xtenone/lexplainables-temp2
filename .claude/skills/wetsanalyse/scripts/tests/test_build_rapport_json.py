@@ -28,18 +28,6 @@ ACT2 = {
     ],
 }
 
-ACT3 = {
-    "werkgebied": {"naam": "Testwerkgebied"},
-    "bronnen": [{"bron_id": "br1", "label": "Wet X art. 1"}],
-    "begrippen": [
-        {"id": "b1", "naam": "belastingplichtige", "klasse": "Rechtssubject",
-         "definitie": "wie aangifte doet", "vindplaatsen": [{"bron_id": "br1", "lid": "1"}],
-         "markering_ids": ["m1"]},
-    ],
-    "afleidingsregels": [],
-    "validatiepunten": [],
-}
-
 AKKOORD = {"status": "akkoord", "items": {}, "algemeen": ""}
 
 
@@ -67,32 +55,28 @@ class BuildRapportJsonTest(unittest.TestCase):
 
     def test_schoon_rapport_exit_0(self):
         self._schrijf_ronde("2", 1, ACT2, AKKOORD)
-        self._schrijf_ronde("3", 1, ACT3, AKKOORD)
         res = self._run()
         self.assertEqual(res.returncode, 0, res.stdout + res.stderr)
         self.assertTrue(self.out.exists())
         self.assertNotIn("geen schoon 'akkoord'", res.stdout)
+        rapport = json.loads(self.out.read_text(encoding="utf-8"))
+        self.assertEqual(rapport["bronnen"][0]["bron_id"], "br1")
+        # Act2-only: begrippen/afleidingsregels blijven leeg.
+        self.assertEqual(rapport["begrippen"], [])
+        self.assertEqual(rapport["afleidingsregels"], [])
+        self.assertNotIn("activiteit3", rapport["reviewlog"])
 
-    def test_dangling_referentie_exit_2(self):
-        # Een begrip dat naar een niet-bestaande markering wijst → blokkerend (exit 2);
-        # het rapport wordt wél geschreven zodat de analist kan inspecteren.
-        act3 = json.loads(json.dumps(ACT3))
-        act3["begrippen"][0]["markering_ids"] = ["m999"]
-        self._schrijf_ronde("2", 1, ACT2, AKKOORD)
-        self._schrijf_ronde("3", 1, act3, AKKOORD)
+    def test_ontbrekende_act2_ronde_blokkeert(self):
+        # Zonder een activiteit-2-ronde is er niets te bouwen → exit != 0.
         res = self._run()
-        self.assertEqual(res.returncode, 2, res.stdout + res.stderr)
-        self.assertIn("dangling", res.stdout + res.stderr)
-        self.assertTrue(self.out.exists())
+        self.assertNotEqual(res.returncode, 0)
 
     def test_geen_schoon_akkoord_waarschuwt_maar_blokkeert_niet(self):
         # Hoogste ronde zonder (schoon) akkoord → waarschuwing in de uitvoer, exit 0.
         self._schrijf_ronde("2", 1, ACT2, {"status": "wijzigingen", "items": {"m1": "x"}, "algemeen": ""})
-        self._schrijf_ronde("3", 1, ACT3, None)  # geen feedback
         res = self._run()
         self.assertEqual(res.returncode, 0, res.stdout + res.stderr)
         self.assertIn("activiteit 2", res.stdout)
-        self.assertIn("activiteit 3", res.stdout)
         self.assertIn("geen schoon", res.stdout)
 
 
