@@ -82,4 +82,11 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 # Conservatieve default van één worker. De request-afhandeling is stateless (de opslag is de
 # gedeelde PostgreSQL), dus `--workers >1` en meerdere replica's zijn veilig — verhoog dit gerust
 # voor horizontaal schalen.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "3000", "--workers", "1"]
+#
+# `alembic upgrade head` vóór het opstarten: het schema is sinds werkwijze-ADR-0005 uitsluitend
+# Alembic's verantwoordelijkheid (main.py doet geen create_all/reconcile_schema meer). Bij
+# meerdere replica's is dit veilig — Alembic's `alembic_version`-rij + Postgres-row-locking
+# voorkomen dat twee gelijktijdige upgrades elkaar in de weg zitten; de trage replica ziet zijn
+# eigen upgrade als no-op zodra de snelle 'm al deed. `DATABASE_URL_SYNC` moet gezet zijn (zelfde
+# database als `DATABASE_URL`, alleen zonder `+asyncpg` — zie `.env.example`).
+CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 3000 --workers 1"]

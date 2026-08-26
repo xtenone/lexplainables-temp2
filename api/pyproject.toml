@@ -10,6 +10,9 @@ dependencies = [
     "httpx>=0.27",
     "sqlalchemy[asyncio]>=2.0.51",
     "asyncpg>=0.30",
+    # DB-drivers: asyncpg voor productie (runtime); psycopg2-binary voor Alembic (sync-migraties).
+    "psycopg2-binary>=2.9",
+    "alembic>=1.13",
     "cryptography>=50.0.0",
     # Security-floor op een transitive (via fastapi/sse-starlette/mcp): CVE-2026-54283 in <1.3.1.
     "starlette>=1.5.0",

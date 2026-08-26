@@ -29,21 +29,23 @@ observability.setup(get_settings())
 logger = logging.getLogger(__name__)
 
 
-async def _init_db_met_retry() -> None:
-    """Verbind met de DB en maak de tabellen aan, met **bounded retry**. Postgres draait als
-    aparte stack (geen cross-stack `depends_on`), dus bij een cold start kan de DB nog niet klaar zijn
-    wanneer de API opstart — dan retrye we i.p.v. crash-loopen. Knoppen: `WETSANALYSE_DB_CONNECT_RETRIES`
-    (default 30) en `WETSANALYSE_DB_CONNECT_BACKOFF` (seconden, default 2) → ~60s venster."""
+async def _wacht_op_db(engine) -> None:
+    """Wacht tot de DB bereikbaar is, met **bounded retry** — géén schemabeheer hier (werkwijze-
+    ADR-0005): het schema komt uitsluitend van `alembic upgrade head`, vóór het opstarten van de
+    server (zie Dockerfile/README). Postgres draait als aparte stack (geen cross-stack
+    `depends_on`), dus bij een cold start kan de DB nog niet klaar zijn wanneer de API opstart —
+    dan retrye we i.p.v. crash-loopen. Knoppen: `WETSANALYSE_DB_CONNECT_RETRIES` (default 30) en
+    `WETSANALYSE_DB_CONNECT_BACKOFF` (seconden, default 2) → ~60s venster."""
     import sqlalchemy.exc
+    from sqlalchemy import text
 
     pogingen = int(os.environ.get("WETSANALYSE_DB_CONNECT_RETRIES", "30"))
     backoff = float(os.environ.get("WETSANALYSE_DB_CONNECT_BACKOFF", "2"))
     transient = (OSError, sqlalchemy.exc.OperationalError, sqlalchemy.exc.InterfaceError)
     for poging in range(1, pogingen + 1):
         try:
-            await db.create_all()
-            # Additieve kolom-migratie (create_all dekt alleen ontbrekende tabellen). Idempotent.
-            await db.reconcile_schema()
+            async with engine.connect() as conn:
+                await conn.execute(text("SELECT 1"))
             if poging > 1:
                 logger.info("DB-verbinding gelukt na %d pogingen", poging)
             return
@@ -65,14 +67,11 @@ async def lifespan(app: FastAPI):
     # de admin-verbindingstest is nu de enige LLM-call, maar de rem blijft goedkoop en veilig).
     from .features.llm_profielen.llm import throttle
     throttle.configure(settings.llm_max_concurrency)
-    # Async SQLAlchemy-engine + tabellen. In productie zou een migratietool (Alembic) het schema
-    # beheren; voor de beproevingsfase volstaat create_all (idempotent: alleen ontbrekende tabellen).
-    # `metadata` kent alle Tables op dit punt omdat elke feature-router hierboven al geïmporteerd is
-    # (elk router.py importeert zijn eigen models.py, dat zijn Table op de gedeelde metadata zet).
+    # Async SQLAlchemy-engine. Het schema zelf is Alembic's verantwoordelijkheid (`alembic upgrade
+    # head`, vóór het starten van de server — zie Dockerfile/README), niet iets dat de app bij het
+    # opstarten zelf aanmaakt (werkwijze-ADR-0005). Hier alleen wachten tot de DB bereikbaar is.
     db.init_engine(settings.database_url)
-    # create_all (idempotent) met bounded retry — vangt een nog-niet-klare DB bij cold start op
-    # (postgres is een aparte stack zonder cross-stack depends_on).
-    await _init_db_met_retry()
+    await _wacht_op_db(db.get_engine())
     try:
         from .features.llm_profielen import store as profiles
 

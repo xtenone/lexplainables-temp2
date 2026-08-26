@@ -4,6 +4,15 @@ Headless API-backend voor de **Wetsanalyse-werkplek** — een kerncomponent van 
 zelfstandige, Dockeriseerbare dienst die je via HTTP (Postman/Swagger) bevraagt en die de
 [frontend](../frontend) (de werkplek + login + `/beheer`) bedient. Lees ook de projectroot-`CLAUDE.md`.
 
+> **Let op — architectuur is herzien.** Het onderstaande "Architectuur (app/)"-overzicht beschrijft
+> nog de vlakke bestandsindeling van vóór de werkwijze-refactor (2026-08-26). De code zelf staat nu
+> in `app/shared/` (cross-cutting, geen domeinkennis) + `app/features/<domein>/
+> {models.py,store.py,router.py,tests/}`, en het schema komt uitsluitend van Alembic
+> (`app/alembic/`), niet meer van `create_all()` in de lifespan. Zie
+> `docs/project/architectuur/stack-profiel.md` voor de actuele, gezaghebbende beschrijving; de
+> secties hieronder blijven inhoudelijk correct over *wat* elk domein doet, alleen niet meer over
+> *waar* het bestandsgewijs staat.
+
 ## Scope: wat deze API nog doet
 
 De API bedient zeven dingen:
@@ -243,21 +252,38 @@ WETSANALYSE_ADMIN_TOKENS=admin:<zelfgekozen-admin-token>
 LLM_CONFIG_SECRET=<fernet-key>   # nodig om API-keys via de admin-UI op te slaan
 ```
 
-### 3. Server starten
+### 3. Schema aanmaken + server starten
 
 ```bash
 cd api
 uv sync --extra llm --extra dev
+uv run alembic upgrade head        # schema — werkwijze-ADR-0005, ziet DATABASE_URL_SYNC uit .env
 uv run --env-file .env uvicorn app.main:app --reload --port 3000
 ```
 
-`uv run` laadt `.env` **niet** automatisch — de `--env-file .env` vlag is verplicht.
+`uv run` laadt `.env` **niet** automatisch — de `--env-file .env` vlag is verplicht (`alembic`
+leest `DATABASE_URL_SYNC` wél rechtstreeks uit de omgeving, zie `alembic/env.py` — exporteer 'm
+of zet 'm in je shell-profiel als je 'm niet elke keer wil meegeven).
 Swagger: `http://localhost:3000/docs` · health: `/health` · ready: `/ready`
 
-Lokaal heb je ook een **PostgreSQL** nodig (de opslag). Snel:
-`docker run -d -p 5432:5432 -e POSTGRES_USER=wetsanalyse -e POSTGRES_PASSWORD=wetsanalyse -e POSTGRES_DB=wetsanalyse postgres:16`
-en zet `DATABASE_URL=postgresql+asyncpg://wetsanalyse:wetsanalyse@localhost:5432/wetsanalyse`. De
-tabellen worden bij de start aangemaakt (`db.create_all` in de lifespan).
+Lokaal heb je ook een **PostgreSQL** nodig (de opslag). Snel (podman i.p.v. docker als Docker niet
+beschikbaar is):
+`podman run -d -p 5432:5432 -e POSTGRES_USER=wetsanalyse -e POSTGRES_PASSWORD=wetsanalyse -e POSTGRES_DB=wetsanalyse docker.io/library/postgres:16`
+en zet zowel `DATABASE_URL=postgresql+asyncpg://wetsanalyse:wetsanalyse@localhost:5432/wetsanalyse`
+als `DATABASE_URL_SYNC=postgresql://wetsanalyse:wetsanalyse@localhost:5432/wetsanalyse` (zelfde
+database, sync-driver voor Alembic). Het schema komt **uitsluitend** van `alembic upgrade head` —
+de app maakt zelf geen tabellen meer aan (geen `create_all` in de lifespan).
+
+### Contractgeneratie (werkwijze-ADR-0011)
+
+```bash
+cd api && bash scripts/genereer-types.sh          # → api/generated/openapi.json
+cd ../frontend && bash scripts/genereer-types.sh  # → frontend/generated/types.ts
+```
+
+Draai dit opnieuw na elke wijziging aan een `models.py`/`contracts.py`. De frontend gebruikt
+`generated/types.ts` nog niet (blijft bewust byte-voor-byte gelijk aan wetsanalyse-ai, zie de
+projectroot-CLAUDE.md) — het bestand staat al klaar voor wanneer dat wél gebeurt.
 
 ### 4. Testen
 

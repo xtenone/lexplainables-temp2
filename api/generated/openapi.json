@@ -1,0 +1,5567 @@
+{
+  "components": {
+    "schemas": {
+      "Aandacht": {
+        "enum": [
+          "groen",
+          "geel",
+          "rood"
+        ],
+        "title": "Aandacht",
+        "type": "string"
+      },
+      "AdminBerichtOut": {
+        "properties": {
+          "aangemaakt_door": {
+            "default": "",
+            "title": "Aangemaakt Door",
+            "type": "string"
+          },
+          "created": {
+            "default": "",
+            "title": "Created",
+            "type": "string"
+          },
+          "gepubliceerd": {
+            "title": "Gepubliceerd",
+            "type": "boolean"
+          },
+          "gepubliceerd_op": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gepubliceerd Op"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "inhoud": {
+            "title": "Inhoud",
+            "type": "string"
+          },
+          "titel": {
+            "title": "Titel",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "updated": {
+            "default": "",
+            "title": "Updated",
+            "type": "string"
+          },
+          "versie": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Versie"
+          }
+        },
+        "required": [
+          "id",
+          "titel",
+          "inhoud",
+          "type",
+          "gepubliceerd"
+        ],
+        "title": "AdminBerichtOut",
+        "type": "object"
+      },
+      "AdminBerichtenPaginaOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AdminBerichtOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagina": {
+            "title": "Pagina",
+            "type": "integer"
+          },
+          "per_pagina": {
+            "title": "Per Pagina",
+            "type": "integer"
+          },
+          "totaal": {
+            "title": "Totaal",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "totaal",
+          "pagina",
+          "per_pagina"
+        ],
+        "title": "AdminBerichtenPaginaOut",
+        "type": "object"
+      },
+      "AgentRun": {
+        "description": "Wie/wat een agent-ronde produceerde \u2014 de provenance van een voorstel.\n\nZonder dit is achteraf niet vast te stellen m\u00e9t welk model een markering tot stand kwam, en\ndat is precies wat een export moet dragen en wat de latere graaf-promotie als herkomst nodig\nheeft. Het hangt op twee plekken: op het document (het volledige spoor van alle rondes) en op\nhet element zelf, want tussen twee beurten kan het geconfigureerde model wisselen.",
+        "properties": {
+          "agent_versie": {
+            "default": "",
+            "title": "Agent Versie",
+            "type": "string"
+          },
+          "critic_rondes": {
+            "default": 0,
+            "title": "Critic Rondes",
+            "type": "integer"
+          },
+          "model": {
+            "default": "",
+            "title": "Model",
+            "type": "string"
+          },
+          "provider": {
+            "default": "",
+            "title": "Provider",
+            "type": "string"
+          },
+          "ronde": {
+            "default": 0,
+            "title": "Ronde",
+            "type": "integer"
+          },
+          "stop_reden": {
+            "default": "",
+            "title": "Stop Reden",
+            "type": "string"
+          },
+          "tijd": {
+            "format": "date-time",
+            "title": "Tijd",
+            "type": "string"
+          }
+        },
+        "title": "AgentRun",
+        "type": "object"
+      },
+      "Alternatief": {
+        "description": "Kandidaat-klasse bij twijfel (disambiguatie).",
+        "properties": {
+          "klasse": {
+            "title": "Klasse",
+            "type": "string"
+          },
+          "motivatie": {
+            "default": "",
+            "title": "Motivatie",
+            "type": "string"
+          }
+        },
+        "required": [
+          "klasse"
+        ],
+        "title": "Alternatief",
+        "type": "object"
+      },
+      "Anker": {
+        "description": "Waar een fragment stond toen het werd gemaakt.\n\nTwee selectors naast elkaar (het W3C-annotatiepatroon): exacte offsets voor precisie \u2014 nodig om\ntwee identieke fragmenten in \u00e9\u00e9n artikel te onderscheiden \u2014 en quote-met-context als de brontekst\nschuift (herimport, ander lid-bereik). `bron_hash` vertelt of de offsets nog over dezelfde tekst\ngaan. De offsets slaan op de samengevoegde brontekst die het documentpaneel toont.",
+        "properties": {
+          "bron_hash": {
+            "default": "",
+            "title": "Bron Hash",
+            "type": "string"
+          },
+          "eind": {
+            "default": 0,
+            "title": "Eind",
+            "type": "integer"
+          },
+          "lid": {
+            "default": "",
+            "title": "Lid",
+            "type": "string"
+          },
+          "na": {
+            "default": "",
+            "title": "Na",
+            "type": "string"
+          },
+          "start": {
+            "default": 0,
+            "title": "Start",
+            "type": "integer"
+          },
+          "voor": {
+            "default": "",
+            "title": "Voor",
+            "type": "string"
+          }
+        },
+        "title": "Anker",
+        "type": "object"
+      },
+      "AnnotatieDocument": {
+        "description": "Annotaties per bron (bwbId+artikel[+lid]) binnen een werkgebied.",
+        "properties": {
+          "artikel": {
+            "title": "Artikel",
+            "type": "string"
+          },
+          "bwbId": {
+            "title": "Bwbid",
+            "type": "string"
+          },
+          "citeertitel": {
+            "default": "",
+            "title": "Citeertitel",
+            "type": "string"
+          },
+          "client_id": {
+            "default": "",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "created": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created"
+          },
+          "elementen": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AnnotatieElement"
+            },
+            "title": "Elementen",
+            "type": "array"
+          },
+          "lid": {
+            "default": "",
+            "title": "Lid",
+            "type": "string"
+          },
+          "runs": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AgentRun"
+            },
+            "title": "Runs",
+            "type": "array"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DocumentStatus",
+            "default": "in_review"
+          },
+          "updated": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated"
+          },
+          "user_id": {
+            "default": "",
+            "title": "User Id",
+            "type": "string"
+          },
+          "werkgebied": {
+            "default": "",
+            "title": "Werkgebied",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "bwbId",
+          "artikel"
+        ],
+        "title": "AnnotatieDocument",
+        "type": "object"
+      },
+      "AnnotatieElement": {
+        "description": "E\u00e9n JAS-annotatie-element met zijn review-levenscyclus.",
+        "properties": {
+          "aandacht": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Aandacht"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "alternatieven": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Alternatief"
+            },
+            "title": "Alternatieven",
+            "type": "array"
+          },
+          "anker": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Anker"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "beslissingen": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Beslissing"
+            },
+            "title": "Beslissingen",
+            "type": "array"
+          },
+          "critic": {
+            "default": "",
+            "title": "Critic",
+            "type": "string"
+          },
+          "critic_rondes": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CriticRonde"
+            },
+            "title": "Critic Rondes",
+            "type": "array"
+          },
+          "critic_suggestie": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CriticSuggestie"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "diff": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Diff",
+            "type": "object"
+          },
+          "geproduceerd_door": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentRun"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "gewijzigd_door": {
+            "default": "",
+            "title": "Gewijzigd Door",
+            "type": "string"
+          },
+          "herkomst": {
+            "default": "agent",
+            "title": "Herkomst",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "klasse": {
+            "title": "Klasse",
+            "type": "string"
+          },
+          "lid": {
+            "default": "",
+            "title": "Lid",
+            "type": "string"
+          },
+          "lifecycle": {
+            "$ref": "#/components/schemas/Lifecycle",
+            "default": "voorgesteld"
+          },
+          "tekst": {
+            "title": "Tekst",
+            "type": "string"
+          },
+          "toelichting": {
+            "default": "",
+            "title": "Toelichting",
+            "type": "string"
+          },
+          "vindplaats": {
+            "default": "",
+            "title": "Vindplaats",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "klasse",
+          "tekst"
+        ],
+        "title": "AnnotatieElement",
+        "type": "object"
+      },
+      "ApiTokenCreateIn": {
+        "properties": {
+          "label": {
+            "default": "",
+            "maxLength": 128,
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "title": "ApiTokenCreateIn",
+        "type": "object"
+      },
+      "ApiTokenCreated": {
+        "properties": {
+          "active": {
+            "default": true,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "created": {
+            "default": "",
+            "title": "Created",
+            "type": "string"
+          },
+          "created_by": {
+            "default": "",
+            "title": "Created By",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "default": "",
+            "title": "Label",
+            "type": "string"
+          },
+          "last_used": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used"
+          },
+          "scope": {
+            "default": "admin",
+            "title": "Scope",
+            "type": "string"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          },
+          "token_prefix": {
+            "default": "",
+            "title": "Token Prefix",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "token"
+        ],
+        "title": "ApiTokenCreated",
+        "type": "object"
+      },
+      "ApiTokenOut": {
+        "properties": {
+          "active": {
+            "default": true,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "created": {
+            "default": "",
+            "title": "Created",
+            "type": "string"
+          },
+          "created_by": {
+            "default": "",
+            "title": "Created By",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "default": "",
+            "title": "Label",
+            "type": "string"
+          },
+          "last_used": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used"
+          },
+          "scope": {
+            "default": "admin",
+            "title": "Scope",
+            "type": "string"
+          },
+          "token_prefix": {
+            "default": "",
+            "title": "Token Prefix",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "ApiTokenOut",
+        "type": "object"
+      },
+      "AuditRecord": {
+        "description": "Append-only auditregel; render-baar als tijdlijn.",
+        "properties": {
+          "actie": {
+            "title": "Actie",
+            "type": "string"
+          },
+          "actor": {
+            "default": "",
+            "title": "Actor",
+            "type": "string"
+          },
+          "detail": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Detail",
+            "type": "object"
+          },
+          "element_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Element Id"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "tijdstip": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tijdstip"
+          }
+        },
+        "required": [
+          "actie"
+        ],
+        "title": "AuditRecord",
+        "type": "object"
+      },
+      "Bericht": {
+        "description": "E\u00e9n beurt in het gesprek. Assistent-berichten dragen optioneel `denk`/`bronnen`, of een\nverwijzing naar een annotatie-document (`annotatie_slug` + de Critic-`ontbrekend`-suggesties).\n\n`annotatie_titel` is het leesbare label van dat document op het moment van de beurt (\"Wet IB 2001\n\u2014 art. 3.1 lid 2\"). Het bericht beschrijft zichzelf dus: wordt het document later verwijderd, dan\nblijft het gesprek leesbaar in plaats van terug te vallen op een naamloze verwijzing. Oudere\nberichten hebben het veld niet en leveren \"\" \u2014 dat is geen fout, maar een lege terugval.",
+        "properties": {
+          "annotatie_slug": {
+            "default": "",
+            "title": "Annotatie Slug",
+            "type": "string"
+          },
+          "annotatie_titel": {
+            "default": "",
+            "title": "Annotatie Titel",
+            "type": "string"
+          },
+          "bronnen": {
+            "default": [],
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Bronnen",
+            "type": "array"
+          },
+          "created": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created"
+          },
+          "denk": {
+            "default": "",
+            "title": "Denk",
+            "type": "string"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "ontbrekend": {
+            "default": [],
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Ontbrekend",
+            "type": "array"
+          },
+          "rol": {
+            "$ref": "#/components/schemas/Rol"
+          },
+          "run_id": {
+            "default": "",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "tekst": {
+            "default": "",
+            "title": "Tekst",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rol"
+        ],
+        "title": "Bericht",
+        "type": "object"
+      },
+      "BerichtAanmakenIn": {
+        "properties": {
+          "inhoud": {
+            "maxLength": 10000,
+            "title": "Inhoud",
+            "type": "string"
+          },
+          "titel": {
+            "maxLength": 256,
+            "title": "Titel",
+            "type": "string"
+          },
+          "type": {
+            "default": "info",
+            "enum": [
+              "info",
+              "update",
+              "waarschuwing",
+              "kritiek"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "versie": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Versie"
+          }
+        },
+        "required": [
+          "titel",
+          "inhoud"
+        ],
+        "title": "BerichtAanmakenIn",
+        "type": "object"
+      },
+      "BerichtInvoer": {
+        "properties": {
+          "annotatie_slug": {
+            "default": "",
+            "title": "Annotatie Slug",
+            "type": "string"
+          },
+          "annotatie_titel": {
+            "default": "",
+            "title": "Annotatie Titel",
+            "type": "string"
+          },
+          "bronnen": {
+            "default": [],
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Bronnen",
+            "type": "array"
+          },
+          "denk": {
+            "default": "",
+            "title": "Denk",
+            "type": "string"
+          },
+          "ontbrekend": {
+            "default": [],
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Ontbrekend",
+            "type": "array"
+          },
+          "rol": {
+            "$ref": "#/components/schemas/Rol"
+          },
+          "run_id": {
+            "default": "",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "tekst": {
+            "default": "",
+            "title": "Tekst",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rol"
+        ],
+        "title": "BerichtInvoer",
+        "type": "object"
+      },
+      "BerichtOut": {
+        "properties": {
+          "created": {
+            "default": "",
+            "title": "Created",
+            "type": "string"
+          },
+          "gelezen": {
+            "default": false,
+            "title": "Gelezen",
+            "type": "boolean"
+          },
+          "gepubliceerd": {
+            "title": "Gepubliceerd",
+            "type": "boolean"
+          },
+          "gepubliceerd_op": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gepubliceerd Op"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "inhoud": {
+            "title": "Inhoud",
+            "type": "string"
+          },
+          "titel": {
+            "title": "Titel",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "updated": {
+            "default": "",
+            "title": "Updated",
+            "type": "string"
+          },
+          "versie": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Versie"
+          }
+        },
+        "required": [
+          "id",
+          "titel",
+          "inhoud",
+          "type",
+          "gepubliceerd"
+        ],
+        "title": "BerichtOut",
+        "type": "object"
+      },
+      "BerichtPublicatieIn": {
+        "properties": {
+          "gepubliceerd": {
+            "title": "Gepubliceerd",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "gepubliceerd"
+        ],
+        "title": "BerichtPublicatieIn",
+        "type": "object"
+      },
+      "BerichtenPaginaOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BerichtOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagina": {
+            "title": "Pagina",
+            "type": "integer"
+          },
+          "per_pagina": {
+            "title": "Per Pagina",
+            "type": "integer"
+          },
+          "totaal": {
+            "title": "Totaal",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "totaal",
+          "pagina",
+          "per_pagina"
+        ],
+        "title": "BerichtenPaginaOut",
+        "type": "object"
+      },
+      "Beslissing": {
+        "description": "E\u00e9n human-decision op een element.",
+        "properties": {
+          "actor": {
+            "default": "",
+            "title": "Actor",
+            "type": "string"
+          },
+          "comment": {
+            "default": "",
+            "title": "Comment",
+            "type": "string"
+          },
+          "review_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReviewReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tijd": {
+            "format": "date-time",
+            "title": "Tijd",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/BeslissingType"
+          },
+          "wijziging": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Wijziging",
+            "type": "object"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "Beslissing",
+        "type": "object"
+      },
+      "BeslissingInvoer": {
+        "properties": {
+          "comment": {
+            "default": "",
+            "title": "Comment",
+            "type": "string"
+          },
+          "review_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReviewReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "type": {
+            "$ref": "#/components/schemas/BeslissingType"
+          },
+          "wijziging": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Wijziging"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "BeslissingInvoer",
+        "type": "object"
+      },
+      "BeslissingType": {
+        "enum": [
+          "approve",
+          "edit",
+          "reject",
+          "comment",
+          "heropen"
+        ],
+        "title": "BeslissingType",
+        "type": "string"
+      },
+      "CriticRonde": {
+        "description": "E\u00e9n Critic-oordeel binnen de herzieningslus, met de instructie die eruit volgde.\n\nEen lijst hiervan (analoog aan `beslissingen`) maakt het heen-en-weer tussen annoteerder en\nCritic zichtbaar: 'ronde 1 rood, klasse te grof \u2192 ronde 2 aangepast naar Voorwaarde'. Een\nenkelvoudige `aandacht`/`critic` zou elke ronde overschrijven en dat spoor wissen.",
+        "properties": {
+          "aandacht": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Aandacht"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "actie": {
+            "default": "behoud",
+            "title": "Actie",
+            "type": "string"
+          },
+          "motivatie": {
+            "default": "",
+            "title": "Motivatie",
+            "type": "string"
+          },
+          "ronde": {
+            "title": "Ronde",
+            "type": "integer"
+          },
+          "tijd": {
+            "format": "date-time",
+            "title": "Tijd",
+            "type": "string"
+          },
+          "toegepast": {
+            "default": false,
+            "title": "Toegepast",
+            "type": "boolean"
+          },
+          "voorstel_klasse": {
+            "default": "",
+            "title": "Voorstel Klasse",
+            "type": "string"
+          },
+          "voorstel_tekst": {
+            "default": "",
+            "title": "Voorstel Tekst",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ronde"
+        ],
+        "title": "CriticRonde",
+        "type": "object"
+      },
+      "CriticSuggestie": {
+        "description": "Critic-oordeel als advies: nooit automatisch toegepast, altijd een klik van de jurist.\n\nTwee bronnen: een oordeel over een markering die de jurist zelf maakte, en een fragmentvoorstel\nuit de eindbeoordeling van de agent \u2014 die komt te laat voor de patcher en zou anders alleen in de\nmotivatietekst blijven staan.",
+        "properties": {
+          "aandacht": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Aandacht"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "motivatie": {
+            "default": "",
+            "title": "Motivatie",
+            "type": "string"
+          },
+          "status": {
+            "default": "open",
+            "title": "Status",
+            "type": "string"
+          },
+          "tijd": {
+            "format": "date-time",
+            "title": "Tijd",
+            "type": "string"
+          },
+          "voorstel_klasse": {
+            "default": "",
+            "title": "Voorstel Klasse",
+            "type": "string"
+          },
+          "voorstel_tekst": {
+            "default": "",
+            "title": "Voorstel Tekst",
+            "type": "string"
+          }
+        },
+        "title": "CriticSuggestie",
+        "type": "object"
+      },
+      "DocumentCreate": {
+        "properties": {
+          "artikel": {
+            "title": "Artikel",
+            "type": "string"
+          },
+          "bwbId": {
+            "title": "Bwbid",
+            "type": "string"
+          },
+          "citeertitel": {
+            "default": "",
+            "title": "Citeertitel",
+            "type": "string"
+          },
+          "lid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lid"
+          },
+          "werkgebied": {
+            "default": "",
+            "title": "Werkgebied",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bwbId",
+          "artikel"
+        ],
+        "title": "DocumentCreate",
+        "type": "object"
+      },
+      "DocumentSamenvatting": {
+        "description": "E\u00e9n regel in het annotatie-overzicht.\n\nDraagt bewust meer dan naam + aantal: het overzicht is werkvoorraad, dus het moet zonder een\ntweede call kunnen tonen wat er nog te beoordelen is, waar aandacht op staat en hoe de\nJAS-verdeling eruitziet (de kleurstrip). De telling komt uit dezelfde `tel_elementen` als de\nexport.",
+        "properties": {
+          "aantal_elementen": {
+            "title": "Aantal Elementen",
+            "type": "integer"
+          },
+          "artikel": {
+            "title": "Artikel",
+            "type": "string"
+          },
+          "bwbId": {
+            "title": "Bwbid",
+            "type": "string"
+          },
+          "citeertitel": {
+            "default": "",
+            "title": "Citeertitel",
+            "type": "string"
+          },
+          "laatste_model": {
+            "default": "",
+            "title": "Laatste Model",
+            "type": "string"
+          },
+          "lid": {
+            "default": "",
+            "title": "Lid",
+            "type": "string"
+          },
+          "per_aandacht": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "default": {},
+            "title": "Per Aandacht",
+            "type": "object"
+          },
+          "per_klasse": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "default": {},
+            "title": "Per Klasse",
+            "type": "object"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DocumentStatus"
+          },
+          "te_beoordelen": {
+            "default": 0,
+            "title": "Te Beoordelen",
+            "type": "integer"
+          },
+          "updated": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated"
+          },
+          "werkgebied": {
+            "default": "",
+            "title": "Werkgebied",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "bwbId",
+          "artikel",
+          "status",
+          "aantal_elementen"
+        ],
+        "title": "DocumentSamenvatting",
+        "type": "object"
+      },
+      "DocumentStatus": {
+        "enum": [
+          "in_review",
+          "geaccordeerd",
+          "gepromoveerd"
+        ],
+        "title": "DocumentStatus",
+        "type": "string"
+      },
+      "ElementInvoer": {
+        "description": "E\u00e9n voorgesteld element (van de agent), zoals de workbench het doorstuurt.",
+        "properties": {
+          "aandacht": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Aandacht"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "alternatieven": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Alternatief"
+            },
+            "title": "Alternatieven",
+            "type": "array"
+          },
+          "anker": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Anker"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "critic": {
+            "default": "",
+            "title": "Critic",
+            "type": "string"
+          },
+          "critic_rondes": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CriticRonde"
+            },
+            "title": "Critic Rondes",
+            "type": "array"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "klasse": {
+            "title": "Klasse",
+            "type": "string"
+          },
+          "lid": {
+            "default": "",
+            "title": "Lid",
+            "type": "string"
+          },
+          "tekst": {
+            "title": "Tekst",
+            "type": "string"
+          },
+          "toelichting": {
+            "default": "",
+            "title": "Toelichting",
+            "type": "string"
+          },
+          "vindplaats": {
+            "default": "",
+            "title": "Vindplaats",
+            "type": "string"
+          }
+        },
+        "required": [
+          "klasse",
+          "tekst"
+        ],
+        "title": "ElementInvoer",
+        "type": "object"
+      },
+      "ElementenInvoer": {
+        "description": "De volledige uitkomst van \u00e9\u00e9n agent-ronde voor dit document.\n\n**E\u00e9n kapot element mag de rest niet meeslepen.** De merge in de handler verwerpt een element met\neen ongeldige klasse of een leeg fragment al per stuk, met een teller \u2014 maar de request-validatie\nerv\u00f3\u00f3r was alles-of-niets, dus een schemafout leverde een 422 op en dan landde er n\u00ed\u00e9ts. Twee\npoorten met tegengesteld beleid: dat verschil was de fout, niet de strengheid. Op dev kostte het\neen complete annotatie van vijftien markeringen.\n\nWat het schema niet haalt gaat daarom naar `geweigerd` in plaats van het verzoek te laten\nsneuvelen. De handler telt het op bij `verworpen`, zodat er precies \u00e9\u00e9n begrip \"verworpen\" is en\nde aanroeper het te horen krijgt.",
+        "properties": {
+          "elementen": {
+            "items": {
+              "$ref": "#/components/schemas/ElementInvoer"
+            },
+            "title": "Elementen",
+            "type": "array"
+          },
+          "geweigerd": {
+            "default": [],
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Geweigerd",
+            "type": "array"
+          },
+          "ronde": {
+            "default": 0,
+            "title": "Ronde",
+            "type": "integer"
+          },
+          "run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentRun"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "suggesties": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SuggestieInvoer"
+            },
+            "title": "Suggesties",
+            "type": "array"
+          },
+          "trek_ontbrekende_in": {
+            "default": true,
+            "title": "Trek Ontbrekende In",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "elementen"
+        ],
+        "title": "ElementenInvoer",
+        "type": "object"
+      },
+      "ExportInvoer": {
+        "description": "Optionele bijlage bij een export: de letterlijke wettekst per lid.\n\nDe api heeft die tekst niet \u2014 de graaf is de bron en de werkplek haalt hem al op via\ngraph-qa (`GET /v1/artikel`). Meesturen mag, verzinnen niet: zonder leden blijft het\nwettekst-blok uit het rapport in plaats van dat er iets wordt gereconstrueerd.",
+        "properties": {
+          "leden": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/LidTekst"
+            },
+            "title": "Leden",
+            "type": "array"
+          }
+        },
+        "title": "ExportInvoer",
+        "type": "object"
+      },
+      "FeedbackAdminOut": {
+        "properties": {
+          "categorie": {
+            "title": "Categorie",
+            "type": "string"
+          },
+          "client_id": {
+            "title": "Client Id",
+            "type": "string"
+          },
+          "created": {
+            "title": "Created",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "pagina": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pagina"
+          },
+          "tekst": {
+            "title": "Tekst",
+            "type": "string"
+          },
+          "userid": {
+            "title": "Userid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "client_id",
+          "userid",
+          "categorie",
+          "tekst",
+          "created"
+        ],
+        "title": "FeedbackAdminOut",
+        "type": "object"
+      },
+      "FeedbackAdminPaginaOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/FeedbackAdminOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "totaal": {
+            "title": "Totaal",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "totaal"
+        ],
+        "title": "FeedbackAdminPaginaOut",
+        "type": "object"
+      },
+      "FeedbackBevestigd": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "FeedbackBevestigd",
+        "type": "object"
+      },
+      "FeedbackIn": {
+        "properties": {
+          "categorie": {
+            "pattern": "^(verbeteridee|probleemmelding|compliment|vraag)$",
+            "title": "Categorie",
+            "type": "string"
+          },
+          "pagina": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pagina"
+          },
+          "tekst": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Tekst",
+            "type": "string"
+          }
+        },
+        "required": [
+          "categorie",
+          "tekst"
+        ],
+        "title": "FeedbackIn",
+        "type": "object"
+      },
+      "Gesprek": {
+        "description": "E\u00e9n chat-gesprek van een gebruiker, met zijn berichten.",
+        "properties": {
+          "berichten": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Bericht"
+            },
+            "title": "Berichten",
+            "type": "array"
+          },
+          "created": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "titel": {
+            "default": "",
+            "title": "Titel",
+            "type": "string"
+          },
+          "updated": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated"
+          },
+          "user_id": {
+            "default": "",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "Gesprek",
+        "type": "object"
+      },
+      "GesprekCreate": {
+        "properties": {
+          "titel": {
+            "default": "",
+            "title": "Titel",
+            "type": "string"
+          }
+        },
+        "title": "GesprekCreate",
+        "type": "object"
+      },
+      "GesprekPatch": {
+        "properties": {
+          "titel": {
+            "title": "Titel",
+            "type": "string"
+          }
+        },
+        "required": [
+          "titel"
+        ],
+        "title": "GesprekPatch",
+        "type": "object"
+      },
+      "GesprekSamenvatting": {
+        "description": "Lichte lijst-weergave voor de sidebar (chatgeschiedenis).",
+        "properties": {
+          "aantal_berichten": {
+            "default": 0,
+            "title": "Aantal Berichten",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "titel": {
+            "default": "",
+            "title": "Titel",
+            "type": "string"
+          },
+          "updated": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "GesprekSamenvatting",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "LidTekst": {
+        "description": "E\u00e9n lid letterlijke wettekst, zoals de werkplek hem toont (uit graph-qa).",
+        "properties": {
+          "lid": {
+            "default": "",
+            "title": "Lid",
+            "type": "string"
+          },
+          "tekst": {
+            "default": "",
+            "title": "Tekst",
+            "type": "string"
+          }
+        },
+        "title": "LidTekst",
+        "type": "object"
+      },
+      "Lifecycle": {
+        "enum": [
+          "voorgesteld",
+          "critic_checked",
+          "human_approved",
+          "edited",
+          "rejected",
+          "published",
+          "reused"
+        ],
+        "title": "Lifecycle",
+        "type": "string"
+      },
+      "MarkeerGezienIn": {
+        "properties": {
+          "tot": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tot"
+          }
+        },
+        "title": "MarkeerGezienIn",
+        "type": "object"
+      },
+      "MeOut": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "sessions_valid_from": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sessions Valid From"
+          },
+          "totp_enabled": {
+            "title": "Totp Enabled",
+            "type": "boolean"
+          },
+          "userid": {
+            "title": "Userid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "userid",
+          "email",
+          "role",
+          "totp_enabled"
+        ],
+        "title": "MeOut",
+        "type": "object"
+      },
+      "MensElementInvoer": {
+        "description": "E\u00e9n element dat de JURIST zelf aanmaakt (tekstselectie in het documentpaneel).",
+        "properties": {
+          "anker": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Anker"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "klasse": {
+            "title": "Klasse",
+            "type": "string"
+          },
+          "lid": {
+            "default": "",
+            "title": "Lid",
+            "type": "string"
+          },
+          "tekst": {
+            "title": "Tekst",
+            "type": "string"
+          },
+          "toelichting": {
+            "default": "",
+            "title": "Toelichting",
+            "type": "string"
+          },
+          "vindplaats": {
+            "default": "",
+            "title": "Vindplaats",
+            "type": "string"
+          }
+        },
+        "required": [
+          "klasse",
+          "tekst"
+        ],
+        "title": "MensElementInvoer",
+        "type": "object"
+      },
+      "OngelezenAantalOut": {
+        "properties": {
+          "aantal": {
+            "title": "Aantal",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "aantal"
+        ],
+        "title": "OngelezenAantalOut",
+        "type": "object"
+      },
+      "OngelezenFeedbackOut": {
+        "properties": {
+          "aantal": {
+            "title": "Aantal",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "aantal"
+        ],
+        "title": "OngelezenFeedbackOut",
+        "type": "object"
+      },
+      "PasswordChangeIn": {
+        "properties": {
+          "current": {
+            "maxLength": 512,
+            "title": "Current",
+            "type": "string"
+          },
+          "new": {
+            "maxLength": 512,
+            "minLength": 8,
+            "title": "New",
+            "type": "string"
+          }
+        },
+        "required": [
+          "current",
+          "new"
+        ],
+        "title": "PasswordChangeIn",
+        "type": "object"
+      },
+      "ProfileChoice": {
+        "properties": {
+          "is_default": {
+            "default": false,
+            "title": "Is Default",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "ProfileChoice",
+        "type": "object"
+      },
+      "ProfileIn": {
+        "properties": {
+          "api_base": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Base"
+          },
+          "api_key": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key"
+          },
+          "api_version": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Version"
+          },
+          "is_default": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Default"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "output_strategy": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Strategy"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature"
+          }
+        },
+        "title": "ProfileIn",
+        "type": "object"
+      },
+      "ProfileOut": {
+        "properties": {
+          "api_base": {
+            "title": "Api Base",
+            "type": "string"
+          },
+          "api_key_set": {
+            "title": "Api Key Set",
+            "type": "boolean"
+          },
+          "api_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Version"
+          },
+          "is_default": {
+            "title": "Is Default",
+            "type": "boolean"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "output_strategy": {
+            "title": "Output Strategy",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "temperature": {
+            "title": "Temperature",
+            "type": "number"
+          },
+          "updated": {
+            "default": "",
+            "title": "Updated",
+            "type": "string"
+          },
+          "updated_by": {
+            "default": "",
+            "title": "Updated By",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "provider",
+          "model",
+          "api_base",
+          "output_strategy",
+          "temperature",
+          "is_default",
+          "api_key_set"
+        ],
+        "title": "ProfileOut",
+        "type": "object"
+      },
+      "ReviewReason": {
+        "enum": [
+          "verkeerde_klasse",
+          "bron_gemist",
+          "tekst",
+          "interpretatie",
+          "onvoldoende_context",
+          "anders"
+        ],
+        "title": "ReviewReason",
+        "type": "string"
+      },
+      "Rol": {
+        "enum": [
+          "user",
+          "assistant"
+        ],
+        "title": "Rol",
+        "type": "string"
+      },
+      "SetupIn": {
+        "properties": {
+          "email": {
+            "maxLength": 320,
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 512,
+            "minLength": 8,
+            "title": "Password",
+            "type": "string"
+          },
+          "userid": {
+            "maxLength": 64,
+            "title": "Userid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "userid",
+          "email",
+          "password"
+        ],
+        "title": "SetupIn",
+        "type": "object"
+      },
+      "SetupStatus": {
+        "properties": {
+          "needs_setup": {
+            "title": "Needs Setup",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "needs_setup"
+        ],
+        "title": "SetupStatus",
+        "type": "object"
+      },
+      "StatusInvoer": {
+        "description": "Afronden of heropenen. `gepromoveerd` staat er bewust niet bij: die toestand hoort bij het\ngraaf-schrijfpad (fase 4) en is niet iets wat de jurist zelf zet.",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DocumentStatus"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "StatusInvoer",
+        "type": "object"
+      },
+      "SuggestieInvoer": {
+        "description": "Kanttekening van de Critic: bij een element dat de JURIST maakte, of \u2014 als er een concreet\nvoorstel in zit (klasse en/of fragment) \u2014 bij een agent-element waarvan de eindbeoordeling nog\niets voorstelt.",
+        "properties": {
+          "aandacht": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Aandacht"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "element_id": {
+            "title": "Element Id",
+            "type": "string"
+          },
+          "motivatie": {
+            "default": "",
+            "title": "Motivatie",
+            "type": "string"
+          },
+          "voorstel_klasse": {
+            "default": "",
+            "title": "Voorstel Klasse",
+            "type": "string"
+          },
+          "voorstel_tekst": {
+            "default": "",
+            "title": "Voorstel Tekst",
+            "type": "string"
+          }
+        },
+        "required": [
+          "element_id"
+        ],
+        "title": "SuggestieInvoer",
+        "type": "object"
+      },
+      "TempPassword": {
+        "properties": {
+          "temp_password": {
+            "title": "Temp Password",
+            "type": "string"
+          },
+          "userid": {
+            "title": "Userid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "userid",
+          "temp_password"
+        ],
+        "title": "TempPassword",
+        "type": "object"
+      },
+      "TestResult": {
+        "properties": {
+          "detail": {
+            "default": "",
+            "title": "Detail",
+            "type": "string"
+          },
+          "model": {
+            "default": "",
+            "title": "Model",
+            "type": "string"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "tokens_in": {
+            "default": 0,
+            "title": "Tokens In",
+            "type": "integer"
+          },
+          "tokens_out": {
+            "default": 0,
+            "title": "Tokens Out",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "title": "TestResult",
+        "type": "object"
+      },
+      "TotpActivateIn": {
+        "properties": {
+          "totp": {
+            "maxLength": 16,
+            "title": "Totp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "totp"
+        ],
+        "title": "TotpActivateIn",
+        "type": "object"
+      },
+      "TotpBeginOut": {
+        "properties": {
+          "otpauth_uri": {
+            "title": "Otpauth Uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "otpauth_uri"
+        ],
+        "title": "TotpBeginOut",
+        "type": "object"
+      },
+      "TotpDisableIn": {
+        "properties": {
+          "totp": {
+            "maxLength": 16,
+            "title": "Totp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "totp"
+        ],
+        "title": "TotpDisableIn",
+        "type": "object"
+      },
+      "UserCreateIn": {
+        "properties": {
+          "email": {
+            "maxLength": 320,
+            "title": "Email",
+            "type": "string"
+          },
+          "role": {
+            "default": "analist",
+            "maxLength": 16,
+            "title": "Role",
+            "type": "string"
+          },
+          "userid": {
+            "maxLength": 64,
+            "title": "Userid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "userid",
+          "email"
+        ],
+        "title": "UserCreateIn",
+        "type": "object"
+      },
+      "UserCreated": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "created": {
+            "default": "",
+            "title": "Created",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "temp_password": {
+            "title": "Temp Password",
+            "type": "string"
+          },
+          "totp_enabled": {
+            "title": "Totp Enabled",
+            "type": "boolean"
+          },
+          "updated": {
+            "default": "",
+            "title": "Updated",
+            "type": "string"
+          },
+          "userid": {
+            "title": "Userid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "userid",
+          "email",
+          "role",
+          "totp_enabled",
+          "active",
+          "temp_password"
+        ],
+        "title": "UserCreated",
+        "type": "object"
+      },
+      "UserOut": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "created": {
+            "default": "",
+            "title": "Created",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "totp_enabled": {
+            "title": "Totp Enabled",
+            "type": "boolean"
+          },
+          "updated": {
+            "default": "",
+            "title": "Updated",
+            "type": "string"
+          },
+          "userid": {
+            "title": "Userid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "userid",
+          "email",
+          "role",
+          "totp_enabled",
+          "active"
+        ],
+        "title": "UserOut",
+        "type": "object"
+      },
+      "UserPatchIn": {
+        "properties": {
+          "active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          }
+        },
+        "title": "UserPatchIn",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "VerifyIn": {
+        "properties": {
+          "password": {
+            "default": "",
+            "maxLength": 512,
+            "title": "Password",
+            "type": "string"
+          },
+          "remember": {
+            "default": false,
+            "title": "Remember",
+            "type": "boolean"
+          },
+          "ticket": {
+            "anyOf": [
+              {
+                "maxLength": 1024,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ticket"
+          },
+          "totp": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totp"
+          },
+          "trusted_token": {
+            "anyOf": [
+              {
+                "maxLength": 1024,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trusted Token"
+          },
+          "userid": {
+            "maxLength": 64,
+            "title": "Userid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "userid"
+        ],
+        "title": "VerifyIn",
+        "type": "object"
+      },
+      "VerifyResult": {
+        "description": "Intern contract voor de BFF (Auth.js). 200 met `ok=false` i.p.v. 401 zodat de\nauthorize()-flow zonder exception-afhandeling de reden kan lezen. `ticket`/`trusted_token`\ngaan server\u2192server naar de BFF, die ze als httpOnly cookies zet (nooit naar de browser-JS).",
+        "properties": {
+          "code": {
+            "default": "",
+            "title": "Code",
+            "type": "string"
+          },
+          "email": {
+            "default": "",
+            "title": "Email",
+            "type": "string"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "role": {
+            "default": "",
+            "title": "Role",
+            "type": "string"
+          },
+          "ticket": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ticket"
+          },
+          "trusted_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trusted Token"
+          },
+          "userid": {
+            "default": "",
+            "title": "Userid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "title": "VerifyResult",
+        "type": "object"
+      },
+      "Wijziging": {
+        "description": "Voorgestelde veldwijzigingen bij een edit-beslissing (alle optioneel).\n\nHet `anker` hoort bij `tekst`: kort de jurist een markering in of breidt hij hem uit, dan schuift\nde plek mee. Blijft het oude anker staan, dan wijzen de offsets naar het oude fragment en springt\nde markering na herladen naar een ander voorkomen. Verandert de tekst zonder dat er een anker\nmeekomt, dan wordt het oude gewist \u2014 geen anker is eerlijker dan een anker dat liegt.",
+        "properties": {
+          "anker": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Anker"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "klasse": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Klasse"
+          },
+          "lid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lid"
+          },
+          "tekst": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tekst"
+          },
+          "toelichting": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Toelichting"
+          }
+        },
+        "title": "Wijziging",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "Backend voor de Wetsanalyse-werkplek: het JAS-annotatiedomein, LLM-/gebruikersbeheer en wet-/profiel-keuzelijsten. Auth via per-client bearer-token.",
+    "title": "Wetsanalyse API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "description": "Liveness \u2014 geen auth, mag niet falen op trage MCP/LLM.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/ready": {
+      "get": {
+        "description": "Readiness \u2014 configuratie aanwezig? (geen netwerk-call om health niet te koppelen).",
+        "operationId": "ready_ready_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Ready",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/v1/admin/api-tokens": {
+      "get": {
+        "description": "Overzicht van genereerbare API-tokens \u2014 nooit de hash of het volledige token, alleen het prefix.",
+        "operationId": "lijst_api_tokens_v1_admin_api_tokens_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ApiTokenOut"
+                  },
+                  "title": "Response Lijst Api Tokens V1 Admin Api Tokens Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Lijst Api Tokens",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "maak_api_token_v1_admin_api_tokens_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiTokenCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiTokenCreated"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Maak Api Token",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/api-tokens/{token_id}": {
+      "delete": {
+        "operationId": "trek_api_token_in_v1_admin_api_tokens__token_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token_id",
+            "required": true,
+            "schema": {
+              "title": "Token Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Trek Api Token In",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/berichten": {
+      "get": {
+        "operationId": "lijst_berichten_v1_admin_berichten_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pagina",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Pagina",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_pagina",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Per Pagina",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminBerichtenPaginaOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Lijst Berichten",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "maak_bericht_v1_admin_berichten_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BerichtAanmakenIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminBerichtOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Maak Bericht",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/berichten/{bericht_id}": {
+      "delete": {
+        "operationId": "verwijder_bericht_v1_admin_berichten__bericht_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bericht_id",
+            "required": true,
+            "schema": {
+              "title": "Bericht Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Verwijder Bericht",
+        "tags": [
+          "admin"
+        ]
+      },
+      "put": {
+        "operationId": "bewerk_bericht_v1_admin_berichten__bericht_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bericht_id",
+            "required": true,
+            "schema": {
+              "title": "Bericht Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BerichtAanmakenIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminBerichtOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Bewerk Bericht",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/berichten/{bericht_id}/publicatie": {
+      "patch": {
+        "operationId": "zet_publicatie_v1_admin_berichten__bericht_id__publicatie_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bericht_id",
+            "required": true,
+            "schema": {
+              "title": "Bericht Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BerichtPublicatieIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminBerichtOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Zet Publicatie",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/feedback": {
+      "get": {
+        "operationId": "get_feedback_v1_admin_feedback_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackAdminPaginaOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Feedback",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/feedback/markeer-gezien": {
+      "post": {
+        "operationId": "post_markeer_feedback_gezien_v1_admin_feedback_markeer_gezien_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkeerGezienIn",
+                "default": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Markeer Feedback Gezien",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/feedback/ongelezen-aantal": {
+      "get": {
+        "operationId": "get_ongelezen_feedback_aantal_v1_admin_feedback_ongelezen_aantal_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OngelezenFeedbackOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Ongelezen Feedback Aantal",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/feedback/{feedback_id}": {
+      "delete": {
+        "operationId": "verwijder_feedback_v1_admin_feedback__feedback_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "feedback_id",
+            "required": true,
+            "schema": {
+              "title": "Feedback Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Verwijder Feedback",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/profiles": {
+      "get": {
+        "operationId": "lijst_profielen_v1_admin_profiles_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProfileOut"
+                  },
+                  "title": "Response Lijst Profielen V1 Admin Profiles Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Lijst Profielen",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/profiles/{name}": {
+      "delete": {
+        "operationId": "verwijder_profiel_v1_admin_profiles__name__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Verwijder Profiel",
+        "tags": [
+          "admin"
+        ]
+      },
+      "get": {
+        "operationId": "haal_profiel_v1_admin_profiles__name__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Haal Profiel",
+        "tags": [
+          "admin"
+        ]
+      },
+      "put": {
+        "operationId": "upsert_profiel_v1_admin_profiles__name__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Upsert Profiel",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/profiles/{name}/default": {
+      "post": {
+        "operationId": "maak_default_v1_admin_profiles__name__default_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Maak Default",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/profiles/{name}/test": {
+      "post": {
+        "operationId": "test_profiel_v1_admin_profiles__name__test_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Test Profiel",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/users": {
+      "get": {
+        "operationId": "lijst_users_v1_admin_users_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserOut"
+                  },
+                  "title": "Response Lijst Users V1 Admin Users Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Lijst Users",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "maak_user_v1_admin_users_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserCreated"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Maak User",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/users/{userid}": {
+      "delete": {
+        "operationId": "verwijder_user_v1_admin_users__userid__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userid",
+            "required": true,
+            "schema": {
+              "title": "Userid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Verwijder User",
+        "tags": [
+          "admin"
+        ]
+      },
+      "patch": {
+        "operationId": "wijzig_user_v1_admin_users__userid__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userid",
+            "required": true,
+            "schema": {
+              "title": "Userid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Wijzig User",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/users/{userid}/reset-password": {
+      "post": {
+        "operationId": "reset_user_wachtwoord_v1_admin_users__userid__reset_password_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userid",
+            "required": true,
+            "schema": {
+              "title": "Userid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TempPassword"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Reset User Wachtwoord",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/annotatie/documenten": {
+      "get": {
+        "operationId": "lijst_documenten_v1_annotatie_documenten_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentSamenvatting"
+                  },
+                  "title": "Response Lijst Documenten V1 Annotatie Documenten Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Lijst Documenten",
+        "tags": [
+          "annotatie"
+        ]
+      },
+      "post": {
+        "operationId": "maak_document_v1_annotatie_documenten_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotatieDocument"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Maak Document",
+        "tags": [
+          "annotatie"
+        ]
+      }
+    },
+    "/v1/annotatie/documenten/{slug}": {
+      "delete": {
+        "operationId": "verwijder_document_v1_annotatie_documenten__slug__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Verwijder Document",
+        "tags": [
+          "annotatie"
+        ]
+      },
+      "get": {
+        "operationId": "haal_document_v1_annotatie_documenten__slug__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotatieDocument"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Haal Document",
+        "tags": [
+          "annotatie"
+        ]
+      }
+    },
+    "/v1/annotatie/documenten/{slug}/audit": {
+      "get": {
+        "description": "Append-only tijdlijn, oudste eerst. Gepagineerd: sinds elke agent-ronde per element een regel\nschrijft loopt dit bij een lange review in de honderden.",
+        "operationId": "haal_audit_v1_annotatie_documenten__slug__audit_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AuditRecord"
+                  },
+                  "title": "Response Haal Audit V1 Annotatie Documenten  Slug  Audit Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Haal Audit",
+        "tags": [
+          "annotatie"
+        ]
+      }
+    },
+    "/v1/annotatie/documenten/{slug}/elementen": {
+      "post": {
+        "description": "E\u00e9n element dat de JURIST zelf aanmaakt (een tekstselectie in het documentpaneel).\n\nApart van de PUT, want dat is \"de uitkomst van een agent-ronde\" en dit is iets anders: het komt\ner los bij en raakt de rest niet. `herkomst=\"mens\"` en meteen `human_approved` \u2014 de mens hoeft\nzijn eigen markering niet nog eens goed te keuren.",
+        "operationId": "voeg_element_toe_v1_annotatie_documenten__slug__elementen_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MensElementInvoer"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotatieDocument"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Voeg Element Toe",
+        "tags": [
+          "annotatie"
+        ]
+      },
+      "put": {
+        "description": "De uitkomst van \u00e9\u00e9n agent-ronde SAMENVOEGEN met wat er al staat.\n\nBewust een merge en geen vervanging: de agent kan meerdere rondes draaien (annoteerder \u21c4 Critic)\nen de jurist werkt in hetzelfde document. Vervangen wiste eerder alle beslissingen, levenscyclus\nen element-id's \u2014 met een auditlog dat daarna naar niet-bestaande id's verwees.\n\nMatcht op `id`, met de genormaliseerde tekst als terugval voor clients die nog geen id sturen.\nElementen waar de jurist aan te pas kwam zijn bevroren (\u00a7`_is_bevroren`); die krijgen hooguit een\nnieuw Critic-oordeel. Ongeldige klasse of leeg fragment wordt verworpen (stil, met een teller in\nde audit \u2014 de agent grondt zelf al en dit is het vangnet).",
+        "operationId": "zet_elementen_v1_annotatie_documenten__slug__elementen_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ElementenInvoer"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotatieDocument"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Zet Elementen",
+        "tags": [
+          "annotatie"
+        ]
+      }
+    },
+    "/v1/annotatie/documenten/{slug}/elementen/{element_id}": {
+      "delete": {
+        "description": "Verwijder een EIGEN markering. Agent-elementen verdwijnen niet: die verwerp je (`reject`),\nzodat het auditspoor laat zien d\u00e1t er een voorstel was en wat ermee gebeurde.",
+        "operationId": "verwijder_element_v1_annotatie_documenten__slug__elementen__element_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "element_id",
+            "required": true,
+            "schema": {
+              "title": "Element Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Verwijder Element",
+        "tags": [
+          "annotatie"
+        ]
+      }
+    },
+    "/v1/annotatie/documenten/{slug}/elementen/{element_id}/beslissing": {
+      "post": {
+        "operationId": "beslis_v1_annotatie_documenten__slug__elementen__element_id__beslissing_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "element_id",
+            "required": true,
+            "schema": {
+              "title": "Element Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeslissingInvoer"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotatieDocument"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Beslis",
+        "tags": [
+          "annotatie"
+        ]
+      }
+    },
+    "/v1/annotatie/documenten/{slug}/export": {
+      "post": {
+        "description": "Het hele document als bestand: de markeringen als tabel plus het volledige spoor.\n\nWerkt in elke fase \u2014 een document dat nog in review is exporteert gewoon, met de telling\n\"te beoordelen\" in de kop, zodat een concept nooit als eindproduct kan worden gelezen.",
+        "operationId": "exporteer_document_v1_annotatie_documenten__slug__export_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "formaat",
+            "required": false,
+            "schema": {
+              "default": "pdf",
+              "pattern": "^(pdf|csv|json)$",
+              "title": "Formaat",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ExportInvoer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Req"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Exporteer Document",
+        "tags": [
+          "annotatie"
+        ]
+      }
+    },
+    "/v1/annotatie/documenten/{slug}/status": {
+      "post": {
+        "description": "De annotatie afronden of weer heropenen.\n\nBewust een expliciete handeling van de jurist en geen afgeleide van \"alle elementen beslist\":\ndat laatste is niet hetzelfde als tevreden zijn \u2014 er kan nog een ronde van de agent komen, en\nde \"mogelijk ontbrekend\"-lijst is dan nog niet gewogen. Heropenen kan altijd; een knop die niet\nterug kan is een knop die niemand durft te gebruiken.\n\nAfgerond is \u00f3\u00f3k bevroren: zolang de status `geaccordeerd` is weigeren alle andere schrijfpaden\nmet een 409 (`_afgerond`). Dit endpoint is dus de enige uitweg \u2014 en de enige ingang.",
+        "operationId": "zet_status_v1_annotatie_documenten__slug__status_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusInvoer"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotatieDocument"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Zet Status",
+        "tags": [
+          "annotatie"
+        ]
+      }
+    },
+    "/v1/auth/2fa/activate": {
+      "post": {
+        "operationId": "tfa_activate_v1_auth_2fa_activate_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TotpActivateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Tfa Activate",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/2fa/begin": {
+      "post": {
+        "operationId": "tfa_begin_v1_auth_2fa_begin_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TotpBeginOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Tfa Begin",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/2fa/disable": {
+      "post": {
+        "operationId": "tfa_disable_v1_auth_2fa_disable_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TotpDisableIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Tfa Disable",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/change-password": {
+      "post": {
+        "operationId": "change_password_v1_auth_change_password_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordChangeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Change Password",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/me": {
+      "get": {
+        "operationId": "me_v1_auth_me_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Me",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/setup": {
+      "post": {
+        "operationId": "setup_v1_auth_setup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetupIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Setup",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/setup-status": {
+      "get": {
+        "operationId": "setup_status_v1_auth_setup_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Setup Status",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/verify": {
+      "post": {
+        "operationId": "verify_v1_auth_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Verify",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/berichten": {
+      "get": {
+        "operationId": "get_berichten_v1_berichten_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pagina",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Pagina",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "per_pagina",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Per Pagina",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ongelezen",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Ongelezen",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BerichtenPaginaOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Berichten",
+        "tags": [
+          "berichten"
+        ]
+      }
+    },
+    "/v1/berichten/lees-alles": {
+      "post": {
+        "operationId": "post_lees_alles_v1_berichten_lees_alles_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Lees Alles",
+        "tags": [
+          "berichten"
+        ]
+      }
+    },
+    "/v1/berichten/ongelezen-aantal": {
+      "get": {
+        "operationId": "get_ongelezen_aantal_v1_berichten_ongelezen_aantal_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OngelezenAantalOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Ongelezen Aantal",
+        "tags": [
+          "berichten"
+        ]
+      }
+    },
+    "/v1/feedback": {
+      "post": {
+        "operationId": "post_feedback_v1_feedback_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackBevestigd"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Feedback",
+        "tags": [
+          "feedback"
+        ]
+      }
+    },
+    "/v1/gesprekken": {
+      "get": {
+        "operationId": "lijst_gesprekken_v1_gesprekken_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GesprekSamenvatting"
+                  },
+                  "title": "Response Lijst Gesprekken V1 Gesprekken Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Lijst Gesprekken",
+        "tags": [
+          "gesprekken"
+        ]
+      },
+      "post": {
+        "operationId": "maak_gesprek_v1_gesprekken_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GesprekCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Gesprek"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Maak Gesprek",
+        "tags": [
+          "gesprekken"
+        ]
+      }
+    },
+    "/v1/gesprekken/{gesprek_id}": {
+      "delete": {
+        "operationId": "verwijder_gesprek_v1_gesprekken__gesprek_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "gesprek_id",
+            "required": true,
+            "schema": {
+              "title": "Gesprek Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Verwijder Gesprek",
+        "tags": [
+          "gesprekken"
+        ]
+      },
+      "get": {
+        "operationId": "haal_gesprek_v1_gesprekken__gesprek_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "gesprek_id",
+            "required": true,
+            "schema": {
+              "title": "Gesprek Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Gesprek"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Haal Gesprek",
+        "tags": [
+          "gesprekken"
+        ]
+      },
+      "patch": {
+        "operationId": "hernoem_gesprek_v1_gesprekken__gesprek_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "gesprek_id",
+            "required": true,
+            "schema": {
+              "title": "Gesprek Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GesprekPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Gesprek"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Hernoem Gesprek",
+        "tags": [
+          "gesprekken"
+        ]
+      }
+    },
+    "/v1/gesprekken/{gesprek_id}/berichten": {
+      "post": {
+        "operationId": "voeg_bericht_toe_v1_gesprekken__gesprek_id__berichten_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "gesprek_id",
+            "required": true,
+            "schema": {
+              "title": "Gesprek Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-user-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BerichtInvoer"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bericht"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Voeg Bericht Toe",
+        "tags": [
+          "gesprekken"
+        ]
+      }
+    },
+    "/v1/profiles": {
+      "get": {
+        "operationId": "lijst_profielen_keuze_v1_profiles_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProfileChoice"
+                  },
+                  "title": "Response Lijst Profielen Keuze V1 Profiles Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Lijst Profielen Keuze",
+        "tags": [
+          "catalog"
+        ]
+      }
+    }
+  }
+}

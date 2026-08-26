@@ -97,15 +97,20 @@ mkdir api\secrets
 docker run -d -p 5432:5432 --name wetsanalyse-postgres-lokaal \
   -e POSTGRES_USER=wetsanalyse -e POSTGRES_PASSWORD=wetsanalyse -e POSTGRES_DB=wetsanalyse postgres:16
 
-# 4. Server starten (--env-file is verplicht)
+# 4. Schema aanmaken (Alembic — werkwijze-ADR-0005; DATABASE_URL_SYNC moet in .env staan)
 cd api
 uv sync --extra llm --extra dev
+uv run alembic upgrade head
+
+# 5. Server starten (--env-file is verplicht)
 uv run --env-file .env uvicorn app.main:app --reload --port 3000
 ```
 
-Zet `DATABASE_URL=postgresql+asyncpg://wetsanalyse:wetsanalyse@localhost:5432/wetsanalyse` in `.env`;
-de tabellen worden bij de start aangemaakt. Zie `CLAUDE.md` voor de volledige opstapinstructies, Azure
-AI Foundry-config en productie-deployment via Docker/Portainer.
+Zet `DATABASE_URL=postgresql+asyncpg://wetsanalyse:wetsanalyse@localhost:5432/wetsanalyse` én
+`DATABASE_URL_SYNC=postgresql://wetsanalyse:wetsanalyse@localhost:5432/wetsanalyse` in `.env`. Het
+schema komt uitsluitend van `alembic upgrade head` (stap 4) — de app maakt zelf geen tabellen meer
+aan. Zie `CLAUDE.md` voor de volledige opstapinstructies, Azure AI Foundry-config en
+productie-deployment via Docker/Portainer.
 
 ## Authenticatie
 
