@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RegelSpraak — Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&family=Source+Serif+4:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8; --panel: #fffcf6; --ink: #1c1917; --muted: #6b6560;
+    --line: #ddd5c8; --rule-ink: #c4b9a8;
+    --accent: #1f4e79; --accent-light: #2d6aa0; --accent-ink: #f5faff; --ok: #2d6a4f;
+    --chip: #ede7db; --field: #faf6ee;
+    --rs-ot: #6d28d9; --rs-attr: #2d6a4f; --rs-kenmerk: #c2700f; --rs-rol: #1d4ed8;
+    --serif: 'Source Serif 4', 'Georgia', serif;
+    --display: 'Newsreader', 'Georgia', serif;
+    --sans: 'Outfit', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+    --rule: 1px solid var(--rule-ink);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.65 var(--serif); }
+  header { position: sticky; top: 0; z-index: 5; background: var(--panel);
+           border-bottom: var(--rule); box-shadow: 0 1px 0 0 var(--rule-ink); padding: 14px 32px; }
+  header h1 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 23px;
+              color: var(--accent); letter-spacing: -0.02em; }
+  header .sub { color: var(--muted); font-family: var(--sans); font-size: 12.5px; margin-top: 5px; }
+  main { max-width: 940px; margin: 0 auto; padding: 28px 24px 24px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-top: 2px solid var(--rule-ink);
+           padding: 22px 26px; margin-bottom: 20px; }
+  .panel > h2 { margin: 0 0 14px; font-family: var(--sans); font-size: 11px; font-weight: 600;
+                text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent);
+                border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+  h3 { font-family: var(--display); font-weight: 500; font-size: 17px; margin: 16px 0 6px; }
+  pre { background: #fbfaf7; color: var(--ink); border: 1px solid var(--line);
+        padding: 11px 13px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px;
+        line-height: 1.55; margin: 6px 0 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .rs-ot { color: var(--rs-ot); font-weight: 500; }
+  .rs-attr { color: var(--rs-attr); }
+  .rs-kenmerk { color: var(--rs-kenmerk); }
+  .rs-rol { color: var(--rs-rol); }
+  .rs-kw { font-weight: 700; color: #111; }
+  .meta { color: var(--muted); font-size: 12.5px; font-family: var(--sans); margin: -6px 0 10px; }
+  .legend { font-family: var(--sans); font-size: 11.5px; color: var(--muted); display: flex;
+            gap: 14px; flex-wrap: wrap; margin-top: 6px; }
+  .legend span b { font-weight: 700; }
+  label.fld { display: block; font-family: var(--sans); font-size: 12px; font-weight: 600;
+              color: var(--muted); margin: 12px 0 4px; }
+  textarea { width: 100%; min-height: 64px; resize: vertical; border: 1px solid var(--rule-ink);
+             padding: 9px 12px; font: 15px/1.55 var(--serif); background: var(--field); color: var(--ink); }
+  textarea:focus { outline: none; border-color: var(--accent); background: #fffdf7; }
+  .actions { position: sticky; bottom: 0; background: var(--panel); border-top: 2px solid var(--rule-ink);
+             padding: 14px 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  button { font-family: var(--sans); font-size: 13px; font-weight: 500; padding: 9px 18px;
+           cursor: pointer; border: 1px solid var(--rule-ink); background: var(--panel); color: var(--ink); }
+  button:hover { background: var(--chip); }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  button.ok { background: var(--ok); color: #fff; border-color: var(--ok); }
+  .status { color: var(--muted); font-family: var(--sans); font-size: 13px; }
+  .status.done { color: var(--ok); font-weight: 600; }
+  ul { margin: 0; padding-left: 20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">RegelSpraak — Model</h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+<main id="main"></main>
+<div class="actions">
+  <button class="ok" id="btn-opslaan">Opslaan (§-velden)</button>
+  <button class="primary" id="btn-schrijf">Schrijf .rs/Markdown</button>
+  <span class="status" id="status">Bewerk de §-velden en sla op; schrijf daarna de RegelSpraak-tekst.</span>
+</div>
+
+<script>
+/*__EMBEDDED_DATA__*/
+
+const M = EMBEDDED_DATA || {};
+
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function buildNames(model) {
+  const gs = model.gegevensspraak || {};
+  const ot = [], attr = [], kenmerk = [], rol = [], par = [];
+  for (const o of (gs.objecttypen || [])) {
+    if (o.naam) ot.push(o.naam);
+    for (const a of (o.attributen || [])) if (a.naam) attr.push(a.naam);
+    for (const k of (o.kenmerken || [])) if (k.naam) kenmerk.push(k.naam);
+  }
+  for (const f of (gs.feittypen || [])) for (const r of (f.rollen || []))
+    if (r && r.naam) rol.push(r.naam);
+  for (const p of (gs.parameters || [])) if (p.naam) par.push(p.naam);
+  return { ot, attr, kenmerk, rol, par };
+}
+const NAMES = buildNames(M);
+
+const RS_KEYWORDS = [
+  "Objecttype", "Domein", "Parameter", "Feittype", "Wederkerig feittype",
+  "Eenheidssysteem", "Dimensie", "Tijdlijn", "Dagsoort", "Extensie van objecttype",
+  "Regel", "geldig altijd", "geldig vanaf", "geldig t/m", "indien",
+  "gedurende de tijd dat", "Daarbij geldt", "moet berekend worden als",
+  "moet gesteld worden op", "moet voldoen aan", "kenmerk", "bezittelijk",
+  "bijvoeglijk", "bezield",
+];
+function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+// ASCII-sentinel (@@RS<i>@@; '@' komt niet voor in RegelSpraak) zodat een latere vervanging
+// niet in een al ingevoegde span knipt en getallen niet als placeholder worden teruggelezen.
+function colorize(text) {
+  let s = esc(text);
+  const slots = [];
+  function stash(html) { slots.push(html); return "@@RS" + (slots.length - 1) + "@@"; }
+  const groepen = [
+    [NAMES.ot, "rs-ot"], [NAMES.par, "rs-rol"], [NAMES.rol, "rs-rol"],
+    [NAMES.kenmerk, "rs-kenmerk"], [NAMES.attr, "rs-attr"],
+  ];
+  const phrases = [];
+  for (const [lijst, cls] of groepen)
+    for (const naam of lijst) if (naam) phrases.push([esc(naam), cls]);
+  phrases.sort((a, b) => b[0].length - a[0].length);
+  for (const [phrase, cls] of phrases) {
+    if (!phrase) continue;
+    const re = new RegExp("(^|[^\\w-])(" + escapeRe(phrase) + ")(?![\\w-])", "g");
+    s = s.replace(re, (m, pre, p) => pre + stash('<span class="' + cls + '">' + p + "</span>"));
+  }
+  const kw = RS_KEYWORDS.slice().sort((a, b) => b.length - a.length);
+  for (const k of kw) {
+    const re = new RegExp("(^|[^\\w-])(" + escapeRe(esc(k)) + ")(?![\\w-])", "g");
+    s = s.replace(re, (m, pre, p) => pre + stash('<span class="rs-kw">' + p + "</span>"));
+  }
+  s = s.replace(/@@RS(\d+)@@/g, (m, i) => slots[Number(i)]);
+  return s;
+}
+
+const GS_VOLGORDE = [
+  ["eenheidssystemen", "Eenheidssystemen"], ["domeinen", "Domeinen"],
+  ["dimensies", "Dimensies"], ["tijdlijnen", "Tijdlijnen"], ["dagsoorten", "Dagsoorten"],
+  ["objecttypen", "Objecttypen"], ["feittypen", "Feittypen en rollen"], ["parameters", "Parameters"],
+];
+
+function declBlok(decl) {
+  const t = (decl.regelspraak_tekst || "").trim();
+  return t ? `<pre>${colorize(t)}</pre>` : "";
+}
+
+function renderGegevensspraak() {
+  const gs = M.gegevensspraak || {};
+  let body = "";
+  for (const [sleutel, titel] of GS_VOLGORDE) {
+    const lijst = gs[sleutel] || [];
+    if (!lijst.length) continue;
+    body += `<h3>${esc(titel)}</h3>` + lijst.map(declBlok).join("");
+  }
+  if (!body) return "";
+  return `<div class="panel"><h2>1. GegevensSpraak — objectmodel</h2>
+    <div class="legend">
+      <span><b class="rs-ot">objecttype</b></span>
+      <span><b class="rs-attr">attribuut</b></span>
+      <span><b class="rs-kenmerk">kenmerk/dimensie</b></span>
+      <span><b class="rs-rol">rol/parameter</b></span>
+      <span><b class="rs-kw">sleutelwoord</b></span>
+    </div>${body}</div>`;
+}
+
+const SOORT_LABEL = {
+  gelijkstelling: "Gelijkstelling", kenmerktoekenning: "Kenmerktoekenning",
+  consistentieregel: "Consistentieregel", initialisatie: "Initialisatie",
+  objectcreatie: "ObjectCreatie", feitcreatie: "FeitCreatie", verdeling: "Verdeling",
+  dagsoortdefinitie: "Dagsoortdefinitie", startpuntbepaling: "Startpuntbepaling",
+};
+function herkomstText(h) {
+  if (!h) return "";
+  const vps = (h.vindplaatsen || []).map(vp =>
+    (vp.bron_id || "") + (vp.lid ? " lid " + vp.lid : "")).filter(Boolean).join("; ");
+  const ref = h.regel_id ? "regel " + h.regel_id
+            : h.begrip_ids ? "begrip " + (h.begrip_ids || []).join(", ") : "";
+  return [ref, vps].filter(Boolean).join(" · ");
+}
+function renderRegels() {
+  const rs = M.regels || [];
+  if (!rs.length) return "";
+  const body = rs.map(r => {
+    const t = (r.regelspraak_tekst || "").trim();
+    const herk = herkomstText(r.herkomst);
+    return `<h3>${esc(r.naam || "")} <span style="font-family:var(--sans);font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase">${esc(SOORT_LABEL[r.soort] || r.soort || "")}</span></h3>
+      ${t ? `<pre>${colorize(t)}</pre>` : ""}
+      ${herk ? `<div class="meta">Herkomst: ${esc(herk)}${r.twijfel ? " — Twijfel: " + esc(r.twijfel) : ""}</div>` : (r.twijfel ? `<div class="meta">Twijfel: ${esc(r.twijfel)}</div>` : "")}`;
+  }).join("");
+  return `<div class="panel"><h2>2. RegelSpraak-regels (${rs.length})</h2>${body}</div>`;
+}
+
+function renderVrijeVelden() {
+  const vp = M.validatiepunten || [];
+  const vpText = Array.isArray(vp) ? vp.join("\n") : String(vp || "");
+  return `<div class="panel"><h2>3. Reviewlog en aandachtspunten</h2>
+    <label class="fld">Reviewlog GegevensSpraak</label>
+    <textarea id="rl-gs">${esc(M.reviewlog_gegevensspraak || "")}</textarea>
+    <label class="fld">Reviewlog regels</label>
+    <textarea id="rl-regels">${esc(M.reviewlog_regels || "")}</textarea>
+    <label class="fld">Aandachtspunten voor validatie (één per regel)</label>
+    <textarea id="validatie" style="min-height:96px">${esc(vpText)}</textarea>
+  </div>`;
+}
+
+function render() {
+  const wg = M.werkgebied || {};
+  document.getElementById("title").textContent = "RegelSpraak — " + (wg.naam || "model");
+  document.getElementById("subtitle").textContent =
+    [wg.scoping, wg.bron_rapport ? "bron: " + wg.bron_rapport : ""].filter(Boolean).join(" · ");
+  document.getElementById("main").innerHTML =
+    renderGegevensspraak() + renderRegels() + renderVrijeVelden();
+}
+
+async function opslaan() {
+  const st = document.getElementById("status");
+  const payload = {
+    reviewlog_gegevensspraak: document.getElementById("rl-gs").value,
+    reviewlog_regels: document.getElementById("rl-regels").value,
+    validatiepunten: document.getElementById("validatie").value,
+  };
+  st.textContent = "Opslaan…"; st.className = "status";
+  try {
+    const r = await fetch("/opslaan", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    st.textContent = "✓ §-velden opgeslagen in model.json.";
+    st.className = "status done";
+  } catch (e) { st.textContent = "Fout bij opslaan: " + e.message; }
+}
+
+async function schrijf() {
+  const st = document.getElementById("status");
+  st.textContent = "Schrijven…"; st.className = "status";
+  try {
+    const r = await fetch("/schrijf-rs", { method: "POST" });
+    const j = await r.json();
+    if (!r.ok || !j.ok) throw new Error(j.error || ("HTTP " + r.status));
+    st.textContent = "✓ Geschreven: " + (j.rs || "") + " + " + (j.md || "");
+    st.className = "status done";
+  } catch (e) { st.textContent = "Fout bij schrijven: " + e.message; }
+}
+
+document.getElementById("btn-opslaan").addEventListener("click", opslaan);
+document.getElementById("btn-schrijf").addEventListener("click", schrijf);
+render();
+</script>
+</body>
+</html>

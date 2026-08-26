@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Rijkshuisstijl: witte achtergrond, lintblauw (#154273) als dragende kleur,
+     hemelblauw (#01689B) voor links. Tokennamen zijn behouden t.b.v. de bestaande
+     componenten; alleen de waarden zijn naar de Rijkshuisstijl gezet. */
+  --paper: 255 255 255; /* #FFFFFF — pagina-achtergrond */
+  --surface: 245 246 248; /* #F5F6F8 — cards/secties (lichtgrijs) */
+  --ink: 26 26 26; /* #1A1A1A — broodtekst (≥ 4,5:1 op wit) */
+  --lint: 21 66 115; /* #154273 — lintblauw: koppen + primaire merkkleur */
+  --muted: 74 90 110; /* #4A5A6E — secundaire tekst */
+  --faint: 107 118 133; /* #6B7685 — tertiaire tekst/hints */
+  --line: 209 214 221; /* #D1D6DD — borders/lijnen */
+  --accent: 21 66 115; /* #154273 — primaire acties/buttons/focus (= lintblauw) */
+  --accent-soft: 0 123 199; /* #007BC7 — hover (lichter blauw) */
+  --link: 1 104 155; /* #01689B — tekstlinks */
+  --communicatiekleur: 21 66 115; /* default = lintblauw; later Belastingdienst-stijlvakkleur */
+  --gold: 142 70 0; /* #8E4600 — aandacht/review/twijfel (toegankelijke donker-oranje) */
+  /* Functionele kleuren (Rijkshuisstijl) */
+  --succes: 57 135 12; /* #39870C */
+  --waarschuwing: 225 112 0; /* #E17000 */
+  --fout: 213 43 30; /* #D52B1E */
+  --info: 0 123 199; /* #007BC7 */
+}
+
+* {
+  border-color: rgb(var(--line));
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* Responsieve typografie volgens de Rijkshuisstijl: 100% desktop, 90% tablet,
+     80% mobiel. Eén hefboom: schaalt alle rem-gebaseerde tekst en spacing mee. */
+  font-size: 100%;
+}
+
+@media (max-width: 1023px) {
+  html {
+    font-size: 90%;
+  }
+}
+
+@media (max-width: 639px) {
+  html {
+    font-size: 80%;
+  }
+}
+
+/* iOS/Safari zoomt bij focus in op invoervelden met een lettergrootte < 16px. Omdat de veldgroottes
+   hier rem-gebaseerd zijn en op mobiel meeschalen (80%), komen ze onder die drempel. Op touch-
+   apparaten forceren we daarom 16px op tekstvelden. `!important` is nodig omdat Tailwinds
+   text-sm/-base utility-classes (specificiteit 0,1,0) anders van een kale element-selector winnen.
+   Desktop (fijne pointer, geen focus-zoom) blijft ongemoeid. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+body {
+  background-color: rgb(var(--paper));
+  color: rgb(var(--ink));
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  color: rgb(var(--lint));
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: rgb(var(--link));
+}
+
+::selection {
+  background: rgb(var(--lint) / 0.16);
+}
+
+/* Dunne, smaakvolle scrollbar. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--faint) / 0.45);
+  border-radius: 999px;
+  border: 2px solid rgb(var(--paper));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Printen / "Opslaan als PDF": het hele dossier op papier. Verberg de app-chrome (logobalk,
+   navigatie, footer; tablijst en knoppen dragen `print:hidden`), toon béide tabpanelen i.p.v.
+   alleen de actieve, en klap inklapbare blokken (reviewlog, audit) open. Behoud de
+   JAS-/badge-kleuren. */
+@media print {
+  header,
+  footer {
+    display: none !important;
+  }
+  /* Beide fasen tonen, ook de tab die op scherm verborgen is. */
+  [data-tabpanel][hidden] {
+    display: block !important;
+  }
+  /* Inklapbare detailblokken openvouwen zodat hun inhoud meeprint. */
+  details > *:not(summary) {
+    display: block !important;
+  }
+  /* Entree-animaties uitzetten en op de eindstand zetten. Zonder dit print het via print-CSS
+     onthulde (op scherm verborgen) tabblad blanco: zijn `rise`-animatie (opacity 0 → 1,
+     fill-mode: both) startte nooit en blijft in een statische print-snapshot op opacity 0 hangen. */
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  /* Scroll-containers laten doorlopen zodat brede tabellen/RegelSpraak-blokken niet worden
+     afgeknipt op papier. */
+  .overflow-x-auto,
+  .overflow-y-auto,
+  .overflow-auto,
+  pre {
+    overflow: visible !important;
+  }
+  /* Badge-/klassekleuren ook op papier. */
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+}

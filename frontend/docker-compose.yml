@@ -1,0 +1,85 @@
+# Portainer-stack voor de Wetsanalyse-frontend, achter Nginx Proxy Manager — spiegelt de
+# API- en MCP-stack.
+#
+# De image komt van GHCR (zie .github/workflows/frontend-docker-publish.yml). De container
+# publiceert GÉÉN host-poort: NPM bereikt 'm via het gedeelde Docker-netwerk op hostnaam
+# `wetsanalyse-frontend`, poort 3000. De frontend (BFF) praat intern met de API op
+# `wetsanalyse-api:3000` — de browser ziet de API nooit rechtstreeks.
+#
+# In NPM → Proxy Hosts → Add: Domain `wetsanalyse.ipalm.nl`, Scheme `http`,
+# Forward Hostname `wetsanalyse-frontend`, Forward Port `3000`, SSL (Let's Encrypt) aan.
+# Belangrijk voor SSE: zet in NPM (Advanced) proxy buffering uit, bv.
+#   proxy_buffering off;
+#   proxy_read_timeout 3600s;
+#
+# Stack-omgeving (in Portainer, of door CI via stack-update meegegeven):
+#   PROXY_NETWORK  — naam van het bestaande NPM-netwerk (default homeinfra_internal).
+#   SECRETS_DIR    — host-pad naar de secrets-map (gedeeld met de API-stack).
+#   AUTH_URL       — PUBLIEKE origin van de webapp (bv. https://wetsanalyse.ipalm.nl). Verplicht
+#                    achter een reverse proxy: Auth.js pint hierop z'n login/logout-redirects.
+#                    Zonder dit valt het terug op het interne 0.0.0.0:3000 en springt de browser
+#                    daarheen bij in-/uitloggen.
+#
+# Drie extra secret-bestanden t.o.v. de API-stack, op de host in SECRETS_DIR (mode 644):
+#   frontend_api_token    — ALLEEN de tokenwaarde (het deel NA de ":") van een entry in de
+#                           API-tokenlijst (api_tokens). Voeg daar bv. "frontend:<token>" toe en
+#                           zet dan louter "<token>" in dit bestand.
+#   frontend_admin_token  — idem maar de tokenwaarde uit de admin-tokenlijst (admin_tokens),
+#                           voor het /beheer-scherm (→ /v1/admin/*).
+#   frontend_auth_secret  — geheim voor de login-sessie (Auth.js). Genereer met
+#                           `openssl rand -base64 32`. De entrypoint laadt dit in AUTH_SECRET.
+#                           (2FA hergebruikt de API-secret llm_config_secret; geen extra bestand.)
+#   graph_qa_token        — het graph-qa-token (= dezelfde waarde als qa_api_token op de graph-qa-host)
+#                           voor de annotatie-workbench. Zonder dit faalt alléén het "Annoteer"-knopje;
+#                           de rest van de webapp werkt. Kopieer:
+#                             sudo cp /volume1/docker/secrets/graph-qa/qa_api_token \
+#                                     $SECRETS_DIR/graph_qa_token && sudo chmod 644 $SECRETS_DIR/graph_qa_token
+services:
+  wetsanalyse-frontend:
+    # CI deployt op digest (WETSANALYSE_FRONTEND_IMAGE=…@sha256:…) zodat exact de gebouwde/gescande
+    # image draait; handmatig valt 'ie terug op :latest.
+    image: ${WETSANALYSE_FRONTEND_IMAGE:-ghcr.io/palmw01/wetsanalyse-frontend:latest}
+    container_name: wetsanalyse-frontend
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      API_BASE_URL: "http://wetsanalyse-api:3000"
+      API_TOKEN_FILE: /run/secrets/frontend_api_token
+      ADMIN_API_TOKEN_FILE: /run/secrets/frontend_admin_token
+      AUTH_SECRET_FILE: /run/secrets/frontend_auth_secret
+      # Annotatie-workbench: de BFF streamt voorstellen rechtstreeks van graph-qa (intern, token-gated).
+      GRAPH_QA_URL: "${GRAPH_QA_URL:-http://graph-qa:8080}"
+      GRAPH_QA_TOKEN_FILE: /run/secrets/graph_qa_token
+      # Publieke origin voor Auth.js-redirects (achter NPM). Override via de stack-env AUTH_URL.
+      AUTH_URL: "${AUTH_URL:-https://wetsanalyse.ipalm.nl}"
+      NODE_ENV: production
+      # Observability (BFF). OTEL_EXPORTER_OTLP_ENDPOINT leeg = OpenTelemetry uit (alleen JSON-logs
+      # naar stdout); zet 'm op de OTel-Collector om traces/metrics te exporteren.
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-wetsanalyse-frontend}
+      OTEL_RESOURCE_ATTRIBUTES: ${OTEL_RESOURCE_ATTRIBUTES:-}
+    volumes:
+      - ${SECRETS_DIR:-/opt/secrets/wetsanalyse-api}:/run/secrets:ro
+    networks:
+      - proxy
+    # Resource-limieten: begrenzen een ontspoorde Node-server zodat één container de host niet leegtrekt.
+    mem_limit: 1g
+    pids_limit: 256
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-homeinfra_internal}

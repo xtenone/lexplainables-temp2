@@ -2,3 +2,21 @@
 *.log
 .env
 .env.*
+
+# Node (frontend)
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# Python (api)
+__pycache__/
+*.pyc
+.venv/
+api/.venv/
+.pytest_cache/
+
+# Secrets en lokale runtime-data van de api
+api/secrets/
+api/docker-compose.override.yml

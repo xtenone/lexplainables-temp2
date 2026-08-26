@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wetsanalyse — Review</title>
+<!-- Paper & Ink — warm editoriaal-juridische huisstijl (gelijk aan de webapp).
+     Fonts via Google Fonts; valt offline terug op Georgia/system-ui. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&family=Source+Serif+4:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8; --panel: #fffcf6; --ink: #1c1917; --muted: #6b6560;
+    --line: #ddd5c8; --rule-ink: #c4b9a8;
+    --accent: #a0522d; --accent-light: #c4713f; --accent-ink: #fff8f0;
+    --ok: #2d6a4f; --gold: #8b6914; --gold-light: #fef3c7;
+    --chip: #ede7db; --field: #faf6ee;
+    --serif: 'Source Serif 4', 'Georgia', 'Times New Roman', serif;
+    --display: 'Newsreader', 'Georgia', serif;
+    --sans: 'Outfit', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+    --rule: 1px solid var(--rule-ink);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.65 var(--serif);
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'cv01', 'ss03';
+    /* subtiele paper-grain texture */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 256px 256px; background-blend-mode: overlay;
+  }
+  header {
+    position: sticky; top: 0; z-index: 5; background: var(--panel);
+    border-bottom: var(--rule); box-shadow: 0 1px 0 0 var(--rule-ink);
+    padding: 14px 32px;
+  }
+  header h1 {
+    margin: 0; font-family: var(--display); font-weight: 400; font-style: italic;
+    font-size: 23px; color: var(--accent); letter-spacing: -0.02em; line-height: 1.15;
+  }
+  header .sub {
+    color: var(--muted); font-family: var(--sans); font-size: 12.5px;
+    letter-spacing: 0.02em; margin-top: 5px;
+  }
+  main { max-width: 880px; margin: 0 auto; padding: 28px 24px 24px; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line); border-top: 2px solid var(--rule-ink);
+    border-radius: 0; padding: 22px 26px; margin-bottom: 20px;
+    animation: rise 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .panel { animation: none; } }
+  .panel > h2 {
+    margin: 0 0 14px; font-family: var(--sans); font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent);
+    border-bottom: 1px solid var(--line); padding-bottom: 6px;
+  }
+  details summary { cursor: pointer; font-family: var(--sans); font-weight: 500;
+                    font-size: 13px; color: var(--muted); letter-spacing: 0.02em; }
+  .lid { margin: 8px 0; padding-left: 12px; border-left: 3px solid var(--rule-ink); }
+  .lid b { font-family: var(--sans); font-size: 12px; font-weight: 600;
+           text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); }
+  .item {
+    border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 0;
+    padding: 14px 18px; margin-bottom: 12px; background: var(--panel);
+  }
+  .item .top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .item .id { font-family: var(--sans); font-weight: 700; font-size: 12px;
+              letter-spacing: 0.04em; color: var(--accent); }
+  .item .top strong { font-family: var(--display); font-weight: 500; font-size: 16px; }
+  .chip {
+    background: var(--chip); border: 1px solid #d4cab8; border-radius: 0; padding: 2px 10px;
+    font-family: var(--sans); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent);
+  }
+  .formulering { font-style: italic; margin: 7px 0; color: var(--ink); }
+  .meta { color: var(--muted); font-size: 13.5px; }
+  .meta .lbl { font-weight: 600; color: var(--ink); }
+  .grid { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px;
+          font-size: 13.5px; margin: 7px 0; }
+  .grid > * { min-width: 0; overflow-wrap: anywhere; }
+  .grid .lbl { font-family: var(--sans); color: var(--muted); font-weight: 600;
+               font-size: 12px; letter-spacing: 0.02em; }
+  pre {
+    background: var(--field); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 0; padding: 11px 13px; overflow-x: auto;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.5;
+    margin: 7px 0; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word;
+  }
+  textarea {
+    width: 100%; min-height: 54px; resize: vertical; margin-top: 9px;
+    border: 1px solid var(--rule-ink); border-radius: 0; padding: 9px 12px;
+    font: 15px/1.55 var(--serif); background: var(--field); color: var(--ink);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  textarea::placeholder { color: #a99f93; font-style: italic; }
+  textarea:focus { outline: none; border-color: var(--accent); background: #fffdf7;
+                   box-shadow: 0 0 0 3px rgba(160, 82, 45, 0.1); }
+  textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .subhead { font-family: var(--sans); font-size: 13px; font-weight: 600; margin: 4px 0 10px; }
+  .actions {
+    position: sticky; bottom: 0; background: var(--panel);
+    border-top: 2px solid var(--rule-ink); padding: 14px 24px;
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  }
+  button {
+    font-family: var(--sans); font-size: 13px; font-weight: 500; letter-spacing: 0.03em;
+    border-radius: 0; padding: 9px 18px; cursor: pointer;
+    border: 1px solid var(--rule-ink); background: var(--panel); color: var(--ink);
+    transition: all 0.2s ease;
+  }
+  button:hover { background: var(--chip); border-color: #b0a897; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  button.primary:hover { background: var(--accent-light); border-color: var(--accent-light); }
+  button.ok { background: var(--ok); color: #fff; border-color: var(--ok); }
+  button.ok:hover { background: #358a64; border-color: #358a64; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .status { color: var(--muted); font-family: var(--sans); font-size: 13px; }
+  .status.done { color: var(--ok); font-weight: 600; }
+  .panel.banner {
+    background: var(--gold-light); border: 1px solid #e5d5a0; border-left: 3px solid var(--gold);
+    color: #724c0a; font-size: 14px;
+  }
+  .panel.banner b { font-family: var(--display); font-style: italic; font-weight: 500;
+                    color: var(--gold); }
+  details.vorige { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line); }
+  details.vorige summary { font-size: 12px; color: var(--muted); text-transform: uppercase;
+                           letter-spacing: 0.06em; }
+  details.vorige .meta { font-size: 13.5px; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Wetsanalyse — Review</h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+<main id="main"></main>
+<div class="actions">
+  <button class="primary" id="btn-verstuur">Akkoord — geen wijzigingen</button>
+  <span class="status" id="status">Concept wordt lokaal bewaard tijdens het typen.</span>
+</div>
+
+<script>
+/*__EMBEDDED_DATA__*/
+
+const A = EMBEDDED_DATA.analyse || {};
+const ACT = String(EMBEDDED_DATA.activiteit);
+const RONDE = Number(EMBEDDED_DATA.ronde) || 1;
+const VORIGE = EMBEDDED_DATA.vorige || null;
+// Draft per ronde, zodat een concept uit een vorige ronde niet terugkomt.
+const DRAFT_KEY = "wetsanalyse-review-act" + ACT + "-ronde" + RONDE;
+
+// Index de vorige ronde op stabiele id, zodat we per item kunnen tonen wat de
+// analist toen vroeg en hoe dat item er toen uitzag.
+const VORIGE_FEEDBACK = (VORIGE && VORIGE.feedback && VORIGE.feedback.items) || {};
+const VORIGE_ALGEMEEN = (VORIGE && VORIGE.feedback && VORIGE.feedback.algemeen) || "";
+const VORIGE_ITEMS = buildVorigeItems(VORIGE && VORIGE.analyse);
+
+function buildVorigeItems(analyse) {
+  const map = {};
+  if (!analyse) return map;
+  const lijsten = [];
+  // Activiteit 2: markeringen/verwijzingen leven per bron; activiteit 3: werkgebied-breed.
+  for (const bron of (analyse.bronnen || [])) {
+    lijsten.push(bron.markeringen || [], bron.verwijzingen || []);
+  }
+  lijsten.push(analyse.begrippen || [], analyse.afleidingsregels || []);
+  for (const lst of lijsten) {
+    for (const it of lst) if (it && it.id != null) map[it.id] = it;
+  }
+  return map;
+}
+
+// Bron-index (bron_id → leesbaar label): act-2 draagt volledige bronnen, act-3 een lichte index.
+const BRON_LABEL = {};
+(A.bronnen || []).forEach(b => { if (b && b.bron_id) BRON_LABEL[b.bron_id] = b.label || b.bron_id; });
+
+function vindplaatsText(vps) {
+  if (!Array.isArray(vps) || !vps.length) return "";
+  return vps.map(vp => {
+    const lbl = BRON_LABEL[vp.bron_id] || vp.bron_id || "";
+    return lbl + (vp.lid ? " lid " + vp.lid : "");
+  }).filter(Boolean).join("; ");
+}
+
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Canonieke JAS-klassevolgorde (docs/wa-table.png) — presentatie-sortering, geen datamutatie.
+const JAS_VOLGORDE = [
+  "Rechtssubject", "Rechtsobject", "Rechtsbetrekking", "Rechtsfeit", "Voorwaarde",
+  "Afleidingsregel", "Variabele en variabelewaarde", "Parameter en parameterwaarde",
+  "Operator", "Tijdsaanduiding", "Plaatsaanduiding",
+  "Delegatiebevoegdheid en delegatie-invulling", "Brondefinitie",
+];
+function jasVolgorde(klasse) {
+  const i = JAS_VOLGORDE.indexOf(String(klasse || "").trim());
+  return i === -1 ? JAS_VOLGORDE.length : i;
+}
+// Stabiele kopie-sortering op klasse (onbekende klassen achteraan).
+function sorteerOpKlasse(items) {
+  return (items || []).slice().sort((a, b) => jasVolgorde(a.klasse) - jasVolgorde(b.klasse));
+}
+
+// --- act-3-helpers: begrippen zijn de bouwstenen van regels (id → naam-weergave) ---
+const BEGRIP_NAAM = {};
+(A.begrippen || []).forEach(b => { if (b && b.id) BEGRIP_NAAM[b.id] = b.naam || b.id; });
+
+function bref(id) {
+  if (!id) return "";
+  const n = BEGRIP_NAAM[id];
+  return n && n !== id ? `${n} (${id})` : id;
+}
+
+function invoerText(invoer) {
+  return (invoer || [])
+    .map(i => bref(i.begrip_id) + (i.toelichting ? ` — ${i.toelichting}` : ""))
+    .join("; ");
+}
+
+function parametersText(params) {
+  return (params || []).map(p => {
+    const delen = [bref(p.begrip_id)];
+    if (p.waarde) delen.push(`= ${p.waarde}${p.eenheid ? " " + p.eenheid : ""}`);
+    else delen.push("(waarde in delegatie)");
+    if (p.geldigheid) delen.push(`[${p.geldigheid}]`);
+    if (p.toelichting) delen.push(`— ${p.toelichting}`);
+    return delen.join(" ");
+  }).join("; ");
+}
+
+function voorwaardenText(vws) {
+  return (vws || []).map((v, i) => {
+    const prefix = i > 0 && v.verbinding ? `${v.verbinding} ` : "";
+    const ids = (v.begrip_ids || []).map(bref).join(", ");
+    return prefix + (v.tekst || "") + (ids ? ` [${ids}]` : "");
+  }).join(" · ");
+}
+
+function uitvoerText(uitvoer) {
+  if (!uitvoer || !uitvoer.begrip_id) return "";
+  return bref(uitvoer.begrip_id) + (uitvoer.toelichting ? ` — ${uitvoer.toelichting}` : "");
+}
+
+function relatiesText(relaties) {
+  return (relaties || []).map(r => {
+    const doel = r.doel_begrip ? ` → ${bref(r.doel_begrip)}` : "";
+    return `${r.soort ? r.soort + ": " : ""}${r.beschrijving || ""}${doel}`;
+  }).join("; ");
+}
+
+function herkomstText(h) {
+  if (!h || !h.status) return "";
+  let t = h.aangeleverd_id ? `${h.status} (${h.aangeleverd_id})` : h.status;
+  if (h.motivatie) t += ` — ${h.motivatie}`;
+  return t;
+}
+
+function metaLine(label, value) {
+  if (!value) return "";
+  return `<div><span class="lbl">${esc(label)}:</span> ${esc(value)}</div>`;
+}
+
+function fb(id) {
+  return `<textarea data-fid="${esc(id)}" placeholder="Feedback / correctie (laat leeg = akkoord)"></textarea>`;
+}
+
+// Ingeklapt context-blok bij een item in ronde 2+: wat de analist vorige ronde
+// vroeg, en hoe het item er toen uitzag — zodat zichtbaar is of de feedback geland is.
+function vorigeBlok(id, velden) {
+  if (!VORIGE) return "";
+  const fbVorig = VORIGE_FEEDBACK[id];
+  const itVorig = VORIGE_ITEMS[id];
+  if (!fbVorig && !itVorig) return "";
+  let inner = "";
+  if (fbVorig) {
+    inner += `<div class="meta"><span class="lbl">Jouw vorige feedback:</span> ${esc(fbVorig)}</div>`;
+  }
+  if (itVorig) {
+    // Derde tuple-element (optioneel) is een formatter voor gestructureerde velden.
+    const rows = velden
+      .map(([label, k, fmt]) => [label, fmt ? fmt(itVorig[k]) : itVorig[k]])
+      .filter(([, waarde]) => waarde)
+      .map(([label, waarde]) => `<span class="lbl">${esc(label)}</span><span>${esc(waarde)}</span>`)
+      .join("");
+    if (rows) inner += `<div class="grid" style="margin-top:6px">${rows}</div>`;
+  }
+  return `<details class="vorige"><summary>Vorige ronde</summary>
+    <div style="margin-top:8px">${inner}</div></details>`;
+}
+
+function renderHeader() {
+  const wg = A.werkgebied || {};
+  const nBron = (A.bronnen || []).length;
+  const meta = [wg.naam, nBron ? nBron + " bron" + (nBron === 1 ? "" : "nen") : "", wg.hoofdvraag]
+    .filter(Boolean).join(" · ");
+  document.getElementById("title").textContent =
+    "Wetsanalyse — Review activiteit " + ACT +
+    (ACT === "2" ? " (markeren & classificeren)" : " (begrippen & afleidingsregels)") +
+    (RONDE > 1 ? " — ronde " + RONDE : "");
+  document.getElementById("subtitle").textContent = meta;
+}
+
+function renderBanner() {
+  if (RONDE <= 1) return "";
+  return `<div class="panel banner"><b>Ronde ${RONDE}</b> — dit is een herziening na
+    je feedback. Klap per item "Vorige ronde" open om te zien wat je vroeg en hoe het
+    er toen uitzag, en bevestig of je correctie verwerkt is.</div>`;
+}
+
+function renderWettekst(bron) {
+  if (!bron.leden || !bron.leden.length) return "";
+  const rows = bron.leden.map(l =>
+    `<div class="lid"><b>${l.lid ? "Lid " + esc(l.lid) : ""}</b> ${esc(l.tekst)}</div>`
+  ).join("");
+  return `<details><summary>Wettekst (letterlijk) — context</summary>
+    <div style="margin-top:10px">${rows}</div></details>`;
+}
+
+function renderMarkeringen(bron) {
+  const ms = sorteerOpKlasse(bron.markeringen);
+  if (!ms.length) return "";
+  const items = ms.map(m => `
+    <div class="item">
+      <div class="top">
+        <span class="id">#${esc(m.id)}</span>
+        <span class="chip">${esc(m.klasse)}</span>
+        <span class="meta">${esc(m.vindplaats || "")}</span>
+      </div>
+      <div class="formulering">"${esc(m.formulering)}"</div>
+      ${m.toelichting ? `<div class="meta">${esc(m.toelichting)}</div>` : ""}
+      ${fb(m.id)}
+      ${vorigeBlok(m.id, [["Formulering", "formulering"], ["Klasse", "klasse"],
+        ["Vindplaats", "vindplaats"], ["Toelichting", "toelichting"]])}
+    </div>`).join("");
+  return `<div class="subhead">Markeringen &amp; classificaties (${ms.length})</div>${items}`;
+}
+
+const VW_FUNCTIE_LABEL = {
+  "definitie": "Definitie", "schakel": "Schakel/afwijking", "delegatie": "Delegatie",
+  "intra-artikel": "Intra-artikel", "informatief": "Informatief",
+};
+
+function renderVerwijzingen(bron) {
+  const vs = bron.verwijzingen || [];
+  if (!vs.length) return "";
+  const items = vs.map(v => {
+    const doel = v.doel || {};
+    const label = doel.label || doel.target || "(verwijzing)";
+    const href = doel.target ? "https://wetten.overheid.nl/" + esc(doel.target) : "";
+    const doelHtml = href
+      ? `<a href="${href}" target="_blank" rel="noopener">${esc(label)}</a>` : esc(label);
+    return `
+    <div class="item">
+      <div class="top">
+        <span class="id">#${esc(v.id)}</span>
+        <span class="chip">${esc(VW_FUNCTIE_LABEL[v.functie] || v.functie || "")}</span>
+        <span class="chip">${esc(v.status || "")}</span>
+        <span class="meta">${esc(v.bron_lid || "")}${v.soort ? " · " + esc(v.soort) : ""}${v.extern ? " · extern" : ""}</span>
+      </div>
+      <div class="formulering">${doelHtml}</div>
+      ${v.betekenis ? `<div class="meta">${esc(v.betekenis)}</div>` : ""}
+      ${fb(v.id)}
+      ${vorigeBlok(v.id, [["Functie", "functie"], ["Status", "status"],
+        ["Betekenis", "betekenis"]])}
+    </div>`;
+  }).join("");
+  return `<div class="subhead">Verwijzingen (${vs.length})</div>
+    <div class="meta" style="margin-bottom:10px">Stuur het scope-besluit per verwijzing bij
+      (bv. "volg deze delegatie wél verder", "deze hoort buiten scope", of "promoveer tot eigen bron").</div>
+    ${items}`;
+}
+
+function renderSamenhang(bron) {
+  if (!bron.samenhang) return "";
+  return `<div class="subhead">Samenhang centrale klassen</div>
+    <div style="white-space:pre-wrap">${esc(bron.samenhang)}</div>${fb("samenhang__" + bron.bron_id)}`;
+}
+
+// Eén panel per bron met wettekst, markeringen, verwijzingen en samenhang van die bron.
+function renderBronnen() {
+  return (A.bronnen || []).map(bron => {
+    const titel = bron.label || (bron.wet ? bron.wet + " art. " + bron.artikel : bron.bron_id);
+    const sub = [bron.bwbId, bron.bronreferentie].filter(Boolean).join("  ·  ");
+    const body = renderWettekst(bron) + renderMarkeringen(bron)
+      + renderVerwijzingen(bron) + renderSamenhang(bron);
+    return `<div class="panel">
+      <h2>${esc(titel)}</h2>
+      ${sub ? `<div class="meta" style="margin:-6px 0 12px">${esc(sub)}</div>` : ""}
+      ${body}
+    </div>`;
+  }).join("");
+}
+
+function renderBegrippen() {
+  const items = sorteerOpKlasse(A.begrippen).map(b => `
+    <div class="item">
+      <div class="top"><span class="id">#${esc(b.id)}</span>
+        <span class="chip">${esc(b.klasse)}</span>
+        ${b.herkomst && b.herkomst.status ? `<span class="chip">${esc(b.herkomst.status)}</span>` : ""}
+        <strong>${esc(b.naam)}</strong></div>
+      <div class="grid">
+        ${(b.synoniemen && b.synoniemen.length) ? `<span class="lbl">Synoniemen</span><span>${esc(b.synoniemen.join(", "))}</span>` : ""}
+        ${b.definitie ? `<span class="lbl">Definitie</span><span>${esc(b.definitie + (b.is_interpretatie ? " [interpretatie]" : ""))}</span>` : ""}
+        ${b.grondformulering ? `<span class="lbl">Grondformulering</span><span>${esc(b.grondformulering)}</span>` : ""}
+        ${b.voorbeeld ? `<span class="lbl">Voorbeeld</span><span>${esc(b.voorbeeld)}</span>` : ""}
+        ${b.kenmerken ? `<span class="lbl">Kenmerken</span><span>${esc(b.kenmerken)}</span>` : ""}
+        ${relatiesText(b.relaties) ? `<span class="lbl">Relaties</span><span>${esc(relatiesText(b.relaties))}</span>` : ""}
+        ${(b.verwijst_naar_begrippen && b.verwijst_naar_begrippen.length) ? `<span class="lbl">Verwijst naar</span><span>${esc(b.verwijst_naar_begrippen.map(bref).join(", "))}</span>` : ""}
+        ${b.bron_verwijzing ? `<span class="lbl">Bron-verwijzing</span><span>${esc(b.bron_verwijzing)}</span>` : ""}
+        ${(b.markering_ids && b.markering_ids.length) ? `<span class="lbl">Markeringen</span><span>${esc(b.markering_ids.join(", "))}</span>` : ""}
+        ${herkomstText(b.herkomst) ? `<span class="lbl">Herkomst</span><span>${esc(herkomstText(b.herkomst))}</span>` : ""}
+        ${vindplaatsText(b.vindplaatsen) ? `<span class="lbl">Vindplaats</span><span>${esc(vindplaatsText(b.vindplaatsen))}</span>` : ""}
+        ${b.twijfel ? `<span class="lbl">Twijfel/aanname</span><span>${esc(b.twijfel)}</span>` : ""}
+      </div>
+      ${fb(b.id)}
+      ${vorigeBlok(b.id, [["Naam", "naam"], ["Klasse", "klasse"],
+        ["Definitie", "definitie"], ["Kenmerken", "kenmerken"],
+        ["Relaties", "relaties", relatiesText],
+        ["Herkomst", "herkomst", herkomstText],
+        ["Twijfel/aanname", "twijfel"]])}
+    </div>`).join("");
+  return `<div class="panel"><h2>Begrippen — gedeeld over het werkgebied (${(A.begrippen||[]).length})</h2>${items}</div>`;
+}
+
+function renderRegels() {
+  const items = (A.afleidingsregels || []).map(r => `
+    <div class="item">
+      <div class="top"><span class="id">#${esc(r.id)}</span>
+        <span class="chip">${esc(r.type || "afleidingsregel")}</span>
+        <strong>${esc(r.naam)}</strong></div>
+      <div class="grid">
+        ${uitvoerText(r.uitvoer) ? `<span class="lbl">Uitvoer</span><span>${esc(uitvoerText(r.uitvoer))}</span>` : ""}
+        ${invoerText(r.invoer) ? `<span class="lbl">Invoer</span><span>${esc(invoerText(r.invoer))}</span>` : ""}
+        ${parametersText(r.parameters) ? `<span class="lbl">Parameters</span><span>${esc(parametersText(r.parameters))}</span>` : ""}
+        ${voorwaardenText(r.voorwaarden) ? `<span class="lbl">Voorwaarden</span><span>${esc(voorwaardenText(r.voorwaarden))}</span>` : ""}
+        ${r.toelichting ? `<span class="lbl">Toelichting</span><span>${esc(r.toelichting)}</span>` : ""}
+        ${(r.markering_ids && r.markering_ids.length) ? `<span class="lbl">Markeringen</span><span>${esc(r.markering_ids.join(", "))}</span>` : ""}
+        ${vindplaatsText(r.vindplaatsen) ? `<span class="lbl">Vindplaats</span><span>${esc(vindplaatsText(r.vindplaatsen))}</span>` : ""}
+        ${r.twijfel ? `<span class="lbl">Twijfel/aanname</span><span>${esc(r.twijfel)}</span>` : ""}
+      </div>
+      ${fb(r.id)}
+      ${vorigeBlok(r.id, [["Naam", "naam"], ["Type", "type"],
+        ["Uitvoer", "uitvoer", uitvoerText], ["Invoer", "invoer", invoerText],
+        ["Parameters", "parameters", parametersText],
+        ["Voorwaarden", "voorwaarden", voorwaardenText],
+        ["Twijfel/aanname", "twijfel"]])}
+    </div>`).join("");
+  return `<div class="panel"><h2>Afleidingsregels — gedeeld over het werkgebied (${(A.afleidingsregels||[]).length})</h2>${items}</div>`;
+}
+
+function renderValidatie() {
+  const vp = Array.isArray(A.validatiepunten)
+    ? A.validatiepunten
+    : (A.validatiepunten ? [A.validatiepunten] : []);
+  if (!vp.length) return "";
+  return `<div class="panel"><h2>Aandachtspunten voor validatie</h2>
+    <ul style="margin:0;padding-left:20px">${vp.map(v =>
+      `<li style="margin-bottom:6px;white-space:pre-wrap">${esc(v)}</li>`).join("")}</ul>${fb("validatiepunten")}</div>`;
+}
+
+function renderAlgemeen() {
+  const vorig = VORIGE_ALGEMEEN
+    ? `<div class="meta" style="margin-bottom:8px"><span class="lbl">Jouw vorige
+        algemene feedback:</span> ${esc(VORIGE_ALGEMEEN)}</div>`
+    : "";
+  return `<div class="panel"><h2>Algemene feedback (hele activiteit ${ACT})</h2>${vorig}
+    <textarea data-fid="__algemeen__" style="min-height:90px"
+      placeholder="Algemene opmerkingen, ontbrekende markeringen/begrippen, methodische punten…"></textarea></div>`;
+}
+
+function render() {
+  renderHeader();
+  let html = renderBanner();
+  if (ACT === "2") {
+    html += renderBronnen();
+  } else {
+    html += renderBegrippen() + renderRegels() + renderValidatie();
+  }
+  html += renderAlgemeen();
+  document.getElementById("main").innerHTML = html;
+  restoreDraft();
+  document.querySelectorAll("textarea").forEach(t =>
+    t.addEventListener("input", () => { saveDraft(); updateButton(); }));
+  updateButton();
+}
+
+// True zodra er ergens feedback staat (item-veld of het algemene veld).
+function heeftFeedback() {
+  const d = collect();
+  return Object.keys(d.items).length > 0 || d.algemeen.trim() !== "";
+}
+
+// Eén knop, label beweegt mee zodat zichtbaar is wat versturen doet.
+function updateButton() {
+  document.getElementById("btn-verstuur").textContent =
+    heeftFeedback() ? "Verstuur feedback" : "Akkoord — geen wijzigingen";
+}
+
+function collect() {
+  const items = {};
+  let algemeen = "";
+  document.querySelectorAll("textarea").forEach(t => {
+    const v = t.value.trim();
+    if (!v) return;
+    if (t.dataset.fid === "__algemeen__") algemeen = v;
+    else items[t.dataset.fid] = v;
+  });
+  return { items, algemeen };
+}
+
+function saveDraft() {
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(collect())); } catch (e) {}
+}
+
+function restoreDraft() {
+  try {
+    const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
+    document.querySelectorAll("textarea").forEach(t => {
+      if (t.dataset.fid === "__algemeen__" && d.algemeen) t.value = d.algemeen;
+      else if (d.items && d.items[t.dataset.fid]) t.value = d.items[t.dataset.fid];
+    });
+  } catch (e) {}
+}
+
+async function submit() {
+  const data = collect();
+  const status = heeftFeedback() ? "wijzigingen" : "akkoord";
+  const payload = Object.assign({ status: status, activiteit: ACT }, data);
+  const st = document.getElementById("status");
+  st.textContent = "Versturen…"; st.className = "status";
+  try {
+    const r = await fetch("/feedback", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    st.textContent = "✓ Feedback verzonden — ga terug naar Claude en laat de analyse verdergaan.";
+    st.className = "status done";
+    try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+  } catch (e) {
+    st.textContent = "Fout bij versturen: " + e.message;
+  }
+}
+
+document.getElementById("btn-verstuur").addEventListener("click", submit);
+render();
+</script>
+</body>
+</html>

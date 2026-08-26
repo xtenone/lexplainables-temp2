@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wetsanalyse — Rapport</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&family=Source+Serif+4:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8; --panel: #fffcf6; --ink: #1c1917; --muted: #6b6560;
+    --line: #ddd5c8; --rule-ink: #c4b9a8;
+    --accent: #a0522d; --accent-light: #c4713f; --accent-ink: #fff8f0;
+    --ok: #2d6a4f; --gold: #8b6914; --gold-light: #fef3c7;
+    --chip: #ede7db; --field: #faf6ee;
+    --serif: 'Source Serif 4', 'Georgia', 'Times New Roman', serif;
+    --display: 'Newsreader', 'Georgia', serif;
+    --sans: 'Outfit', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+    --rule: 1px solid var(--rule-ink);
+
+    /* JAS-klasse kleuren */
+    --k-voorwaarde: #b91c1c;
+    --k-rechtsobject: #1d4ed8;
+    --k-rechtssubject: #7e22ce;
+    --k-rechtsbetrekking: #166534;
+    --k-afleidingsregel: #92400e;
+    --k-tijdsaanduiding: #0e7490;
+    --k-operator: #4b5563;
+    --k-variabele: #b45309;
+    --k-parameter: #0f766e;
+    --k-plaatsaanduiding: #065f46;
+    --k-delegatie: #1e40af;
+    --k-brondefinitie: #6b21a8;
+    --k-rechtsfeit: #be185d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.65 var(--serif);
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 256px 256px; background-blend-mode: overlay;
+  }
+  header {
+    position: sticky; top: 0; z-index: 5; background: var(--panel);
+    border-bottom: var(--rule); box-shadow: 0 1px 0 0 var(--rule-ink);
+    padding: 14px 32px;
+  }
+  header h1 {
+    margin: 0; font-family: var(--display); font-weight: 400; font-style: italic;
+    font-size: 23px; color: var(--accent); letter-spacing: -0.02em; line-height: 1.15;
+  }
+  header .sub {
+    color: var(--muted); font-family: var(--sans); font-size: 12.5px;
+    letter-spacing: 0.02em; margin-top: 5px;
+  }
+  main { max-width: 900px; margin: 0 auto; padding: 28px 24px 24px; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line); border-top: 2px solid var(--rule-ink);
+    border-radius: 0; padding: 22px 26px; margin-bottom: 20px;
+    animation: rise 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .panel { animation: none; } }
+  .panel > h2 {
+    margin: 0 0 14px; font-family: var(--sans); font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent);
+    border-bottom: 1px solid var(--line); padding-bottom: 6px;
+  }
+  .panel > h3 {
+    margin: 18px 0 10px; font-family: var(--sans); font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+  }
+  details summary { cursor: pointer; font-family: var(--sans); font-weight: 500;
+                    font-size: 13px; color: var(--muted); letter-spacing: 0.02em; }
+  .lid { margin: 8px 0; padding-left: 12px; border-left: 3px solid var(--rule-ink); }
+  .lid b { font-family: var(--sans); font-size: 12px; font-weight: 600;
+           text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); }
+  .item {
+    border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 0;
+    padding: 14px 18px; margin-bottom: 12px; background: var(--panel);
+  }
+  .item .top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .item .id { font-family: var(--sans); font-weight: 700; font-size: 12px;
+              letter-spacing: 0.04em; color: var(--accent); }
+  .item .top strong { font-family: var(--display); font-weight: 500; font-size: 16px; }
+  .chip {
+    background: var(--chip); border: 1px solid #d4cab8; border-radius: 0; padding: 2px 10px;
+    font-family: var(--sans); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent);
+  }
+  /* JAS-klasse kleuren op chips */
+  .chip[data-klasse="Voorwaarde"]          { background:#fee2e2; border-color:#fca5a5; color:var(--k-voorwaarde); }
+  .chip[data-klasse="Rechtsobject"]        { background:#dbeafe; border-color:#93c5fd; color:var(--k-rechtsobject); }
+  .chip[data-klasse="Rechtssubject"]       { background:#f3e8ff; border-color:#d8b4fe; color:var(--k-rechtssubject); }
+  .chip[data-klasse="Rechtsbetrekking"]    { background:#dcfce7; border-color:#86efac; color:var(--k-rechtsbetrekking); }
+  .chip[data-klasse="Afleidingsregel"]     { background:#fef3c7; border-color:#fcd34d; color:var(--k-afleidingsregel); }
+  .chip[data-klasse="Tijdsaanduiding"]     { background:#cffafe; border-color:#67e8f9; color:var(--k-tijdsaanduiding); }
+  .chip[data-klasse="Operator"]            { background:#f3f4f6; border-color:#d1d5db; color:var(--k-operator); }
+  .chip[data-klasse="Variabele(waarde)"]   { background:#fef9c3; border-color:#fde047; color:var(--k-variabele); }
+  .chip[data-klasse="Parameter(waarde)"]   { background:#ccfbf1; border-color:#5eead4; color:var(--k-parameter); }
+  .chip[data-klasse="Plaatsaanduiding"]    { background:#d1fae5; border-color:#6ee7b7; color:var(--k-plaatsaanduiding); }
+  .chip[data-klasse="Delegatiebevoegdheid / -invulling"]{ background:#dbeafe; border-color:#93c5fd; color:var(--k-delegatie); }
+  .chip[data-klasse="Brondefinitie"]       { background:#f5f3ff; border-color:#c4b5fd; color:var(--k-brondefinitie); }
+  .chip[data-klasse="Rechtsfeit"]          { background:#fce7f3; border-color:#f9a8d4; color:var(--k-rechtsfeit); }
+
+  .formulering { font-style: italic; margin: 7px 0; color: var(--ink); }
+  .grid { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px;
+          font-size: 13.5px; margin: 7px 0; }
+  .grid > * { min-width: 0; overflow-wrap: anywhere; }
+  .grid .lbl { font-family: var(--sans); color: var(--muted); font-weight: 600;
+               font-size: 12px; letter-spacing: 0.02em; }
+  pre {
+    background: var(--field); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 0; padding: 11px 13px; overflow-x: auto;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.5;
+    margin: 7px 0; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word;
+  }
+  .meta-list { list-style: none; padding: 0; margin: 0; }
+  .meta-list li { display: grid; grid-template-columns: 220px 1fr; gap: 4px 12px;
+                  font-size: 13.5px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+  .meta-list li:last-child { border-bottom: none; }
+  .meta-list .lbl { font-family: var(--sans); font-weight: 600; font-size: 12px;
+                    color: var(--muted); letter-spacing: 0.02em; padding-top: 2px; }
+  .vp-lijst { list-style: none; padding: 0; margin: 0; }
+  .vp-lijst li { padding: 6px 0 6px 16px; border-bottom: 1px dotted var(--line);
+                 font-size: 13.5px; position: relative; }
+  .vp-lijst li::before { content: "•"; position: absolute; left: 0;
+                         color: var(--accent); font-weight: 700; }
+  .vp-lijst li:last-child { border-bottom: none; }
+  textarea {
+    width: 100%; min-height: 120px; resize: vertical; margin-top: 9px;
+    border: 1px solid var(--rule-ink); border-radius: 0; padding: 9px 12px;
+    font: 15px/1.55 var(--serif); background: var(--field); color: var(--ink);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  textarea::placeholder { color: #a99f93; font-style: italic; }
+  textarea:focus { outline: none; border-color: var(--accent); background: #fffdf7;
+                   box-shadow: 0 0 0 3px rgba(160, 82, 45, 0.1); }
+  .bewerkbaar-label {
+    font-family: var(--sans); font-size: 12px; font-weight: 600;
+    color: var(--gold); text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 4px; display: block;
+  }
+  .actions {
+    position: sticky; bottom: 0; background: var(--panel);
+    border-top: 2px solid var(--rule-ink); padding: 14px 24px;
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  }
+  button {
+    font-family: var(--sans); font-size: 13px; font-weight: 500; letter-spacing: 0.03em;
+    border-radius: 0; padding: 9px 18px; cursor: pointer;
+    border: 1px solid var(--rule-ink); background: var(--panel); color: var(--ink);
+    transition: all 0.2s ease;
+  }
+  button:hover { background: var(--chip); border-color: #b0a897; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  button.primary:hover { background: var(--accent-light); border-color: var(--accent-light); }
+  button.download { background: var(--ok); color: #fff; border-color: var(--ok); }
+  button.download:hover { background: #358a64; border-color: #358a64; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .status { color: var(--muted); font-family: var(--sans); font-size: 13px; margin-left: auto; }
+  .status.ok { color: var(--ok); font-weight: 600; }
+  .status.err { color: var(--k-voorwaarde); font-weight: 600; }
+  .samenhang-tekst { white-space: pre-wrap; font-size: 14px; line-height: 1.65; }
+  .vw-doel a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-light); }
+  .vw-doel a:hover { color: var(--accent-light); }
+  .vw-status {
+    font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; padding: 2px 9px; border: 1px solid var(--line); background: var(--chip);
+  }
+  .vw-status[data-status="opgehaald"] { color: var(--ok); border-color: #86efac; background: #dcfce7; }
+  .vw-status[data-status="gevolgd"]   { color: var(--k-rechtsbetrekking); border-color: #86efac; background: #f0fdf4; }
+  .vw-status[data-status="gesignaleerd"] { color: var(--muted); }
+  .vw-status[data-status="buiten-scope-diepte"] { color: var(--gold); border-color: #fcd34d; background: var(--gold-light); }
+  .vw-extern { font-family: var(--sans); font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Wetsanalyse — Rapport</h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+<main id="main"></main>
+<div class="actions">
+  <button class="primary" id="btn-opslaan">Opslaan</button>
+  <button class="download" id="btn-download">Download Markdown</button>
+  <span class="status" id="status"></span>
+</div>
+
+<script>
+/*__EMBEDDED_DATA__*/
+
+const D = EMBEDDED_DATA;
+const WG = D.werkgebied || {};
+const BRONNEN = D.bronnen || [];
+const DRAFT_KEY = "wetsanalyse-rapport-" + (WG.naam || (BRONNEN[0] && BRONNEN[0].bron_id) || "");
+
+// Bron-index (bron_id → leesbaar label) voor de cross-bron vindplaatsen in §3.
+const BRON_LABEL = {};
+BRONNEN.forEach(b => { if (b && b.bron_id) BRON_LABEL[b.bron_id] = b.label || b.bron_id; });
+
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function vindplaatsText(vps) {
+  if (!Array.isArray(vps) || !vps.length) return "";
+  return vps.map(vp => {
+    const lbl = BRON_LABEL[vp.bron_id] || vp.bron_id || "";
+    return lbl + (vp.lid ? " lid " + vp.lid : "");
+  }).filter(Boolean).join("; ");
+}
+
+function bronTitel(bron) {
+  return bron.label || (bron.wet ? bron.wet + " art. " + bron.artikel + (bron.lid ? " lid " + bron.lid : "") : bron.bron_id);
+}
+
+// Canonieke JAS-klassevolgorde (docs/wa-table.png) — presentatie-sortering, geen datamutatie.
+const JAS_VOLGORDE = [
+  "Rechtssubject", "Rechtsobject", "Rechtsbetrekking", "Rechtsfeit", "Voorwaarde",
+  "Afleidingsregel", "Variabele en variabelewaarde", "Parameter en parameterwaarde",
+  "Operator", "Tijdsaanduiding", "Plaatsaanduiding",
+  "Delegatiebevoegdheid en delegatie-invulling", "Brondefinitie",
+];
+function jasVolgorde(klasse) {
+  const i = JAS_VOLGORDE.indexOf(String(klasse || "").trim());
+  return i === -1 ? JAS_VOLGORDE.length : i;
+}
+// Stabiele kopie-sortering op klasse (onbekende klassen achteraan).
+function sorteerOpKlasse(items) {
+  return (items || []).slice().sort((a, b) => jasVolgorde(a.klasse) - jasVolgorde(b.klasse));
+}
+
+// --- act-3-helpers: begrippen zijn de bouwstenen van regels (id → naam-weergave) ---
+const BEGRIP_NAAM = {};
+(D.begrippen || []).forEach(b => { if (b && b.id) BEGRIP_NAAM[b.id] = b.naam || b.id; });
+
+function bref(id) {
+  if (!id) return "";
+  const n = BEGRIP_NAAM[id];
+  return n && n !== id ? `${n} (${id})` : id;
+}
+
+function invoerText(invoer) {
+  return (invoer || [])
+    .map(i => bref(i.begrip_id) + (i.toelichting ? ` — ${i.toelichting}` : ""))
+    .join("; ");
+}
+
+function parametersText(params) {
+  return (params || []).map(p => {
+    const delen = [bref(p.begrip_id)];
+    if (p.waarde) delen.push(`= ${p.waarde}${p.eenheid ? " " + p.eenheid : ""}`);
+    else delen.push("(waarde in delegatie)");
+    if (p.geldigheid) delen.push(`[${p.geldigheid}]`);
+    if (p.toelichting) delen.push(`— ${p.toelichting}`);
+    return delen.join(" ");
+  }).join("; ");
+}
+
+function voorwaardenText(vws) {
+  return (vws || []).map((v, i) => {
+    const prefix = i > 0 && v.verbinding ? `${v.verbinding} ` : "";
+    const ids = (v.begrip_ids || []).map(bref).join(", ");
+    return prefix + (v.tekst || "") + (ids ? ` [${ids}]` : "");
+  }).join(" · ");
+}
+
+function uitvoerText(uitvoer) {
+  if (!uitvoer || !uitvoer.begrip_id) return "";
+  return bref(uitvoer.begrip_id) + (uitvoer.toelichting ? ` — ${uitvoer.toelichting}` : "");
+}
+
+function relatiesText(relaties) {
+  return (relaties || []).map(r => {
+    const doel = r.doel_begrip ? ` → ${bref(r.doel_begrip)}` : "";
+    return `${r.soort ? r.soort + ": " : ""}${r.beschrijving || ""}${doel}`;
+  }).join("; ");
+}
+
+function herkomstText(h) {
+  if (!h || !h.status) return "";
+  let t = h.aangeleverd_id ? `${h.status} (${h.aangeleverd_id})` : h.status;
+  if (h.motivatie) t += ` — ${h.motivatie}`;
+  return t;
+}
+
+// --- Header ------------------------------------------------------------------
+
+function renderHeader() {
+  const nBron = BRONNEN.length;
+  document.getElementById("title").textContent =
+    "Wetsanalyse — " + (WG.naam || (nBron === 1 ? bronTitel(BRONNEN[0]) : "werkgebied"));
+  const sub = [WG.naam, nBron ? nBron + " bron" + (nBron === 1 ? "" : "nen") : "", WG.hoofdvraag || WG.analysefocus]
+    .filter(Boolean).join(" · ");
+  document.getElementById("subtitle").textContent = sub;
+}
+
+// --- §0 Bron en afbakening ---------------------------------------------------
+
+function renderSectie0() {
+  const velden = [
+    ["Werkgebied", WG.naam],
+    ["Hoofdvraag / analysefocus", WG.hoofdvraag || WG.analysefocus],
+    ["Omschrijving", WG.omschrijving],
+    ["Afbakening (scoping)", WG.scoping],
+  ];
+  const rijen = velden
+    .filter(([, v]) => v)
+    .map(([l, v]) => `<li><span class="lbl">${esc(l)}</span><span>${esc(v)}</span></li>`)
+    .join("");
+  const bronRijen = BRONNEN.map(b => {
+    const det = [b.bwbId, b.versiedatum, b.bronreferentie].filter(Boolean).join(" · ");
+    return `<li><span class="lbl">${esc(bronTitel(b))}</span><span>${esc(det)}</span></li>`;
+  }).join("");
+  return `<div class="panel"><h2>0. Werkgebied en afbakening</h2>
+    <ul class="meta-list">${rijen}</ul>
+    <h3>Bronnen in het werkgebied (${BRONNEN.length})</h3>
+    <ul class="meta-list">${bronRijen}</ul></div>`;
+}
+
+// --- §1/§2 Per bron: wettekst, markeringen, verwijzingen, samenhang ----------
+
+const VW_FUNCTIE_LABEL = {
+  "definitie": "Definitie", "schakel": "Schakel / afwijking", "delegatie": "Delegatie",
+  "intra-artikel": "Intra-artikel", "informatief": "Informatief",
+};
+const VW_STATUS_LABEL = {
+  "opgehaald": "opgehaald", "gevolgd": "gevolgd", "gesignaleerd": "gesignaleerd",
+  "buiten-scope-diepte": "buiten scope (diepte)",
+};
+const VW_VOLGORDE = ["definitie", "schakel", "delegatie", "intra-artikel", "informatief"];
+
+function renderVerwijzingenBlok(vs) {
+  if (!vs.length) return "";
+
+  const groepen = {};
+  vs.forEach(v => { (groepen[v.functie] = groepen[v.functie] || []).push(v); });
+  const functies = VW_VOLGORDE.filter(f => groepen[f])
+    .concat(Object.keys(groepen).filter(f => !VW_VOLGORDE.includes(f)));
+
+  const blokken = functies.map(f => {
+    const items = groepen[f].map(v => {
+      const doel = v.doel || {};
+      const label = doel.label || doel.target || "(verwijzing)";
+      const href = doel.target ? "https://wetten.overheid.nl/" + esc(doel.target) : "";
+      const doelHtml = href
+        ? `<a href="${href}" target="_blank" rel="noopener">${esc(label)}</a>`
+        : esc(label);
+      const status = VW_STATUS_LABEL[v.status] || v.status || "";
+      return `<div class="item" style="border-left-color:var(--k-delegatie)">
+        <div class="top">
+          <span class="id">#${esc(v.id)}</span>
+          <span class="vw-status" data-status="${esc(v.status || "")}">${esc(status)}</span>
+          ${v.soort ? `<span class="vw-extern">${esc(v.soort)}</span>` : ""}
+          ${v.bron_lid ? `<span style="color:var(--muted);font-size:13px">${esc(v.bron_lid)}</span>` : ""}
+        </div>
+        <div class="vw-doel" style="margin:6px 0;font-size:14px">${doelHtml}</div>
+        ${v.betekenis ? `<div style="font-size:13.5px;color:var(--ink)">${esc(v.betekenis)}</div>` : ""}
+      </div>`;
+    }).join("");
+    return `<h4 style="font-family:var(--sans);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin:14px 0 8px">${esc(VW_FUNCTIE_LABEL[f] || f)} (${groepen[f].length})</h4>${items}`;
+  }).join("");
+
+  return `<h3>Verwijzingen (${vs.length})</h3>${blokken}`;
+}
+
+// Eén panel per bron: wettekst + markeringen + verwijzingen + samenhang van die bron.
+function renderBron(bron, n) {
+  const leden = bron.leden || [];
+  const ledenHtml = leden.map(l =>
+    `<div class="lid"><b>${l.lid ? "Lid " + esc(l.lid) : ""}</b> ${esc(l.tekst)}</div>`
+  ).join("");
+  const markeringen = sorteerOpKlasse(bron.markeringen);
+  const mItems = markeringen.map(m => `
+    <div class="item">
+      <div class="top">
+        <span class="id">#${esc(m.id)}</span>
+        <span class="chip" data-klasse="${esc(m.klasse)}">${esc(m.klasse)}</span>
+        <span style="color:var(--muted);font-size:13px">${esc(m.vindplaats || "")}</span>
+      </div>
+      <div class="formulering">"${esc(m.formulering)}"</div>
+      ${m.toelichting ? `<div style="font-size:13.5px;color:var(--ink)">${esc(m.toelichting)}</div>` : ""}
+    </div>`).join("");
+  const det = [bron.bwbId, bron.versiedatum, bron.type, bron.pad].filter(Boolean).join("  ·  ");
+  const samenhang = bron.samenhang
+    ? `<h3>Samenhang centrale klassen</h3><div class="samenhang-tekst">${esc(bron.samenhang)}</div>`
+    : "";
+  return `<div class="panel">
+    <h2>Bron ${n} — ${esc(bronTitel(bron))}</h2>
+    ${det ? `<div style="color:var(--muted);font-size:13px;margin:-6px 0 12px">${esc(det)}</div>` : ""}
+    <h3>Wettekst (letterlijk)</h3>
+    ${ledenHtml || `<p style="color:var(--muted);font-size:13px">Geen leden-tekst.</p>`}
+    <h3>Markeringen &amp; classificaties (${markeringen.length})</h3>
+    ${mItems}
+    ${renderVerwijzingenBlok(bron.verwijzingen || [])}
+    ${samenhang}
+  </div>`;
+}
+
+function renderBronnen() {
+  return BRONNEN.map((b, i) => renderBron(b, i + 1)).join("");
+}
+
+// --- §3 Begrippen + Afleidingsregels -----------------------------------------
+
+function renderSectie3() {
+  const begrippen = sorteerOpKlasse(D.begrippen);
+  const regels = D.afleidingsregels || [];
+  const vp = Array.isArray(D.validatiepunten)
+    ? D.validatiepunten
+    : (D.validatiepunten ? [D.validatiepunten] : []);
+
+  const bItems = begrippen.map(b => `
+    <div class="item">
+      <div class="top">
+        <span class="id">#${esc(b.id)}</span>
+        <span class="chip" data-klasse="${esc(b.klasse)}">${esc(b.klasse)}</span>
+        ${b.herkomst && b.herkomst.status ? `<span class="chip">${esc(b.herkomst.status)}</span>` : ""}
+        <strong>${esc(b.naam)}</strong>
+      </div>
+      <div class="grid">
+        ${(b.synoniemen && b.synoniemen.length) ? `<span class="lbl">Synoniemen</span><span>${esc(b.synoniemen.join(", "))}</span>` : ""}
+        ${b.definitie ? `<span class="lbl">Definitie</span><span>${esc(b.definitie + (b.is_interpretatie ? " [interpretatie]" : ""))}</span>` : ""}
+        ${b.grondformulering ? `<span class="lbl">Grondformulering</span><span>${esc(b.grondformulering)}</span>` : ""}
+        ${b.voorbeeld ? `<span class="lbl">Voorbeeld</span><span>${esc(b.voorbeeld)}</span>` : ""}
+        ${b.kenmerken ? `<span class="lbl">Kenmerken</span><span>${esc(b.kenmerken)}</span>` : ""}
+        ${relatiesText(b.relaties) ? `<span class="lbl">Relaties</span><span>${esc(relatiesText(b.relaties))}</span>` : ""}
+        ${(b.verwijst_naar_begrippen && b.verwijst_naar_begrippen.length) ? `<span class="lbl">Verwijst naar</span><span>${esc(b.verwijst_naar_begrippen.map(bref).join(", "))}</span>` : ""}
+        ${b.bron_verwijzing ? `<span class="lbl">Bron-verwijzing</span><span>${esc(b.bron_verwijzing)}</span>` : ""}
+        ${(b.markering_ids && b.markering_ids.length) ? `<span class="lbl">Markeringen</span><span>${esc(b.markering_ids.join(", "))}</span>` : ""}
+        ${herkomstText(b.herkomst) ? `<span class="lbl">Herkomst</span><span>${esc(herkomstText(b.herkomst))}</span>` : ""}
+        ${vindplaatsText(b.vindplaatsen) ? `<span class="lbl">Vindplaats</span><span>${esc(vindplaatsText(b.vindplaatsen))}</span>` : ""}
+        ${b.twijfel ? `<span class="lbl">Twijfel/aanname</span><span>${esc(b.twijfel)}</span>` : ""}
+      </div>
+    </div>`).join("");
+
+  const rItems = regels.map(r => `
+    <div class="item">
+      <div class="top">
+        <span class="id">#${esc(r.id)}</span>
+        <span class="chip">${esc(r.type || "afleidingsregel")}</span>
+        <strong>${esc(r.naam)}</strong>
+      </div>
+      <div class="grid">
+        ${uitvoerText(r.uitvoer) ? `<span class="lbl">Uitvoer</span><span>${esc(uitvoerText(r.uitvoer))}</span>` : ""}
+        ${invoerText(r.invoer) ? `<span class="lbl">Invoer</span><span>${esc(invoerText(r.invoer))}</span>` : ""}
+        ${parametersText(r.parameters) ? `<span class="lbl">Parameters</span><span>${esc(parametersText(r.parameters))}</span>` : ""}
+        ${voorwaardenText(r.voorwaarden) ? `<span class="lbl">Voorwaarden</span><span>${esc(voorwaardenText(r.voorwaarden))}</span>` : ""}
+        ${r.toelichting ? `<span class="lbl">Toelichting</span><span>${esc(r.toelichting)}</span>` : ""}
+        ${(r.markering_ids && r.markering_ids.length) ? `<span class="lbl">Markeringen</span><span>${esc(r.markering_ids.join(", "))}</span>` : ""}
+        ${vindplaatsText(r.vindplaatsen) ? `<span class="lbl">Vindplaats</span><span>${esc(vindplaatsText(r.vindplaatsen))}</span>` : ""}
+        ${r.twijfel ? `<span class="lbl">Twijfel/aanname</span><span>${esc(r.twijfel)}</span>` : ""}
+      </div>
+    </div>`).join("");
+
+  const vpHtml = vp.length
+    ? `<h3>Validatiepunten (context voor §4)</h3>
+       <ul class="vp-lijst">${vp.map(v => `<li>${esc(v)}</li>`).join("")}</ul>`
+    : "";
+
+  return `<div class="panel">
+    <h2>3. Activiteit 3 — Betekenis (gedeeld over het werkgebied)</h2>
+    <div style="font-family:var(--sans);font-size:11px;font-weight:600;text-transform:uppercase;
+      letter-spacing:0.08em;color:var(--muted);margin-bottom:10px">
+      Begrippen (${begrippen.length})
+    </div>
+    ${bItems}
+    <h3>Afleidingsregels (${regels.length})</h3>
+    ${rItems}
+    ${vpHtml}
+  </div>`;
+}
+
+// --- §4 Reviewlog + Aandachtspunten (bewerkbaar) -----------------------------
+
+function renderSectie4() {
+  const rl = D.reviewlog || {};
+  const act2 = (rl.activiteit2 || {});
+  const act3 = (rl.activiteit3 || {});
+  const rondes2 = act2.rondes || [];
+  const rondes3 = act3.rondes || [];
+
+  function rondeContext(rondes) {
+    if (!rondes.length) return "";
+    const regels = rondes.map(r => {
+      const items = Object.entries(r.items || {}).map(([k,v]) => `[${esc(k)}] ${esc(v)}`);
+      const alg = r.algemeen ? [`[algemeen] ${esc(r.algemeen)}`] : [];
+      const alle = [...items, ...alg];
+      if (!alle.length) return `ronde ${r.ronde}: akkoord zonder opmerkingen.`;
+      return `ronde ${r.ronde}: ` + alle.join(" · ");
+    }).join("\n");
+    return `<details style="margin-top:8px"><summary style="font-size:12px;color:var(--muted);
+      font-family:var(--sans);text-transform:uppercase;letter-spacing:0.06em">
+      Ruwe feedback per ronde</summary>
+      <pre style="margin-top:8px;font-size:12px">${regels}</pre></details>`;
+  }
+
+  return `<div class="panel">
+    <h2>4. Reviewlog en aandachtspunten voor validatie</h2>
+
+    <h3>Reviewlog — activiteit 2</h3>
+    ${rondeContext(rondes2)}
+    <span class="bewerkbaar-label">Samenvatting (bewerkbaar)</span>
+    <textarea id="ta-act2" placeholder="Beschrijf per ronde wat er op basis van de feedback is gewijzigd. Bij 1 ronde direct akkoord: '1 ronde — direct akkoord, geen wijzigingen.'">${esc(act2.samenvatting || "")}</textarea>
+
+    <h3>Reviewlog — activiteit 3</h3>
+    ${rondeContext(rondes3)}
+    <span class="bewerkbaar-label">Samenvatting (bewerkbaar)</span>
+    <textarea id="ta-act3" placeholder="Beschrijf per ronde wat er op basis van de feedback is gewijzigd.">${esc(act3.samenvatting || "")}</textarea>
+
+    <h3>Aandachtspunten voor multidisciplinaire validatie</h3>
+    <p style="color:var(--muted);font-size:13px;margin:0 0 4px">
+      Interpretatiekeuzes / open normen / openstaande delegaties / aannames / buiten scope.
+      De validatiepunten in §3 zijn de ruwe bron; dit veld bevat de gestructureerde synthese.</p>
+    <span class="bewerkbaar-label">Aandachtspunten (bewerkbaar)</span>
+    <textarea id="ta-aandacht" style="min-height:200px" placeholder="Geef hier de gestructureerde aandachtspunten voor multidisciplinaire validatie.">${esc(D.aandachtspunten || "")}</textarea>
+  </div>`;
+}
+
+// --- Render ------------------------------------------------------------------
+
+function render() {
+  renderHeader();
+  document.getElementById("main").innerHTML =
+    renderSectie0() +
+    renderBronnen() +
+    renderSectie3() +
+    renderSectie4();
+  restoreDraft();
+  ["ta-act2", "ta-act3", "ta-aandacht"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("input", saveDraft);
+  });
+}
+
+// --- Draft -------------------------------------------------------------------
+
+function collectVelden() {
+  return {
+    reviewlog_act2:  (document.getElementById("ta-act2")     || {}).value || "",
+    reviewlog_act3:  (document.getElementById("ta-act3")     || {}).value || "",
+    aandachtspunten: (document.getElementById("ta-aandacht") || {}).value || "",
+  };
+}
+
+function saveDraft() {
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(collectVelden())); } catch (e) {}
+}
+
+function restoreDraft() {
+  try {
+    const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
+    if (d.reviewlog_act2  !== undefined && document.getElementById("ta-act2"))
+      document.getElementById("ta-act2").value = d.reviewlog_act2;
+    if (d.reviewlog_act3  !== undefined && document.getElementById("ta-act3"))
+      document.getElementById("ta-act3").value = d.reviewlog_act3;
+    if (d.aandachtspunten !== undefined && document.getElementById("ta-aandacht"))
+      document.getElementById("ta-aandacht").value = d.aandachtspunten;
+  } catch (e) {}
+}
+
+// --- Opslaan -----------------------------------------------------------------
+
+document.getElementById("btn-opslaan").addEventListener("click", async () => {
+  const st = document.getElementById("status");
+  st.textContent = "Bezig met opslaan...";
+  st.className = "status";
+  try {
+    const r = await fetch("/opslaan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(collectVelden()),
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    st.textContent = "Opgeslagen.";
+    st.className = "status ok";
+    try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+    setTimeout(() => { st.textContent = ""; st.className = "status"; }, 4000);
+  } catch (e) {
+    st.textContent = "Fout bij opslaan: " + e.message;
+    st.className = "status err";
+  }
+});
+
+// --- Markdown schrijven (sla eerst op, dan genereer) -------------------------
+
+document.getElementById("btn-download").addEventListener("click", async () => {
+  const st = document.getElementById("status");
+  st.textContent = "Bezig...";
+  st.className = "status";
+  try {
+    // Sla eerst de huidige bewerkingen op zodat de MD up-to-date is.
+    const save = await fetch("/opslaan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(collectVelden()),
+    });
+    if (!save.ok) throw new Error("Opslaan mislukt: HTTP " + save.status);
+    try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+
+    const r = await fetch("/schrijf-md", { method: "POST" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error || "onbekende fout");
+    st.textContent = "Opgeslagen als: " + data.pad;
+    st.className = "status ok";
+  } catch (e) {
+    st.textContent = "Fout: " + e.message;
+    st.className = "status err";
+  }
+});
+
+render();
+</script>
+</body>
+</html>

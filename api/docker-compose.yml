@@ -1,0 +1,89 @@
+# Portainer-stack voor de Wetsanalyse API, achter Nginx Proxy Manager — spiegelt de MCP-stack.
+#
+# De image komt van GHCR (zie .github/workflows/api-docker-publish.yml).
+# De container publiceert GÉÉN host-poort: NPM bereikt 'm via het gedeelde Docker-netwerk op
+# hostnaam `wetsanalyse-api`, poort 3000. De API praat intern met de MCP op `wettenbank-mcp:3000`.
+#
+# In NPM → Proxy Hosts → Add: Domain `wetsanalyse-api.ipalm.nl`, Scheme `http`,
+# Forward Hostname `wetsanalyse-api`, Forward Port `3000`, SSL (Let's Encrypt) aan.
+#
+# Stack-omgeving (in Portainer, of door CI via stack-update meegegeven):
+#   LLM_PROVIDER/LLM_MODEL/LLM_API_BASE/LLM_API_VERSION — niet-geheime LLM-config.
+#   PROXY_NETWORK           — naam van het bestaande NPM-netwerk (default homeinfra_internal).
+#   SECRETS_DIR             — host-pad naar de secrets-map (default /opt/secrets/wetsanalyse-api;
+#                             op Synology: /volume1/docker/secrets/wetsanalyse-api).
+#
+# Secrets leven als bestanden op de host in SECRETS_DIR en worden via *_FILE-variabelen
+# doorgegeven (nooit als plain env var in de container of Portainer-UI):
+#   llm_api_key, wettenbank_token, api_tokens, database_url,
+#   postgres_user, postgres_password,
+#   admin_tokens (bearer voor /v1/admin/*), llm_config_secret (Fernet-key voor API-key-opslag).
+# Zie api/CLAUDE.md §"Secrets op de host" voor provisioning. De `database_url`-secret heeft de
+# vorm postgresql+asyncpg://<user>:<pass>@postgres:5432/wetsanalyse en gebruikt dezelfde
+# credentials als postgres_user/postgres_password.
+
+# Horizontaal schaalbaar: het concurrency-model is een atomaire state-CAS (geen in-process lock),
+# dus `deploy.replicas > 1` is veilig. Elke replica/worker krijgt een eigen owner-id; een lease +
+# reaper ruimt jobs van een gecrashte replica op. Stel evt. WETSANALYSE_LEASE_S /
+# WETSANALYSE_REAPER_INTERVAL_S in.
+services:
+  wetsanalyse-api:
+    # CI deployt op digest (WETSANALYSE_API_IMAGE=…@sha256:…) zodat exact de gebouwde/gescande image
+    # draait; handmatig valt 'ie terug op :latest.
+    image: ${WETSANALYSE_API_IMAGE:-ghcr.io/palmw01/wetsanalyse-api:latest}
+    container_name: wetsanalyse-api
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      WETSANALYSE_API_TOKENS_FILE: /run/secrets/api_tokens
+      WETSANALYSE_AUTH_REQUIRED: "1"
+      WETSANALYSE_ADMIN_TOKENS_FILE: /run/secrets/admin_tokens
+      WETTENBANK_MCP_URL: "http://wettenbank-mcp:3000/mcp"
+      WETTENBANK_TOKEN_FILE: /run/secrets/wettenbank_token
+      LLM_PROVIDER: ${LLM_PROVIDER:-azure_ai}
+      LLM_MODEL: ${LLM_MODEL:?zet LLM_MODEL in de stack-omgeving}
+      LLM_API_BASE: ${LLM_API_BASE:-}
+      LLM_API_KEY_FILE: /run/secrets/llm_api_key
+      LLM_API_VERSION: ${LLM_API_VERSION:-}
+      LLM_OUTPUT_STRATEGY: ${LLM_OUTPUT_STRATEGY:-prompt_and_parse}
+      # Master key voor versleuteling-at-rest van via de admin-UI opgeslagen API-keys.
+      LLM_CONFIG_SECRET_FILE: /run/secrets/llm_config_secret
+      DATABASE_URL_FILE: /run/secrets/database_url
+      # Cross-origin browser-toegang: leeg = uit (default). De BFF praat server→server en heeft
+      # dit niet nodig; zet alleen als een browser-origin de API rechtstreeks moet aanroepen.
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      # Observability. LOG_FORMAT=json (default) voor SIEM/Loki; LOG_LEVEL stelt de drempel in.
+      # OTEL_EXPORTER_OTLP_ENDPOINT leeg = OpenTelemetry uit (alleen JSON-logs); zet 'm op de
+      # OTel-Collector (bv. http://otel-collector:4318) om traces/metrics/logs te exporteren.
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-wetsanalyse-api}
+      OTEL_RESOURCE_ATTRIBUTES: ${OTEL_RESOURCE_ATTRIBUTES:-}
+    volumes:
+      - ${SECRETS_DIR:-/opt/secrets/wetsanalyse-api}:/run/secrets:ro
+    networks:
+      - proxy
+    # Postgres draait als APARTE stack (deploy/postgres/), zodat een app-redeploy de DB nooit
+    # recreate. Geen cross-stack `depends_on` mogelijk → de API verbindt met bounded retry op
+    # `postgres:5432` (zie app/main.py `_init_db_met_retry`); beide stacks delen homeinfra_internal.
+    # Resource-limieten: begrenzen een ontspoorde worker zodat één container de host niet leegtrekt.
+    mem_limit: 1g
+    pids_limit: 256
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:3000/health').status==200 else 1)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+networks:
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-homeinfra_internal}
